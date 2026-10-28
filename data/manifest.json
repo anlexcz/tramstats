@@ -1,8 +1,1 @@
-{
-  "source": "Tramvajování",
-  "generatedFromSheets": [2020,2021,2022,2023,2024,2025,2026],
-  "files": [
-    "shifts-2020.json","shifts-2021.json","shifts-2022.json","shifts-2023.json","shifts-2024.json","shifts-2025.json","shifts-2026.json",
-    "breaks-2020.json","breaks-2021.json","breaks-2022.json","breaks-2023.json","breaks-2024.json","breaks-2025.json","breaks-2026.json"
-  ]
-}
+{"schemaVersion":1,"source":"https://docs.google.com/spreadsheets/d/1G-WI9H1T7sSH5g6IBZXzbCx-3lbVZ7Df8mrpM6jxR6E/edit","exportedAt":"2026-10-29","years":[{"year":2020,"shifts":"shifts-2020.json","breaks":"breaks-2020.json","days":334,"parts":268,"breakCount":17,"km":21829.647,"from":"2020-02-02","to":"2020-12-31"},{"year":2021,"shifts":"shifts-2021.json","breaks":"breaks-2021.json","days":365,"parts":251,"breakCount":33,"km":21268.217,"from":"2021-01-01","to":"2021-12-31"},{"year":2022,"shifts":"shifts-2022.json","breaks":"breaks-2022.json","days":365,"parts":306,"breakCount":122,"km":26705.61,"from":"2022-01-01","to":"2022-12-31"},{"year":2023,"shifts":"shifts-2023.json","breaks":"breaks-2023.json","days":365,"parts":294,"breakCount":158,"km":26476.82,"from":"2023-01-01","to":"2023-12-31"},{"year":2024,"shifts":"shifts-2024.json","breaks":"breaks-2024.json","days":335,"parts":323,"breakCount":179,"km":27150.48,"from":"2024-01-01","to":"2024-12-31"},{"year":2025,"shifts":"shifts-2025.json","breaks":"breaks-2025.json","days":365,"parts":363,"breakCount":145,"km":24762.137,"from":"2025-01-01","to":"2025-12-31"},{"year":2026,"shifts":"shifts-2026.json","breaks":"breaks-2026.json","days":273,"parts":230,"breakCount":109,"km":18347.843,"from":"2026-01-01","to":"2026-09-30"}]}
