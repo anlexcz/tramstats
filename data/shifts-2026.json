@@ -1,0 +1,15 @@
+[
+{"date":"2026-10-01","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"24","order":"10","vehicleType":"14T","frontVehicle":"9171","start":"06:19","end":"16:28","km":133.575,"note":null}]},
+{"date":"2026-10-02","shiftType":"O","depot":"Kobylisy","parts":[{"no":1,"line":"10","order":"10","vehicleType":"15T","frontVehicle":"9272","start":"09:41","end":"18:25","km":134.129,"note":"Výměna vozu: 9272 → 9125, 18:25, Sídliště Ďáblice"},{"no":2,"line":"10","order":"10","vehicleType":"14T","frontVehicle":"9125","start":"18:25","end":"19:00","km":2.908,"note":null}]},
+{"date":"2026-10-15","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"24","order":"4","vehicleType":"14T","frontVehicle":"9172","start":"06:36","end":"18:18","km":142.933,"note":null}]},
+{"date":"2026-10-16","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"10","order":"13","vehicleType":"14T","frontVehicle":"9161","start":"07:35","end":"15:36","km":111.874,"note":null}]},
+{"date":"2026-10-17","shiftType":"Š","depot":null,"parts":[{"no":1,"line":"PLP","order":null,"vehicleType":null,"frontVehicle":null,"start":"07:18","end":"11:18","km":null,"note":"Pracovní lékařská prohlídka"},{"no":2,"line":"10","order":"16","vehicleType":"14T","frontVehicle":"9167","start":"13:18","end":"19:23","km":84.973,"note":null}]},
+{"date":"2026-10-18","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"10","order":"6","vehicleType":"T3","frontVehicle":"8508","rearVehicle":"8480","start":"06:13","end":"14:38","km":112.552,"note":null}]},
+{"date":"2026-10-21","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"24","order":"7","vehicleType":"14T","frontVehicle":"9126","start":"04:59","end":"13:52","km":115.275,"note":null}]},
+{"date":"2026-10-22","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"17","order":"22","vehicleType":"14T","frontVehicle":"9144","start":"06:05","end":"15:17","km":138.67,"note":null}]},
+{"date":"2026-10-23","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"10","order":"18","vehicleType":"14T","frontVehicle":"9129","start":"05:17","end":"13:38","km":112.552,"note":null}]},
+{"date":"2026-10-25","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"3","order":"1","vehicleType":"14T","frontVehicle":"9153","start":"04:12","end":"14:56","km":159.936,"note":null}]},
+{"date":"2026-10-26","shiftType":"R","depot":"Motol","parts":[{"no":1,"line":"12","order":"11","vehicleType":"15T","frontVehicle":"9366","start":"05:31","end":"14:56","km":144.497,"note":null}]},
+{"date":"2026-10-29","shiftType":"R","depot":"Kobylisy","parts":[{"no":1,"line":"24","order":"4","vehicleType":"14T","frontVehicle":"9151","start":"06:36","end":"18:18","km":141.628,"note":"Zácvik – 9210 Jan Borovička"}]},
+{"date":"2026-10-30","shiftType":"R","depot":"Žižkov","parts":[{"no":1,"line":"26","order":"15","vehicleType":"15T","frontVehicle":"9436","start":"06:17","end":"14:18","km":105.341,"note":null}]}
+]
