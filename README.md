@@ -1,31 +1,32 @@
-# TramStats — design sandbox
+# TramStats
 
-První read-only prototyp webového rozhraní TramStats určený výhradně pro ladění designu a informační architektury.
+Funkční read-only sandbox osobní tramvajové evidence. Živý web: https://anlexcz.github.io/tramstats/
 
-## Co je uvnitř
+## Spuštění
 
-- dark UI podle pracovní designové specifikace;
-- desktopová horní navigace a samostatná mobilní spodní navigace;
-- dashboard, přehled směn, jednoduché statistiky a přehled vozů;
-- data načítaná z JSON fixture místo databáze;
-- žádné přidávání, úpravy ani mazání dat.
+Bez buildu a závislostí. Spusťte v kořeni `python -m http.server 8000` a otevřete localhost:8000. Přes file:// nemusí prohlížeč dovolit načtení JSON.
 
 ## Data
 
-`data/shifts-2026.json` je reprezentativní výřez skutečných záznamů z Tramvajování pro účely designového prototypu. Struktura už míří směrem k navrženému relačnímu modelu: směna obsahuje jednotlivé části výkonu.
+Statický snímek nového Tramvajování z 29. 10. 2026. Zdroj: https://docs.google.com/spreadsheets/d/1G-WI9H1T7sSH5g6IBZXzbCx-3lbVZ7Df8mrpM6jxR6E/edit
 
-Zdrojová tabulka zůstává zdrojem pravdy. JSON je pouze sandboxová kopie pro frontend.
+- `data/shifts-YYYY.json`: evidované dny včetně volna; pracovní části v `parts`. PS, SS a poznámky zachovány. Poznámky bez výkonu jsou na úrovni dne.
+- `data/breaks-YYYY.json`: všech sedm zdrojových polí BP.
+- `data/manifest.json`: rozsahy, počty a kontrolní součty.
+- `scripts/import_xlsx.py`: opakovatelný import XLSX exportu; vyžaduje openpyxl. Použití: `python scripts/import_xlsx.py /path/to/export.xlsx`.
 
-## Lokální spuštění
+Zdrojový sešit se neupravuje. JSON se automaticky neaktualizuje. Rok 2026 obsahuje leden–září; 2024 má 335 evidovaných dnů. Chybějící dny se nedoplňují. `null` není nula. Zdrojové podtypy vozů se nedomýšlejí.
 
-Kvůli načítání JSON přes `fetch()` je vhodné spustit adresář přes jednoduchý HTTP server, například:
+## Statistická pravidla
 
-```bash
-python -m http.server 8080
-```
+Pracovní směna je evidovaný den s pracovními částmi, mimo V, VVS, KS, D, PN, P16, MD. Volno a nepřítomnosti zůstávají v přehledu dnů. Více částí netvoří více směn. Rozsah je interval první–poslední části včetně BP a mezery šejdru; není prezentován jako odpracovaný čas.
 
-Potom otevřít `http://localhost:8080`.
+Rozpad složené linky se použije pouze při jednoduchém součtu konstant v kmFormula se správným počtem složek a shodným součtem. Jinak km zůstávají nerozdělené. MJ není běžná tramvajová linka. Každá linka i fyzický vůz se v počtu směn započtou nejvýše jednou za den. Každý vůz soupravy dostává celé km své části; osobní součet i km podle typu započtou část jen jednou. U T3 je dostupný rozpad přední / zadní / sólo.
 
-## Stav
+## Rozhraní a provoz
 
-V1 je záměrně read-only. Následující iterace mají řešit především vzhled konkrétních obrazovek, hustotu dat, seskupování vícedílných směn, mobilní variantu a podobu grafů.
+Přehled, hledání a filtry směn, rozbalení částí a BP, statistiky, hledání a řazení vozů, detaily vozů. Mobil má spodní navigaci a přeskupené řádky. Prostřední + vysvětluje read-only fázi. Ikony jsou lokální SVG podle tvarů Lucide; nejsou závislé na CDN. Web funguje i bez externích fontů.
+
+GitHub Pages publikuje kořen větve main. Všechny aplikační cesty jsou relativní. Selhání jednotlivého JSON zachová ostatní data a zobrazí upozornění na neúplnost.
+
+Manuální mobilní QA: `scripts/responsive-preview.html` zobrazí skutečný web v rámečku 360/390/768 px. Kontrola výpočtů: `node scripts/check.mjs`.

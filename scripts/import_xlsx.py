@@ -25,7 +25,9 @@ for year in range(2020,2027):
    current={'date':a[0].date().isoformat(),'day':clean(cv[1]),'plannedShift':clean(a[2]),'actualShift':clean(a[3]),'depot':clean(a[5]),'parts':[]};shifts.append(current)
   elif not any(a[i] is not None for i in [4,5,6,7,8,9,10,11,12,13,15,16]): continue
   if current is None: raise ValueError(f'Orphan row {year}/{idx}')
-  if not any(a[i] is not None for i in [4,6,7,8,9,10,11,12,13,15,16]): continue
+  if not any(a[i] is not None for i in [4,6,7,8,9,10,11,12,13,15]):
+   if a[16]: current['note']=clean(a[16])
+   continue
   keys=['partNo','depot','course','line','order','vehicleType','frontVehicle','rearVehicle'];p=dict(zip(keys,[clean(x) for x in a[4:12]]))
   p.update(start=time(a[12]),end=time(a[13]),duration=time(cv[14]),km=cv[15] if isinstance(cv[15],(int,float)) else None,kmFormula=a[15] if isinstance(a[15],str) and a[15].startswith('=') else None,note=clean(a[16]),sourceRow=idx)
   if p['km'] is None and isinstance(a[15],(int,float)):p['km']=a[15]
