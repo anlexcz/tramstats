@@ -1,0 +1,8 @@
+{
+  "source": "Tramvajování",
+  "generatedFromSheets": [2020,2021,2022,2023,2024,2025,2026],
+  "files": [
+    "shifts-2020.json","shifts-2021.json","shifts-2022.json","shifts-2023.json","shifts-2024.json","shifts-2025.json","shifts-2026.json",
+    "breaks-2020.json","breaks-2021.json","breaks-2022.json","breaks-2023.json","breaks-2024.json","breaks-2025.json","breaks-2026.json"
+  ]
+}
