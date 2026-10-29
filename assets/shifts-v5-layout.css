@@ -1,0 +1,25 @@
+/* Shift filters: wider desktop rail and normalized readable controls */
+@media (min-width:1151px){
+  .smart-filters{grid-template-columns:minmax(0,1fr) 290px!important;column-gap:28px!important}
+  .desktop-filter-controls{width:290px!important}
+  .smart-search input,.desktop-filter-controls select,.desktop-filter-controls input{font-size:14px!important}
+  .desktop-filter-controls label,.date-filter>span,.page-size-wrap>span{font-size:11px!important;line-height:1.25}
+  .work-only{font-size:13px!important;white-space:nowrap;justify-content:flex-start!important}
+  .work-only input{flex:0 0 17px;width:17px!important;height:17px!important}
+  .page-size button{font-size:12px!important;padding:8px 2px!important}
+  .clear-filters{font-size:12px!important;padding:9px 10px!important}
+}
+
+@media (max-width:650px){
+  .sheet-panel{font-size:14px}
+  .sheet-head strong{font-size:20px!important;letter-spacing:.02em}
+  .sheet-head .sheet-close{font-size:22px!important}
+  .sheet-panel>label,.sheet-panel .date-filter>span,.sheet-panel .page-size-wrap>span{font-size:12px!important;line-height:1.3}
+  .sheet-panel select,.sheet-panel input[type=date]{font-size:14px!important;min-height:44px!important}
+  .sheet-panel .date-filter label{font-size:11px!important}
+  .sheet-panel .work-only{font-size:14px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;white-space:nowrap}
+  .sheet-panel .work-only input{flex:0 0 18px;width:18px!important;height:18px!important}
+  .sheet-panel .page-size button{font-size:13px!important;min-height:40px;padding:9px 3px!important}
+  .sheet-panel .clear-filters{font-size:12px!important;min-height:40px}
+  .sheet-panel .sheet-done{font-size:13px!important;min-height:44px;font-weight:800}
+}
