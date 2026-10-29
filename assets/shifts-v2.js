@@ -12,7 +12,7 @@ function uniquePerformances(ps){const out=[],seen=new Set();for(const p of ps){c
 function summedDuration(ps){let total=0,known=false;for(const p of ps){if(!p.duration)continue;const m=mins(p.duration);if(m==null)continue;total+=m;known=true;}return known?hm(total):'';}
 function splitShiftParts(s){const ps=s.parts||[];if(s.actualShift!=='Š'||ps.length<2)return [ps];const tl=timeline(s).filter(p=>p.a!=null&&p.b!=null);if(tl.length<2)return [ps];let split=-1,best=0;for(let i=1;i<tl.length;i++){const gap=tl[i].a-tl[i-1].b;if(gap>=90&&gap>best){best=gap;split=i;}}if(split<0)return [ps];return [tl.slice(0,split),tl.slice(split)];}
 function intervalFor(ps){const valid=ps.filter(p=>p.start&&p.end);return valid.length?`${valid[0].start}–${valid.at(-1).end}`:'';}
-function operatingRows(s){const groups=splitShiftParts(s);return groups.map(ps=>({performances:uniquePerformances(ps),interval:intervalFor(ps)})).filter(r=>r.performances.length||r.interval);}
+function operatingRows(s){return splitShiftParts(s).map(ps=>({performances:uniquePerformances(ps),interval:intervalFor(ps)})).filter(r=>r.performances.length||r.interval);}
 function absenceHTML(s){const a=absenceAliases[s.actualShift];if(!a)return'';return `<span class="shift-absence-badge shift-absence-${a.tone}">${esc(a.label)}</span>`;}
 function rowsHTML(rows){return rows.map(r=>`<div class="shift-operating-row"><div class="shift-performances-v3">${r.performances.map(x=>shiftPerf(x.line,x.course,x.order)).join('')}</div><div class="shift-time-v2">${r.interval?`<span>${esc(r.interval)}</span>`:''}</div></div>`).join('');}
 function shiftV2HTML(s){
@@ -26,5 +26,5 @@ function shiftV2HTML(s){
 }
 shiftHTML=shiftV2HTML;
 const baseShiftList=shiftList;
-shiftList=function(ss){const html=baseShiftList(ss);return `<div class="shifts-layout-v2"><section class="shifts-main-v2">${html}</section><aside class="shifts-sidebar-v2" aria-label="Filtry směn"><div class="sidebar-filter-slot"></div></aside></div>`;};
+shiftList=function(ss){let html=baseShiftList(ss);const m=html.match(/^<div class="filters">[\s\S]*?<\/div>/);const filters=m?m[0]:'';if(filters)html=html.slice(filters.length);return `<div class="shifts-layout-v2"><section class="shifts-main-v2">${html}</section><aside class="shifts-sidebar-v2" aria-label="Filtry směn"><div class="shifts-sidebar-title">FILTRY</div>${filters}</aside></div>`;};
 })();
