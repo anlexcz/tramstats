@@ -1,7 +1,10 @@
 /* Shift filters: wider desktop rail and normalized readable controls */
 @media (min-width:1151px){
-  .smart-filters{grid-template-columns:minmax(0,1fr) 380px!important;column-gap:24px!important}
-  .desktop-filter-controls{width:380px!important}
+  body:has(.shift-v2) #app{grid-template-columns:minmax(0,1fr) 380px!important;column-gap:24px!important}
+  body:has(.shift-v2) #app>.filters{width:auto!important;min-width:0}
+  .smart-filters{grid-template-columns:none!important;column-gap:0!important}
+  .desktop-filter-controls{width:100%!important;min-width:0}
+  .smart-search,.smart-search input,.desktop-filter-controls select,.desktop-filter-controls input,.date-range-field{width:100%!important;max-width:100%;min-width:0;box-sizing:border-box}
   .smart-search input,.desktop-filter-controls select,.desktop-filter-controls input{font-size:14px!important}
   .desktop-filter-controls label,.date-filter>span,.page-size-wrap>span{font-size:11px!important;line-height:1.25}
   .work-only{font-size:13px!important;white-space:nowrap;justify-content:flex-start!important}
