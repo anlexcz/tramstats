@@ -4,6 +4,7 @@ const absenceAliases={V:{label:'Volno',tone:'off'},VVS:{label:'Volno vzniklé sv
 const dayNames=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
 const clockIcon='<svg class="shift-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>';
 const distanceIcon='<svg class="shift-metric-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5c-2 0-3 1.3-3 3s1 3 3 3h12c2 0 3 1.3 3 3s-1 3-3 3H8"/><path d="M8 14l-3 3 3 3"/></svg>';
+const intervalIcon='<svg class="shift-interval-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg>';
 function fullDay(d){const x=new Date(d+'T12:00:00');return dayNames[x.getDay()]||'';}
 function shiftDisplayLine(p){if(p.line)return p.line;return /^Záloha(?:\s|$)/i.test(p.note||'')?'Z':null;}
 function perfLabel(line,course,order){const alias=shiftAliases[line];if(alias)return alias;const ref=course!=null&&course!==''?course:(order!=null&&order!==''?order:'');return ref!==''?`${line}/${ref}`:`${line}`;}
@@ -14,17 +15,21 @@ function splitShiftParts(s){const ps=s.parts||[];if(s.actualShift!=='Š'||ps.len
 function intervalFor(ps){const valid=ps.filter(p=>p.start&&p.end);return valid.length?`${valid[0].start}–${valid.at(-1).end}`:'';}
 function operatingRows(s){return splitShiftParts(s).map(ps=>({performances:uniquePerformances(ps),interval:intervalFor(ps)})).filter(r=>r.performances.length||r.interval);}
 function absenceHTML(s){const a=absenceAliases[s.actualShift];if(!a)return'';return `<span class="shift-absence-badge shift-absence-${a.tone}">${esc(a.label)}</span>`;}
-function rowsHTML(rows){return rows.map(r=>`<div class="shift-operating-row"><div class="shift-performances-v3">${r.performances.map(x=>shiftPerf(x.line,x.course,x.order)).join('')}</div><div class="shift-time-v2">${r.interval?`<span>${esc(r.interval)}</span>`:''}</div></div>`).join('');}
+function rowsHTML(rows){return rows.map(r=>`<div class="shift-operating-row"><div class="shift-performances-v3">${r.performances.map(x=>shiftPerf(x.line,x.course,x.order)).join('')}</div><div class="shift-time-v2">${r.interval?`${intervalIcon}<span>${esc(r.interval)}</span>`:''}</div></div>`).join('');}
+function identityHTML(s,depot){return `<div class="shift-identity"><div class="shift-identity-line"><span class="shift-day">${esc(fullDay(s.date))}</span>${depot?`<span class="shift-depot-v3">${esc(depot)}</span>`:''}</div><div class="shift-identity-line"><strong>${date(s.date)}</strong><span class="shift-ss-inline">${esc(s.actualShift)}</span></div></div>`;}
+function measuresHTML(dur,km){return `<div class="shift-measures"><strong class="shift-duration-v3">${dur}</strong><strong class="shift-km-v2">${km}</strong></div>`;}
 function shiftV2HTML(s){
  const ps=s.parts||[],absence=absenceAliases[s.actualShift],kmKnown=ps.some(p=>p.km!=null),depot=s.depot&&s.depot!=='—'?s.depot:'',duration=summedDuration(ps),rows=operatingRows(s);
  const km=kmKnown?distanceIcon+fmt(sumKm(ps))+' km':'';
  const dur=duration?clockIcon+esc(duration):'';
- const operating=`<div class="shift-operating-v5">${absence?'':rowsHTML(rows)}</div>`;
- const desktop=`<div class="shift-summary-desktop"><div class="shift-date-v3"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></div><div class="shift-meta-v3">${absence?absenceHTML(s):`<span class="shift-ss">${esc(s.actualShift)}</span>${depot?`<span class="shift-depot-v3">${esc(depot)}</span>`:''}`}</div>${operating}<strong class="shift-duration-v3">${dur}</strong><strong class="shift-km-v2">${km}</strong></div>`;
- const mobile=absence?`<div class="shift-summary-mobile shift-mobile-absence"><div class="shift-mobile-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></div>${absenceHTML(s)}</div>`:`<div class="shift-summary-mobile shift-mobile-v5"><div class="shift-mobile-top"><div class="shift-mobile-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></div><div class="shift-mobile-meta"><span class="shift-ss">${esc(s.actualShift)}</span>${depot?`<span class="shift-depot-v3">${esc(depot)}</span>`:''}</div></div><div class="shift-mobile-rows">${rowsHTML(rows)}</div><div class="shift-mobile-measures"><strong class="shift-duration-v3">${dur}</strong><strong class="shift-km-v2">${km}</strong></div></div>`;
+ const normal=`${identityHTML(s,depot)}${measuresHTML(dur,km)}<div class="shift-operating-v6">${rowsHTML(rows)}</div>`;
+ const desktop=absence?`<div class="shift-summary-desktop shift-summary-absence"><div class="shift-identity"><div class="shift-identity-line"><span class="shift-day">${esc(fullDay(s.date))}</span></div><div class="shift-identity-line"><strong>${date(s.date)}</strong></div></div>${absenceHTML(s)}</div>`:`<div class="shift-summary-desktop shift-summary-v6">${normal}</div>`;
+ const mobile=absence?`<div class="shift-summary-mobile shift-mobile-absence"><div class="shift-mobile-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></div>${absenceHTML(s)}</div>`:`<div class="shift-summary-mobile shift-mobile-v6">${normal}</div>`;
  return `<details class="shift shift-v2${absence?' shift-absence shift-absence-'+absence.tone:''}"><summary>${desktop}${mobile}</summary><div class="parts">${detailHTML(s)}</div></details>`;
 }
 shiftHTML=shiftV2HTML;
 const baseShiftList=shiftList;
-shiftList=function(ss){let html=baseShiftList(ss);const m=html.match(/^<div class="filters">[\s\S]*?<\/div>/);const filters=m?m[0]:'';if(filters)html=html.slice(filters.length);return `<div class="shifts-layout-v2"><section class="shifts-main-v2">${html}</section><aside class="shifts-sidebar-v2" aria-label="Filtry směn"><div class="shifts-sidebar-title">FILTRY</div>${filters}</aside></div>`;};
+shiftList=function(ss){let html=baseShiftList(ss);const m=html.match(/^<div class="filters">[\s\S]*?<\/div>/);const filters=m?m[0]:'';if(filters)html=html.slice(filters.length);return `<div class="shifts-toolbar-v3"><button type="button" class="shifts-filter-toggle" aria-expanded="false">FILTRY</button></div><div class="shifts-layout-v3"><section class="shifts-main-v2">${html}</section><aside class="shifts-sidebar-v3" aria-label="Filtry směn"><div class="shifts-sidebar-head"><strong>FILTRY</strong><button type="button" class="shifts-filter-close" aria-label="Zavřít filtry">×</button></div>${filters}</aside></div>`;};
+const baseRender=render;
+render=function(){baseRender();const toggle=document.querySelector('.shifts-filter-toggle'),panel=document.querySelector('.shifts-sidebar-v3'),close=document.querySelector('.shifts-filter-close');if(toggle&&panel){toggle.onclick=()=>{const open=panel.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));};if(close)close.onclick=()=>{panel.classList.remove('is-open');toggle.setAttribute('aria-expanded','false');};}};
 })();
