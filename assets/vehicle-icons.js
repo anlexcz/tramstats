@@ -1,11 +1,20 @@
 (()=>{
-const SVG={
- T3:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 9h20l5 7v25H9V16z" fill="#d8d0bc"/><path d="M13 17h22v12H13z" fill="#3f4143"/><path d="M10 30h28v8H10z" fill="#c91d12"/><path d="M17 32h4v4h-4zm10 0h4v4h-4z" fill="#fff"/><path d="M18 41v4m12-4v4M24 9V4m-7 0h14" stroke="#ff9d00" stroke-width="2" fill="none"/></svg>`,
- '14T':`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 9h24l4 7-2 25H10L8 16z" fill="#b8bcbb"/><path d="M11 15h26v16H11z" fill="#3f4143"/><path d="M10 31h28v8H10z" fill="#aeb2b1"/><circle cx="16" cy="34" r="2" fill="#ff5a20"/><circle cx="32" cy="34" r="2" fill="#ff5a20"/><path d="M18 41v4m12-4v4M24 9V4m-7 0h14" stroke="#ff9d00" stroke-width="2" fill="none"/></svg>`,
- '15T':`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 9h26l3 6-2 27H10L8 15z" fill="#c71d13"/><path d="M11 14h26v18H11z" fill="#3e4042"/><path d="M11 32h26v4H11z" fill="#aeb3b3"/><circle cx="15" cy="34" r="1.8" fill="#ddd"/><circle cx="33" cy="34" r="1.8" fill="#ddd"/><path d="M18 42v3m12-3v3M24 9V4m-7 0h14" stroke="#ff9d00" stroke-width="2" fill="none"/></svg>`,
- KT:`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 10h28v32H10z" fill="#e5e6e4"/><path d="M12 15h24v16H12z" fill="#3f4143"/><path d="M24 31h12v9H24z" fill="#d71c14"/><circle cx="17" cy="34" r="2" fill="#fff"/><circle cx="31" cy="34" r="2" fill="#fff"/><path d="M18 42v3m12-3v3M24 10V4m-7 0h14" stroke="#ff9d00" stroke-width="2" fill="none"/></svg>`,
- '52T':`<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 9h24l4 7-2 26H10L8 16z" fill="#d7d9da"/><path d="M11 14h26v19H11z" fill="#303234"/><path d="M25 33h12v8H25z" fill="#d71914"/><circle cx="15" cy="35" r="1.7" fill="#fff"/><circle cx="33" cy="35" r="1.7" fill="#fff"/><path d="M18 42v3m12-3v3M24 9V4m-7 0h14" stroke="#ff9d00" stroke-width="2" fill="none"/></svg>`};
-function typeFor(n){n=Number(n);if(n>=8000&&n<9000)return'T3';if(n>=9100&&n<9200)return'14T';if(n>=9200&&n<9500)return'15T';if(n>=9500)return'52T';return null}
-function decorate(){document.querySelectorAll('.summary-vehicles:not([data-tram-icon])').forEach(el=>{const nums=(el.textContent.match(/\d{4}/g)||[]);if(!nums.length)return;const t=typeFor(nums[0]);if(!t||!SVG[t])return;el.dataset.tramIcon=t;el.insertAdjacentHTML('afterbegin',`<span class="tram-thumb" title="${t}">${SVG[t]}</span>`);});}
+const DRIVE='https://drive.google.com/thumbnail?sz=w512&id=';
+const PNG={
+ T3:DRIVE+'1TgZW-FlmAZcDcXIGOKzQ7qw_-c0Q88nt',
+ T3_VINOVA:DRIVE+'12BPiQFlhcNQEh5-AuI_4JBSGoUj4bkr2',
+ T3_DVC:DRIVE+'1DLmCexisXouAF2l3r8EDIzR33h6tdGih',
+ KT:DRIVE+'1ZY2G0BnD-2ZVDMcOaWhzQMWwjrU93sG7',
+ '14T':DRIVE+'1PxjkP-fhQnbknj8r3chsyMm1XWv-iMcj',
+ '14T_PID':DRIVE+'1xIS7_6OryG_-NZ8XiXzHjufbAyJKKy_I',
+ '15T':DRIVE+'1g5x7kAR3IzELVEs45RCJwlXggXgdM4ka',
+ '15T_FACELIFT':DRIVE+'1eWFp3uI4bfWuctCfhqWYXjQ_sOq7_bKB',
+ '52T':DRIVE+'1sQi4k-mh5pqyUfe6PuHlaF9IXHKWzIs9'
+};
+function typeFor(n){n=Number(n);if(n>=8000&&n<9000)return'T3';if(n>=9051&&n<=9100)return'KT';if(n>=9111&&n<=9199)return'14T';if(n>=9201&&n<=9325)return'15T';if(n>=9326&&n<9500)return'15T_FACELIFT';if(n>=9500)return'52T';return null}
+function img(type,title){const src=PNG[type]||PNG[type?.replace('_FACELIFT','')]||PNG[type?.replace('_PID','')];return src?`<span class="tram-thumb" title="${title||type}"><img src="${src}" alt="" loading="lazy" referrerpolicy="no-referrer"></span>`:''}
+function decorateSummaries(){document.querySelectorAll('.summary-vehicles:not([data-tram-icon])').forEach(el=>{const nums=el.textContent.match(/\d{4}/g)||[];if(!nums.length)return;const t=typeFor(nums[0]);if(!t||!PNG[t])return;el.dataset.tramIcon=t;el.insertAdjacentHTML('afterbegin',img(t,t.replace('_FACELIFT','')));});}
+function decorateVehicles(){document.querySelectorAll('.vehicle:not([data-tram-icon])').forEach(el=>{const id=el.dataset.vehicle;const shown=(el.querySelector('.type')?.textContent||'').trim();let t=typeFor(id);if(/^52T/i.test(shown))t='52T';else if(/^15T/i.test(shown)&&t!=='15T_FACELIFT')t='15T';else if(/^14T/i.test(shown))t='14T';else if(/^KT/i.test(shown))t='KT';else if(/^T3/i.test(shown))t='T3';if(!t||!PNG[t])return;el.dataset.tramIcon=t;el.insertAdjacentHTML('afterbegin',img(t,shown||t));});}
+function decorate(){decorateSummaries();decorateVehicles();}
 new MutationObserver(decorate).observe(document.documentElement,{subtree:true,childList:true});decorate();
 })();
