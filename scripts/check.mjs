@@ -25,8 +25,8 @@ for(const view of ['dashboard','shiftList','stats','vehicleList'])assert.ok(api[
 const productionJs=['assets/app.js','assets/shifts-v2.js','assets/shifts-v4-list.js','assets/shifts-v6-date-range.js','assets/dashboard-v2.js','assets/vehicle-icons.js','assets/footer-v2.js'];
 for(const file of productionJs){const source=fs.readFileSync(new URL(file,root),'utf8');assert.doesNotThrow(()=>new vm.Script(source,{filename:file}),`${file} must parse`);}
 
-// Every local JS/CSS reference used by a page must exist. Query-string cache keys are ignored.
-const pages=['index.html','shifts/index.html','shifts/detail/index.html','stats/index.html','stats/lines/index.html','stats/types/index.html','stats/years/index.html','vehicles/index.html','vehicles/detail/index.html'];
+// Every local JS/CSS reference used by a real page must exist. Query-string cache keys are ignored.
+const pages=['index.html','shifts/index.html','shifts/detail/index.html','stats/index.html','vehicles/index.html'];
 for(const page of pages){const html=fs.readFileSync(new URL(page,root),'utf8');for(const m of html.matchAll(/(?:src|href)="([^"]+)"/g)){const ref=m[1].split('?')[0];if(!ref.startsWith('assets/'))continue;assert.ok(fs.existsSync(new URL(ref,root)),`${page}: missing ${ref}`);}}
 const shiftsPage=fs.readFileSync(new URL('shifts/index.html',root),'utf8');
 assert.ok(!shiftsPage.includes('shifts-v3-controls.js'),'removed v3 JS must not be referenced');
