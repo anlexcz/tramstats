@@ -8,36 +8,40 @@ Bez buildu a aplikačních závislostí. Spusťte v kořeni `python -m http.serv
 
 ## Data
 
-Jediným zdrojem dat je Google sešit **TramStats – databáze**. GitHub repozitář už neobsahuje statické JSON snapshoty směn ani BP.
+Jediným runtime zdrojem dat je Google sešit **TramStats – databáze**. GitHub repozitář neobsahuje ani neemuluje statické JSON snapshoty směn nebo BP.
 
 Tok dat:
 
-`Google Sheets (TramStats – databáze) → Google Apps Script read-only API → assets/live-source.js → frontend`
+`Google Sheets (TramStats – databáze) → Google Apps Script read-only API → assets/data.js → UI`
 
-Web načítá tabulky:
+Datová vrstva načítá relační tabulky potřebné frontendem:
 
 - `shifts`
 - `shift_parts`
 - `shift_part_lines`
 - `breaks`
 - `vehicles`
+- `depots`
+- `lines`
+- `shift_types`
+- `shift_courses`
+- `tags`
+- `shift_part_tags`
 
-`assets/live-source.js` převádí relační data do formátu očekávaného současným frontendem. Apps Script endpoint je pouze pro čtení; frontend nemá zapisovací operace do Google Sheets.
+`assets/data.js` drží relační tabulky a indexy a vytváří pouze lehký view model pro současné UI. Linkové statistiky používají přímo řádky `shift_part_lines`; neexistuje `kmFormula` ani compatibility manifest. Svačinář se bere pouze z `shift_courses.is_snack`, typ/family fyzického vozu z masteru `vehicles` a provozní metadata z `tags` + `shift_part_tags`.
 
-Změna v databázi je po novém načtení stránky dostupná webu bez exportu, commitu nebo generování datových souborů.
+Po dobu jedné browser session se odpovědi veřejných tabulek cachují krátce v `sessionStorage`, aby přechody mezi stránkami zbytečně neopakovaly celý download. Při nedostupnosti API aplikace nezobrazí žádný starý snapshot.
 
 ## Statistická pravidla
 
-Pracovní směna je evidovaný den s pracovními částmi, mimo V, VVS, KS, D, PN, P16 a MD. Volno a nepřítomnosti zůstávají v přehledu dnů. Více částí netvoří více směn. Rozsah je interval první–poslední části včetně BP a mezery šejdru; není prezentován jako čistá doba řízení ani odpracovaný čas.
+Pracovní směna je evidovaný den s pracovními částmi, mimo V, VVS, KS, D, PN, P16 a MD. Volno a nepřítomnosti zůstávají v přehledu dnů. Více částí netvoří více směn.
 
-Rozpad složené linky vychází z `shift_part_lines`. Pokud přesný rozpad km není uložený, frontend jej nevymýšlí. MJ není běžná tramvajová linka. Každá linka i fyzický vůz se v počtu směn započtou nejvýše jednou za den. Každý vůz soupravy dostává celé km své části; osobní součet i km podle typu započtou část jen jednou.
+Osobní km části se započítají jednou. U soupravy dostane každý fyzický vůz do své vozové statistiky km dané části, ale osobní součet se tím nenásobí. Rozpad složené linky vychází z `shift_part_lines`; neznámé linkové km se nedopočítávají.
 
-Typ konkrétního vozu se bere z master tabulky `vehicles`, pokud odpovídá evidovanému vozu/soupravě.
+BP se načítají z `breaks` a respektují `shift_date`, `break_no` a `start_day_offset`, takže přestávka po půlnoci zůstává u data nástupu směny.
 
 ## Rozhraní a provoz
 
-Přehled, hledání a filtry směn, rozbalení částí a BP, statistiky, hledání a řazení vozů a detaily vozů. Mobil má spodní navigaci a přeskupené řádky.
+Přehled, hledání a filtry směn, detail částí a BP, statistiky a přehled vozů. Mobil má spodní navigaci a přeskupené řádky.
 
-GitHub Pages publikuje kořen větve `main`. Při nedostupnosti Google Apps Script API se nezobrazí starý snapshot; aplikace hlásí neúplné/nedostupné načtení.
-
-Manuální mobilní QA: `scripts/responsive-preview.html`. Kontrola základní frontendové logiky a živého adaptéru: `node scripts/check.mjs`.
+GitHub Pages publikuje kořen větve `main`. Kontrola základní relační logiky: `node scripts/check.mjs`.
