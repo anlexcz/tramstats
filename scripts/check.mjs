@@ -52,13 +52,32 @@ assert.equal(api.worked({actualShift:'V',parts:[]}),false);
 assert.ok(api.stats([s]).includes('Rozsah každého roku'));
 assert.ok(api.vehicleList([s]).includes('master tabulky vehicles'));
 
-const allFiles=['assets/data.js','assets/app.js','assets/footer-v2.js','assets/shifts-v6-date-range.js','index.html','shifts/index.html','stats/index.html','vehicles/index.html','shifts/detail/index.html'].filter(f=>fs.existsSync(new URL(f,root)));
-for(const file of allFiles){
+const runtimeFiles=['assets/data.js','assets/app.js','assets/footer-v2.js','assets/shifts-page.js','assets/shifts-date-range.js','index.html','shifts/index.html','stats/index.html','vehicles/index.html','shifts/detail/index.html'];
+for(const file of runtimeFiles){
+  assert.equal(fs.existsSync(new URL(file,root)),true,`Missing runtime file: ${file}`);
   const src=fs.readFileSync(new URL(file,root),'utf8');
   assert.doesNotMatch(src,/data\/manifest\.json/);
   assert.doesNotMatch(src,/shifts-(?:\d{4}|\$\{)/);
   assert.doesNotMatch(src,/kmFormula/);
   assert.doesNotMatch(src,/plannedShift/);
+  if(file.endsWith('.js'))new Function(src);
 }
-assert.equal(fs.existsSync(new URL('assets/live-source.js',root)),false);
-console.log('PASS: relational TramStats frontend data model and calculations');
+
+const removedLegacyFiles=[
+  'assets/live-source.js',
+  'assets/shifts-v2.js','assets/shifts-v2.css',
+  'assets/shifts-v3-controls.js','assets/shifts-v3-controls.css',
+  'assets/shifts-v4-list.js','assets/shifts-v4-list.css',
+  'assets/shifts-v5-layout.css',
+  'assets/shifts-v6-date-range.js','assets/shifts-v6-date-range.css',
+  'assets/shifts-polish.js','assets/shifts-polish.css'
+];
+for(const file of removedLegacyFiles)assert.equal(fs.existsSync(new URL(file,root)),false,`Legacy file still exists: ${file}`);
+
+const shiftsHtml=fs.readFileSync(new URL('shifts/index.html',root),'utf8');
+assert.match(shiftsHtml,/assets\/shifts-page\.js/);
+assert.match(shiftsHtml,/assets\/shifts-page\.css/);
+assert.match(shiftsHtml,/assets\/shifts-date-range\.js/);
+assert.doesNotMatch(shiftsHtml,/shifts-v\d|shifts-polish/);
+
+console.log('PASS: relational TramStats frontend and unified shifts page');
