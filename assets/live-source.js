@@ -1,9 +1,9 @@
 'use strict';
 (function(){
   const nativeFetch=window.fetch.bind(window);
-  let configPromise=null;
+  const API_URL='https://script.google.com/macros/s/AKfycbwVDu4SCysr91opTkdaluTYvoOXXdvFHz26ZfzlaYwn8VJ1GWZzeCg_-PDtYZi23gBiQw/exec';
   let databasePromise=null;
-  const state={mode:'static',error:null,apiUrl:null};
+  const state={mode:'live',error:null,apiUrl:API_URL,load:null};
   window.TramStatsLiveSource=state;
 
   const num=value=>{
@@ -26,18 +26,17 @@
     const m=b-a;
     return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
   };
-  const response=data=>new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
+  const jsonResponse=(data,status=200)=>new Response(JSON.stringify(data),{
+    status,
+    headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}
+  });
 
-  async function config(){
-    if(!configPromise) configPromise=nativeFetch('data/api-config.json?v=live-source-1',{cache:'no-store',signal:AbortSignal.timeout(10000)})
-      .then(r=>{if(!r.ok) throw Error(`api-config ${r.status}`);return r.json();})
-      .catch(()=>({apiUrl:''}));
-    return configPromise;
-  }
-
-  async function table(apiUrl,name){
-    const sep=apiUrl.includes('?')?'&':'?';
-    const r=await nativeFetch(`${apiUrl}${sep}table=${encodeURIComponent(name)}&_=${Date.now()}`,{cache:'no-store',signal:AbortSignal.timeout(30000)});
+  async function table(name){
+    const sep=API_URL.includes('?')?'&':'?';
+    const r=await nativeFetch(`${API_URL}${sep}table=${encodeURIComponent(name)}&_=${Date.now()}`,{
+      cache:'no-store',
+      signal:AbortSignal.timeout(30000)
+    });
     if(!r.ok) throw Error(`${name}: HTTP ${r.status}`);
     const data=await r.json();
     if(!data||data.ok!==true||!Array.isArray(data.rows)) throw Error(`${name}: neplatná odpověď API`);
@@ -47,12 +46,12 @@
   async function database(){
     if(databasePromise) return databasePromise;
     databasePromise=(async()=>{
-      const cfg=await config();
-      const apiUrl=String(cfg.apiUrl||'').trim();
-      if(!apiUrl) throw Error('API URL není nastavené');
-      state.apiUrl=apiUrl;
       const [shiftsRaw,partsRaw,linesRaw,breaksRaw,vehiclesRaw]=await Promise.all([
-        table(apiUrl,'shifts'),table(apiUrl,'shift_parts'),table(apiUrl,'shift_part_lines'),table(apiUrl,'breaks'),table(apiUrl,'vehicles')
+        table('shifts'),
+        table('shift_parts'),
+        table('shift_part_lines'),
+        table('breaks'),
+        table('vehicles')
       ]);
 
       const vehicleById=new Map(vehiclesRaw.map(v=>[String(v.id),v]));
@@ -75,6 +74,7 @@
         const masterRear=p.rear_vehicle?vehicleById.get(String(p.rear_vehicle)):null;
         let vehicleType=p.vehicle_type||null;
         if(masterFront&&(!masterRear||masterRear.type===masterFront.type)) vehicleType=masterFront.type||vehicleType;
+
         const item={
           partNo:p.part_no==null?null:String(p.part_no),
           depot:null,
@@ -125,30 +125,68 @@
         note:b.note||null
       }));
 
-      const years=[...new Set(shifts.map(s=>Number(String(s.date).slice(0,4))))].filter(Number.isFinite).sort((a,b)=>a-b);
+      const years=[...new Set(shifts.map(s=>Number(String(s.date).slice(0,4))))]
+        .filter(Number.isFinite)
+        .sort((a,b)=>a-b);
       const byYear={};
-      for(const y of years) byYear[y]={shifts:shifts.filter(s=>s.date.startsWith(String(y))),breaks:breaks.filter(b=>b.date.startsWith(String(y)))};
-      state.mode='live'; state.error=null;
+      for(const year of years){
+        const y=String(year);
+        byYear[year]={
+          shifts:shifts.filter(s=>s.date.startsWith(y)),
+          breaks:breaks.filter(b=>b.date.startsWith(y))
+        };
+      }
+      state.mode='live';
+      state.error=null;
       return {years,byYear,shifts,breaks,vehicles:vehiclesRaw};
-    })().catch(err=>{state.mode='static';state.error=String(err.message||err);databasePromise=null;throw err;});
+    })().catch(err=>{
+      state.mode='error';
+      state.error=String(err.message||err);
+      databasePromise=null;
+      throw err;
+    });
     return databasePromise;
   }
+
+  state.load=database;
 
   window.fetch=async function(input,init){
     const url=typeof input==='string'?input:(input&&input.url)||'';
     const clean=url.split('?')[0];
+
     if(/(?:^|\/)data\/manifest\.json$/.test(clean)){
-      const cfg=await config();
-      if(!String(cfg.apiUrl||'').trim()) return nativeFetch(input,init);
       try{
         const db=await database();
-        return response({schemaVersion:2,source:'TramStats – databáze / Google Sheets',live:true,years:db.years.map(year=>({year,shifts:`live-shifts-${year}.json`,breaks:`live-breaks-${year}.json`,days:db.byYear[year].shifts.length,parts:db.byYear[year].shifts.reduce((n,s)=>n+s.parts.length,0),breakCount:db.byYear[year].breaks.length}))});
-      }catch(e){console.warn('TramStats live API unavailable, using static snapshot:',e);return nativeFetch(input,init);}
+        return jsonResponse({
+          schemaVersion:2,
+          source:'TramStats – databáze / Google Sheets',
+          live:true,
+          years:db.years.map(year=>({
+            year,
+            shifts:`live-shifts-${year}.json`,
+            breaks:`live-breaks-${year}.json`,
+            days:db.byYear[year].shifts.length,
+            parts:db.byYear[year].shifts.reduce((n,s)=>n+s.parts.length,0),
+            breakCount:db.byYear[year].breaks.length
+          }))
+        });
+      }catch(err){
+        return jsonResponse({ok:false,error:String(err.message||err)},503);
+      }
     }
-    let m=clean.match(/(?:^|\/)data\/live-shifts-(\d{4})\.json$/);
-    if(m){try{return response((await database()).byYear[Number(m[1])]?.shifts||[]);}catch(e){return response([]);}}
-    m=clean.match(/(?:^|\/)data\/live-breaks-(\d{4})\.json$/);
-    if(m){try{return response((await database()).byYear[Number(m[1])]?.breaks||[]);}catch(e){return response([]);}}
+
+    let m=clean.match(/(?:^|\/)data\/(?:live-)?shifts-(\d{4})\.json$/);
+    if(m){
+      try{return jsonResponse((await database()).byYear[Number(m[1])]?.shifts||[]);}
+      catch(err){return jsonResponse({ok:false,error:String(err.message||err)},503);}
+    }
+
+    m=clean.match(/(?:^|\/)data\/(?:live-)?breaks-(\d{4})\.json$/);
+    if(m){
+      try{return jsonResponse((await database()).byYear[Number(m[1])]?.breaks||[]);}
+      catch(err){return jsonResponse({ok:false,error:String(err.message||err)},503);}
+    }
+
     return nativeFetch(input,init);
   };
 })();
