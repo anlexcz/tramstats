@@ -22,6 +22,7 @@
   --semantic-error:#ff5c5c;
   --semantic-danger:var(--semantic-error);
   --separator-emphasis:#4a4f57;
+  --work-marker:#5d636d;
 
   --card:#24262b;
   --badge-bg:#303238;
@@ -192,37 +193,19 @@ footer{
   color:color-mix(in srgb,var(--state-tone) 28%,white);
 }
 
-/* Absence rows do not need to reserve the work-performance column. Keep the
-   work grid untouched so all performances stay aligned to one vertical axis. */
-@media(min-width:651px){
-  .page-shifts .shift-list-absence{
-    grid-template-columns:minmax(96px,118px) minmax(0,1fr);
-  }
-  .page-shifts .shift-list-absence-badge{
-    grid-column:2;
-    max-width:none;
-    overflow:visible;
-    text-overflow:clip;
-  }
-}
-@media(min-width:651px) and (max-width:1150px){
-  .page-shifts .shift-list-absence{
-    grid-template-columns:minmax(88px,104px) minmax(0,1fr);
-  }
-}
-
-/* Desktop/tablet shift rows: compact one-line date, stable performance axis,
-   and a single right-aligned metadata group. Mobile keeps its dedicated layout. */
+/* Desktop/tablet shift list. Work rows reserve fixed date/type cells so every
+   performance starts on the same axis. Absence labels may use the remaining space. */
 @media(min-width:651px){
   .page-shifts #shift-results .shift-list-card{
     position:relative;
   }
   .page-shifts #shift-results .shift-list-work{
-    display:flex;
+    display:grid;
+    grid-template-columns:112px 100px minmax(180px,1fr) max-content max-content max-content;
+    column-gap:8px;
     align-items:center;
-    gap:10px;
     min-height:50px;
-    padding:8px 10px;
+    padding:8px 11px;
   }
   .page-shifts #shift-results .shift-list-work::before{
     content:'';
@@ -231,15 +214,15 @@ footer{
     top:-1px;
     bottom:-1px;
     width:3px;
-    background:var(--separator-emphasis);
+    background:var(--work-marker);
     pointer-events:none;
   }
   .page-shifts #shift-results .shift-list-date{
-    flex:0 0 118px;
     display:flex;
     flex-direction:row;
     align-items:baseline;
-    gap:7px;
+    gap:9px;
+    min-width:0;
     white-space:nowrap;
   }
   .page-shifts #shift-results .shift-list-date strong{
@@ -251,53 +234,86 @@ footer{
     margin:0;
     font-size:10px;
     font-weight:600;
-    color:var(--muted);
+    color:var(--label-muted);
   }
   .page-shifts #shift-results .shift-list-type{
-    flex:0 0 110px;
-    width:110px;
+    justify-self:start;
+    width:auto;
+    max-width:100%;
+    min-width:0;
   }
   .page-shifts #shift-results .shift-list-performances{
-    flex:1 1 auto;
-    min-width:190px;
+    min-width:0;
   }
   .page-shifts #shift-results .shift-list-depot,
   .page-shifts #shift-results .shift-list-km,
   .page-shifts #shift-results .shift-list-duration{
-    flex:0 0 auto;
-    min-width:0;
     width:auto;
+    min-width:0;
+    max-width:none;
   }
   .page-shifts #shift-results .shift-list-depot{
-    margin-left:auto;
+    justify-self:end;
+  }
+  .page-shifts #shift-results .shift-list-km,
+  .page-shifts #shift-results .shift-list-duration{
+    justify-self:end;
+    margin-left:6px;
   }
   .page-shifts #shift-results .shift-list-km .shift-list-meta,
   .page-shifts #shift-results .shift-list-duration .shift-list-meta{
     justify-content:flex-start;
   }
-  .page-shifts #shift-results .shift-list-absence{
-    min-height:50px;
-    padding:8px 10px;
+  .page-shifts #shift-results .shift-list-meta{
+    gap:4px;
   }
-  .page-shifts #shift-results .shift-list-absence .shift-list-date{
-    flex:none;
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance){
+    align-items:start;
+  }
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance)>.shift-list-date,
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance)>.shift-list-type,
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance)>.shift-list-depot,
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance)>.shift-list-km,
+  .page-shifts #shift-results .shift-list-work:has(.shift-list-performance + .shift-list-performance)>.shift-list-duration{
+    margin-top:1px;
+  }
+  .page-shifts #shift-results .shift-list-absence{
+    grid-template-columns:112px minmax(0,1fr);
+    gap:8px;
+    align-items:center;
+    min-height:46px;
+    padding:7px 11px;
+  }
+  .page-shifts #shift-results .shift-list-absence-badge{
+    grid-column:2;
+    justify-self:start;
+    max-width:none;
+    overflow:visible;
+    text-overflow:clip;
   }
 }
 @media(min-width:651px) and (max-width:1150px){
   .page-shifts #shift-results .shift-list-work{
-    gap:8px;
+    grid-template-columns:104px 92px minmax(150px,1fr) max-content max-content max-content;
+    column-gap:7px;
     padding:7px 9px;
   }
   .page-shifts #shift-results .shift-list-date{
-    flex-basis:104px;
-    gap:5px;
+    gap:7px;
   }
-  .page-shifts #shift-results .shift-list-type{
-    flex-basis:88px;
-    width:88px;
+  .page-shifts #shift-results .shift-list-date strong{
+    font-size:13.5px;
   }
-  .page-shifts #shift-results .shift-list-performances{
-    min-width:160px;
+  .page-shifts #shift-results .shift-list-date small{
+    font-size:9.5px;
+  }
+  .page-shifts #shift-results .shift-list-km,
+  .page-shifts #shift-results .shift-list-duration{
+    margin-left:4px;
+  }
+  .page-shifts #shift-results .shift-list-absence{
+    grid-template-columns:104px minmax(0,1fr);
+    padding:7px 9px;
   }
 }
 
