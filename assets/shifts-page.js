@@ -40,21 +40,37 @@ function durationLabel(parts){
 }
 function performanceRows(s){
   const out=[];
-  const byKey=new Map();
+  const hasValue=v=>v!=null&&v!=='';
+  const lineTokens=line=>String(line||'').split('+').map(x=>x.trim()).filter(Boolean);
   for(const p of s.parts||[]){
     if(!p.line&&!p.start&&!p.end) continue;
     const line=p.line||(/^Záloha(?:\s|$)/i.test(p.note||'')?'Z':'');
-    const ref=p.course??p.order??'';
-    const refKind=p.course!=null&&p.course!==''?'course':'order';
-    const label=line==='Z'?'Záloha':line?(ref!==''?`${line}/${ref}`:line):'';
-    const key=line==='Z'?`Z|${p.partNo??out.length}`:`${line}|${refKind}|${ref}`;
-    const existing=byKey.get(key);
-    if(existing){
-      if(p.end)existing.end=p.end;
+    if(line==='Z'){
+      out.push({identity:`Z|${p.partNo??out.length}`,label:'Záloha',start:p.start||'',end:p.end||''});
       continue;
     }
-    const row={key,label,start:p.start||'',end:p.end||''};
-    byKey.set(key,row);out.push(row);
+
+    const hasCourse=hasValue(p.course);
+    const ref=hasCourse?p.course:(p.order??'');
+    const identity=hasCourse?`course|${p.course}`:`order|${line}|${ref}`;
+    const previous=out[out.length-1];
+
+    if(previous&&previous.identity===identity){
+      for(const token of lineTokens(line))if(!previous.lines.includes(token))previous.lines.push(token);
+      if(!previous.start&&p.start)previous.start=p.start;
+      if(p.end)previous.end=p.end;
+      previous.label=`${previous.lines.join('+')}${hasValue(ref)?`/${ref}`:''}`;
+      continue;
+    }
+
+    const lines=lineTokens(line);
+    out.push({
+      identity,
+      lines,
+      label:line?`${lines.join('+')}${hasValue(ref)?`/${ref}`:''}`:'',
+      start:p.start||'',
+      end:p.end||''
+    });
   }
   return out.map(r=>({...r,interval:r.start&&r.end?`${r.start}–${r.end}`:''}));
 }
