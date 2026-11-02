@@ -4,12 +4,15 @@ Read-only frontend osobní tramvajové evidence. Živý web: https://anlexcz.git
 
 ## Aktuální rozsah
 
-Repozitář je záměrně zúžený na dvě živé části:
+Živé části:
 
 - **Přehled / Dashboard**
 - **Směny**
+- **Detail směny** (`/smeny/{yyyymmdd}/`)
+- **Vozy** (`/vozy/`)
+- **Detail vozu** (`/vozy/{evc}/`)
 
-Statistiky, samostatný přehled vozů a detail směny byly odstraněny. Až se budou znovu stavět, vzniknou od nuly nad současnou datovou a doménovou vrstvou.
+Statistiky a další entity se budou doplňovat nad současnou datovou a doménovou vrstvou.
 
 ## Spuštění
 
@@ -21,9 +24,9 @@ Jediným runtime zdrojem je Google sešit **TramStats – databáze** přes Goog
 
 Tok dat:
 
-`Google Sheets → read-only API → assets/data.js → UI`
+`Google Sheets → read-only API → assets/data.js → doménové vrstvy → UI`
 
-Frontend aktuálně načítá jen tabulky potřebné Dashboardem a Směnami:
+Frontend aktuálně načítá:
 
 - `shifts`
 - `shift_parts`
@@ -37,7 +40,7 @@ Frontend aktuálně načítá jen tabulky potřebné Dashboardem a Směnami:
 
 ## Doménová logika směn
 
-Společná pravidla jsou v `assets/shift-domain.js`. Dashboard i stránka Směny používají stejnou implementaci pro:
+Společná pravidla jsou v `assets/shift-domain.js`. Dashboard, Směny a detail směny používají stejnou implementaci pro:
 
 - bloky směny,
 - `split_seq` u šejdru,
@@ -49,14 +52,41 @@ Společná pravidla jsou v `assets/shift-domain.js`. Dashboard i stránka Směny
 - skrytí `MJ` a `JP` v kompaktním přehledu,
 - slučování linek stejného kurzu.
 
+## Doménová logika vozů
+
+`assets/vehicle-domain.js` je společný zdroj pro seznam i detail vozů.
+
+- výskyt vozu je nyní jeden doložený výskyt v `ShiftPart`,
+- u soupravy se stejná osobní kilometráž části vztahuje k oběma skutečně přítomným vozům,
+- počet jízd, km a čas se agregují celkem i po letech,
+- roky bez výskytu se nezobrazují,
+- historie detailu vozu je řazena od nejnovějšího záznamu a dělena tyrkysovým předělem podle roku,
+- family (`T3`, `14T`, `15T`, `KT`, `52T`…) je primární zobrazovaný typ; konkrétní subtype zůstává v databázi.
+
+### Fotografie
+
+Fotografie jsou navázané na konkrétní `ShiftPart`.
+
+- pokud pro směnu/vůz není fotografie, galerie ani placeholder se nezobrazuje,
+- pokud fotografie existují, detail může zobrazit galerii,
+- ikona fotografie u konkrétního výskytu vozu má v galerii aktivovat fotografii navázanou na danou `ShiftPart`, nikoli otevřít jinou stránku,
+- kliknutí mimo foto ikonu na řádek historie vozu vede na detail příslušné směny.
+
 ## Struktura UI
 
 - `index.html` + `assets/dashboard-v2.js/.css` — Dashboard
 - `shifts/index.html` + `assets/shifts-page.js/.css` — Směny
+- `assets/shift-detail.js/.css` — dynamický detail směny
+- `vozy/index.html` + `assets/vehicles-page.js/.css` — seznam vozů
+- `assets/vehicle-detail.js/.css` — dynamický detail vozu
+- `assets/shift-domain.js` — společná logika směn
+- `assets/vehicle-domain.js` — společná agregace vozů
 - `assets/shifts-date-range.js/.css` — datumový filtr Směn
-- `assets/app.js/.css` — minimální společný shell a runtime
+- `assets/app.js/.css` — společný shell a runtime
 - `assets/components.css` — sdílené komponenty, aktuálně hlavně footer
 - `assets/footer-v2.js` — footer
+
+Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
 
 ## Kontrola
 
@@ -64,4 +94,4 @@ Základní regresní kontrola:
 
 `node scripts/check.mjs`
 
-Test hlídá relační normalizaci, společnou doménovou logiku a také to, že se odstraněné legacy stránky, routy a komponenty do projektu nevrátí.
+Test hlídá relační normalizaci, doménovou logiku směn a vozů a přítomnost aktuálních runtime modulů.
