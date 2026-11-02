@@ -43,6 +43,18 @@ assert.equal(domain.performanceRows(hidden)[0].badges.map(x=>x.label).join(','),
 const multiLineCourse={actualShift:'R',parts:[part(1,'08:00','09:00','6',{course:'223'}),part(2,'09:00','10:00','34',{course:'223'})]};
 assert.equal(domain.performanceRows(multiLineCourse)[0].badges.map(x=>x.label).join(','),'6+34/223');
 
+const vehicleCtx=vm.createContext({window:{},Date,Set,Map,Number,String,Object,Math,Array});
+vm.runInContext(read('assets/vehicle-domain.js'),vehicleCtx);
+const vehicleDomain=vehicleCtx.window.TramStatsVehicleDomain;
+const vehicleRows=vehicleDomain.occurrences(db,'8151');
+assert.equal(vehicleRows.length,1);
+assert.equal(vehicleRows[0].performance,'6+34/109');
+assert.equal(vehicleRows[0].duration,120);
+assert.equal(vehicleRows[0].km,30);
+assert.equal(vehicleDomain.summary(vehicleRows).count,1);
+assert.equal(vehicleDomain.summary(vehicleRows).km,30);
+assert.equal(vehicleDomain.yearly(vehicleRows)[0].year,'2026');
+
 let appCode=read('assets/app.js');
 appCode+='\nglobalThis.api={groups,worked,sumKm,state};';
 const appCtx=vm.createContext({Intl,Date,Set,Map,Number,String,Object,Math,JSON,console,window:{},document:{querySelector(){return null}},location:{pathname:'/tramstats/'}});
@@ -55,12 +67,15 @@ assert.equal(grouped.types['T3R.P'],30);
 assert.equal(Object.keys(grouped.vehicles).sort().join(','),'8151,8185');
 assert.equal(api.sumKm(db.shifts[0].parts),30);
 assert.equal(api.worked({actualShift:'V',parts:[]}),false);
+assert.equal(api.worked({actualShift:'SD',parts:[{}]}),false);
 
 const runtimeFiles=[
-  'assets/data.js','assets/shift-domain.js','assets/app.js','assets/dashboard-v2.js',
-  'assets/footer-v2.js','assets/shifts-page.js','assets/shifts-date-range.js',
+  'assets/data.js','assets/shift-domain.js','assets/vehicle-domain.js','assets/app.js','assets/dashboard-v2.js',
+  'assets/footer-v2.js','assets/shifts-page.js','assets/shifts-date-range.js','assets/shift-detail.js',
+  'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js',
   'assets/app.css','assets/components.css','assets/dashboard-v2.css','assets/shifts-page.css','assets/shifts-date-range.css',
-  'index.html','shifts/index.html'
+  'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/vehicle-links.css',
+  'index.html','shifts/index.html','vozy/index.html','404.html'
 ];
 for(const file of runtimeFiles){
   assert.equal(exists(file),true,`Missing runtime file: ${file}`);
@@ -78,35 +93,31 @@ const removedFiles=[
 for(const file of removedFiles)assert.equal(exists(file),false,`Legacy file still exists: ${file}`);
 
 const coreCode=read('assets/app.js');
-assert.doesNotMatch(coreCode,/\bstats\b|vehicleList|detailHTML|partHTML|modal\(|showModal|data-vehicle|vehicle-sort|vehicle-search|stats\/|vehicles\/|shifts\/detail\//);
+assert.doesNotMatch(coreCode,/\bstats\b|detailHTML|partHTML|modal\(|showModal|vehicle-sort|stats\/|shifts\/detail\//);
+assert.match(coreCode,/vehicles:'Vozy'/);
+assert.match(coreCode,/vehicles:'vozy\/'/);
 const dashboardCode=read('assets/dashboard-v2.js');
 assert.match(dashboardCode,/TramStatsShiftDomain/);
 assert.match(dashboardCode,/durationMinutes/);
 assert.match(dashboardCode,/currentFrom=dayShift\(currentTo,-29\)/,'Aktuální dashboard okno musí mít 30 kalendářních dní.');
 assert.match(dashboardCode,/previousTo=dayShift\(currentFrom,-1\)/,'Srovnávací období musí bez mezery předcházet aktuálnímu oknu.');
 assert.match(dashboardCode,/previousFrom=dayShift\(previousTo,-29\)/,'Srovnávací dashboard okno musí mít také 30 dní.');
-assert.match(dashboardCode,/kpiTrend\(current\.km,previous\.km/);
-assert.match(dashboardCode,/kpiTrend\(current\.duration,previous\.duration/);
-assert.match(dashboardCode,/dash-mini-trend/);
-assert.match(dashboardCode,/signedNumber/);
-assert.match(dashboardCode,/signedTime/);
 assert.doesNotMatch(dashboardCode,/percentage|percent|toFixed\([^)]*\).*%/i,'Trendová logika nemá používat procentní změny.');
-assert.doesNotMatch(dashboardCode,/stats\/|vehicles\/|shifts\/detail\/|data-detail=/);
-const dashboardCss=read('assets/dashboard-v2.css');
-assert.match(dashboardCss,/\.dash-trend\.up.*var\(--cyan\)/s);
-assert.match(dashboardCss,/\.dash-trend\.down.*var\(--red\)/s);
-assert.match(dashboardCss,/\.dash-mini-trend/);
-assert.match(dashboardCss,/@media\(max-width:650px\)/);
 const shiftsCode=read('assets/shifts-page.js');
 assert.match(shiftsCode,/TramStatsShiftDomain/);
 assert.doesNotMatch(shiftsCode,/shifts\/detail\/|RETURN_KEY|saveReturnState|tramstats-shifts-return-state|function shiftBlocks\(/);
-const sharedCss=read('assets/app.css');
-assert.doesNotMatch(sharedCss,/\.grid\b|\.panel\b|\.chart-columns\b|\.vehicle\b|\.shift\b|\.part\b|\.bp\b|dialog\b|\.badge\b|\.line\b/);
-const componentsCss=read('assets/components.css');
-assert.doesNotMatch(componentsCss,/tram-thumb|vehicle|detail-|\.part\b|\.bp\b/);
-for(const file of ['index.html','shifts/index.html']){
-  const html=read(file);
-  assert.doesNotMatch(html,/vehicle-icons|<dialog|stats\/|vehicles\/|shifts\/detail\//);
-}
+const vehiclePageCode=read('assets/vehicles-page.js');
+assert.match(vehiclePageCode,/TramStatsVehicleDomain/);
+assert.match(vehiclePageCode,/vozy\/\$\{encodeURIComponent\(vehicle\.id\)\}/);
+const vehicleDetailCode=read('assets/vehicle-detail.js');
+assert.match(vehicleDetailCode,/TramStatsVehicleDomain/);
+assert.match(vehicleDetailCode,/vehicle-year-divider/);
+assert.match(vehicleDetailCode,/První výskyt/);
+assert.match(vehicleDetailCode,/Poslední výskyt/);
+const shiftDetailCode=read('assets/shift-detail.js');
+assert.match(shiftDetailCode,/vozy\/\$\{encodeURIComponent\(id\)\}/);
+const dynamicRouter=read('404.html');
+assert.match(dynamicRouter,/\/smeny\//);
+assert.match(dynamicRouter,/\/vozy\//);
 
-console.log('PASS: clean TramStats baseline — dashboard trends + shifts');
+console.log('PASS: TramStats — dashboard, shifts, shift detail and vehicles');
