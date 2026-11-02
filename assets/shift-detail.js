@@ -65,8 +65,9 @@ function blockPerformance(block){
 }
 function vehicleText(part){
   const pair=[part.frontVehicle,part.rearVehicle].filter(Boolean).join(' + ');
-  if(!pair&&!part.vehicleType)return'';
-  return `${part.vehicleType?`<span class="detail-vehicle-type">${esc(part.vehicleType)}</span>`:''}${pair?`<span class="detail-vehicle-ids">${esc(pair)}</span>`:''}`;
+  const family=part.frontVehicleMeta?.family||part.rearVehicleMeta?.family||part.vehicleType||'';
+  if(!pair&&!family)return'';
+  return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${pair?`<span class="detail-vehicle-ids">${esc(pair)}</span>`:''}`;
 }
 function galleryPlaceholder(){
   return `<section class="detail-gallery" aria-label="Fotografie směny">
