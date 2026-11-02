@@ -4,7 +4,7 @@
 const Domain=window.TramStatsShiftDomain;
 const root=document.querySelector('#shift-detail');
 const status=document.querySelector('#status');
-const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]));
 const fmt=(value,digits=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:digits}).format(value);
 const hm=minutes=>`${Math.floor(minutes/60)}:${String(Math.round(minutes%60)).padStart(2,'0')}`;
 const dayNames=['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
@@ -93,7 +93,7 @@ function renderShift(shift){
   const blockSummaries=split?`<div class="detail-block-summaries">${blocks.map((block,index)=>blockSummary(block,index===0?'Ranní část':'Odpolední část')).join('')}</div>`:'';
   const flow=blocks.map((block,index)=>blockSection(block,split?(index===0?'Ranní část':'Odpolední část'):'Průběh směny')).join('');
   root.innerHTML=`
-    <a class="detail-back" href="../../shifts/">← Směny</a>
+    <a class="detail-back" href="shifts/">← Směny</a>
     <header class="detail-hero">
       <div class="detail-date">${esc(dateLong(shift.date))}</div>
       <div class="detail-hero-row"><span class="detail-shift-type">${esc(typeName)}</span><span class="detail-depot">${esc(depotName)}</span></div>
