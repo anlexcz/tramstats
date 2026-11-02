@@ -36,25 +36,22 @@
 .dash-shift{display:block;color:inherit;padding:14px 3px;border-bottom:1px solid var(--card-border)}
 .dash-shift:hover{background:#25282d}
 .dash-shift-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.dash-date-line{display:flex;align-items:baseline;gap:8px;min-width:0}
+.dash-date-line{display:flex;align-items:center;gap:7px;min-width:0}
 .dash-date{font-size:13px;font-weight:700;white-space:nowrap}
-.dash-shift-code{font-size:11px;font-weight:800;color:#aeb3bb}
+.dash-shift-code{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;padding:0 5px;border:1px solid #454951;background:#2b2e33;color:#c8ccd2;font-size:10px;font-weight:800;line-height:1}
 .dash-measures{display:flex;justify-content:flex-end;gap:16px;white-space:nowrap}
 .dash-measures>span{display:flex;align-items:center;gap:5px;font-size:13px;color:#d8dbe0}
 .dash-measures>span b{font-weight:700}
 .dash-measures svg{width:14px;height:14px;color:#aeb3bb}
 .dash-shift-rows{display:grid;gap:8px;margin-top:11px}
-.dash-shift-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(92px,auto);gap:12px;align-items:center;min-height:30px}
+.dash-shift-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,44%);gap:12px;align-items:center;min-height:30px}
 .dash-performances{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
 .dash-performance-badge{display:inline-flex;min-height:30px;padding:0 10px;align-items:center;background:var(--badge-bg);border-left:3px solid var(--red);color:var(--text-strong);font-size:12px;font-weight:750;white-space:nowrap}
 .dash-performance-badge.special{border-left-color:var(--cyan)}
-.dash-row-vehicles{display:flex;justify-content:flex-end;min-width:0;color:#d8dbe0;font-size:13px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-.dash-vehicle-text{display:block;overflow:hidden;text-overflow:ellipsis}
-.dash-vehicle-ticker{position:relative;display:block;height:22px;min-width:82px;overflow:hidden;text-align:right}
-.dash-vehicle-current,.dash-vehicle-next{position:absolute;right:0;top:0;line-height:22px;transition:transform .36s ease,opacity .36s ease;white-space:nowrap}
-.dash-vehicle-next{transform:translateY(100%);opacity:0}
-.dash-vehicle-ticker.is-moving .dash-vehicle-current{transform:translateY(-100%);opacity:0}
-.dash-vehicle-ticker.is-moving .dash-vehicle-next{transform:translateY(0);opacity:1}
+.dash-row-vehicles{display:block;min-width:0;max-width:100%;overflow:hidden;text-align:right}
+.dash-vehicle-list{display:block;width:100%;overflow:hidden;white-space:nowrap;color:#cfd3d9;font-size:13px;font-weight:500;letter-spacing:.01em;text-align:right}
+.dash-vehicle-item,.dash-vehicle-more{display:inline;font:inherit;color:inherit}
+.dash-vehicle-more{color:#9ba1aa}
 .dash-main .dash-section-head{margin-bottom:0}
 .dash-extremes{grid-column:1/-1;margin-top:5px}
 .dash-extreme-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-top:0;background:var(--surface)}
@@ -91,17 +88,16 @@
   .dash-section-head h2{font-size:17px}
   .dash-section-head a{font-size:11px}
   .dash-shift{padding:15px 2px}
-  .dash-date-line{gap:7px}
+  .dash-date-line{gap:6px}
   .dash-date{font-size:15px}
-  .dash-shift-code{font-size:12px}
+  .dash-shift-code{min-width:20px;height:20px;padding:0 5px;font-size:10px}
   .dash-measures{gap:11px}
   .dash-measures>span{font-size:13px}
   .dash-measures svg{width:14px;height:14px}
   .dash-shift-rows{gap:7px;margin-top:10px}
-  .dash-shift-row{grid-template-columns:minmax(0,1fr) minmax(96px,auto);gap:10px;min-height:32px}
+  .dash-shift-row{grid-template-columns:minmax(0,1fr) minmax(0,48%);gap:9px;min-height:32px}
   .dash-performance-badge{min-height:32px;padding:0 10px;font-size:13px}
-  .dash-row-vehicles{font-size:14px}
-  .dash-vehicle-ticker{height:22px;min-width:96px}
+  .dash-vehicle-list{font-size:13px;font-weight:500}
   .dash-bars{gap:12px;padding-top:15px}
   .dash-bar-row{grid-template-columns:46px minmax(70px,1fr) 82px 20px;gap:7px}
   .dash-stat-badge{height:36px;width:40px;min-width:40px;font-size:13px}
@@ -118,7 +114,4 @@
   .dash-extreme span{font-size:12px}
   .dash-extreme strong{font-size:23px}
   .dash-extreme small{font-size:11px}
-}
-@media(prefers-reduced-motion:reduce){
-  .dash-vehicle-current,.dash-vehicle-next{transition:none}
 }
