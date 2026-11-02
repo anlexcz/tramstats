@@ -39,40 +39,65 @@ function durationLabel(parts){
   return known?hm(total):'';
 }
 function performanceRows(s){
-  const out=[];
+  const parts=s.parts||[];
+  const split=Number(s.splitSeq);
+  const blocks=s.actualShift==='Š'&&Number.isFinite(split)&&split>0
+    ?[parts.filter(p=>Number(p.partNo)<=split),parts.filter(p=>Number(p.partNo)>split)].filter(x=>x.length)
+    :[parts];
   const hasValue=v=>v!=null&&v!=='';
   const lineTokens=line=>String(line||'').split('+').map(x=>x.trim()).filter(Boolean);
-  for(const p of s.parts||[]){
-    if(!p.line&&!p.start&&!p.end) continue;
-    const line=p.line||(/^Záloha(?:\s|$)/i.test(p.note||'')?'Z':'');
-    if(line==='Z'){
-      out.push({identity:`Z|${p.partNo??out.length}`,label:'Záloha',start:p.start||'',end:p.end||''});
-      continue;
+  const isHidden=line=>line==='MJ'||line==='JP';
+
+  return blocks.map((block,index)=>{
+    const badges=[];
+    const seen=new Set();
+    const courseBadges=new Map();
+    let start='',end='';
+
+    for(const p of block){
+      if(!start&&p.start)start=p.start;
+      if(p.end)end=p.end;
+      const line=String(p.line||'').trim();
+      if(!line||isHidden(line))continue;
+
+      if(line==='Z'){
+        if(!seen.has('Z')){badges.push({key:'Z',label:'Záloha'});seen.add('Z');}
+        continue;
+      }
+      if(line==='73'){
+        if(!seen.has('73')){badges.push({key:'73',label:'Cvičná jízda'});seen.add('73');}
+        continue;
+      }
+
+      if(hasValue(p.course)){
+        const key=`course|${p.course}`;
+        const tokens=lineTokens(line);
+        let badge=courseBadges.get(key);
+        if(!badge){
+          badge={key,lines:[],label:''};
+          courseBadges.set(key,badge);
+          badges.push(badge);
+        }
+        for(const token of tokens)if(!badge.lines.includes(token))badge.lines.push(token);
+        badge.label=`${badge.lines.join('+')}/${p.course}`;
+        continue;
+      }
+
+      const ref=p.order??'';
+      const key=`order|${line}|${ref}`;
+      if(seen.has(key))continue;
+      seen.add(key);
+      badges.push({key,label:hasValue(ref)?`${line}/${ref}`:line});
     }
 
-    const hasCourse=hasValue(p.course);
-    const ref=hasCourse?p.course:(p.order??'');
-    const identity=hasCourse?`course|${p.course}`:`order|${line}|${ref}`;
-    const previous=out[out.length-1];
-
-    if(previous&&previous.identity===identity){
-      for(const token of lineTokens(line))if(!previous.lines.includes(token))previous.lines.push(token);
-      if(!previous.start&&p.start)previous.start=p.start;
-      if(p.end)previous.end=p.end;
-      previous.label=`${previous.lines.join('+')}${hasValue(ref)?`/${ref}`:''}`;
-      continue;
-    }
-
-    const lines=lineTokens(line);
-    out.push({
-      identity,
-      lines,
-      label:line?`${lines.join('+')}${hasValue(ref)?`/${ref}`:''}`:'',
-      start:p.start||'',
-      end:p.end||''
-    });
-  }
-  return out.map(r=>({...r,interval:r.start&&r.end?`${r.start}–${r.end}`:''}));
+    return {
+      key:`block-${index+1}`,
+      badges,
+      start,
+      end,
+      interval:start&&end?`${start}–${end}`:''
+    };
+  }).filter(r=>r.badges.length||r.interval);
 }
 function workMetrics(s){
   const ps=s.parts||[];
@@ -87,7 +112,7 @@ function workMetrics(s){
 }
 function performancesHTML(rows){
   if(!rows.length)return '<span class="shift-list-empty">Bez výkonu</span>';
-  return rows.map(r=>`<span class="shift-list-performance"><b>${esc(r.label||'—')}</b>${r.interval?`<span class="shift-list-range">${iconInterval}<span>${esc(r.interval)}</span></span>`:''}</span>`).join('');
+  return rows.map(r=>`<span class="shift-list-performance">${(r.badges||[]).map(b=>`<b>${esc(b.label||'—')}</b>`).join('')}${r.interval?`<span class="shift-list-range">${iconInterval}<span>${esc(r.interval)}</span></span>`:''}</span>`).join('');
 }
 function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta ${cls}">${icon}<span>${esc(label)}</span></span>`:'';}
 
