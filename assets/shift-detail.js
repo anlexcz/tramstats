@@ -78,10 +78,11 @@ function galleryPlaceholder(){
     </div>
   </section>`;
 }
-function partRow(part){
+function partRow(part,{splitStart=false}={}){
   const duration=partDuration(part);
   const hasPhoto=false;
-  return `<article class="detail-part">
+  return `<article class="detail-part${splitStart?' detail-part-split-start':''}">
+    ${splitStart?'<span class="detail-split-label">Šejdrpauza</span>':''}
     <div class="detail-part-top">
       <strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>
       <span class="detail-part-right">
@@ -101,6 +102,9 @@ function partRow(part){
 }
 function summaryRow(label,values){
   return `<div class="detail-summary-row"><strong class="detail-summary-label">${label}</strong>${values.map(value=>`<span>${value}</span>`).join('')}</div>`;
+}
+function summaryWideRow(label,value){
+  return `<div class="detail-summary-row detail-summary-wide"><strong class="detail-summary-label">${label}</strong><span>${value}</span></div>`;
 }
 function summaryTable(shift,blocks){
   const split=blocks.length>1;
@@ -124,8 +128,8 @@ function summaryTable(shift,blocks){
   const morning=blocks[0],afternoon=blocks[1];
   const mr=blockRange(morning),ar=blockRange(afternoon),mKm=sumKm(morning.parts),aKm=sumKm(afternoon.parts);
   return `<section class="detail-summary-card detail-summary-split">
-    ${summaryRow('Vozovna',[`<span class="detail-span-all"><a href="#" class="detail-future-link">${esc(depotName)}</a></span>`,'',''])}
-    ${summaryRow('Typ',[`<span class="detail-span-all">${esc(typeName)}</span>`,'',''])}
+    ${summaryWideRow('Vozovna',`<a href="#" class="detail-future-link">${esc(depotName)}</a>`)}
+    ${summaryWideRow('Typ',esc(typeName))}
     ${summaryRow('Výkon',['',esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
     ${summaryRow('Začátek',[esc(allRange.start),esc(mr.start),esc(ar.start)])}
     ${summaryRow('Konec',[esc(allRange.end),esc(mr.end),esc(ar.end)])}
@@ -135,11 +139,10 @@ function summaryTable(shift,blocks){
 }
 function partsCard(shift,blocks){
   const split=blocks.length>1;
-  if(!split)return `<section class="detail-parts-card">${(blocks[0]?.parts||shift.parts).map(partRow).join('')}</section>`;
+  if(!split)return `<section class="detail-parts-card">${(blocks[0]?.parts||shift.parts).map(part=>partRow(part)).join('')}</section>`;
   return `<section class="detail-parts-card detail-parts-split">
-    ${blocks[0].parts.map(partRow).join('')}
-    <div class="detail-split-divider"><span>Šejdrpauza</span></div>
-    ${blocks[1].parts.map(partRow).join('')}
+    ${blocks[0].parts.map(part=>partRow(part)).join('')}
+    ${blocks[1].parts.map((part,index)=>partRow(part,{splitStart:index===0})).join('')}
   </section>`;
 }
 function renderShift(shift){
