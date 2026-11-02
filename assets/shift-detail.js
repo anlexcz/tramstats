@@ -55,10 +55,10 @@ function performanceLabel(part){
   if(line==='MJ')return 'Manipulační jízda';
   if(line==='JP')return 'Jiné práce';
   if(line==='73')return 'Cvičná jízda';
-  if(part.course)return `${line||'—'}/${part.course}`;
   if(part.order)return `${line||'—'}/${part.order}`;
   return line||'—';
 }
+function courseLabel(part){return part.course?`K ${part.course}`:'';}
 function blockPerformance(block){
   const fakeShift={actualShift:'',splitSeq:null,parts:block?.parts||[]};
   const badges=Domain.performanceRows(fakeShift).flatMap(row=>row.badges||[]);
@@ -82,7 +82,7 @@ function partRow(part,{splitStart=false}={}){
   return `<article class="detail-part${splitStart?' detail-part-split-start':''}">
     ${splitStart?'<span class="detail-split-label">Šejdrpauza</span>':''}
     <div class="detail-part-top">
-      <strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>
+      <span><strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>${courseLabel(part)?` <small class="detail-muted">${esc(courseLabel(part))}</small>`:''}</span>
       <span class="detail-part-right">
         <strong class="detail-part-time">${detailIcon('time')}${esc(part.start||'—')}–${esc(part.end||'—')}</strong>
         <strong class="detail-part-km">${detailIcon('km')}${part.km!=null?`${fmt(part.km)} km`:'—'}</strong>
