@@ -21,10 +21,11 @@ function routeDate(){
   const raw=match[1];
   return `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
 }
-function dateLong(iso){
+function dateParts(iso){
   const d=new Date(`${iso}T12:00:00`);
-  return `${dayNames[d.getDay()]} ${d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})}`;
+  return {day:dayNames[d.getDay()],date:d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})};
 }
+function dateLong(iso){const parts=dateParts(iso);return `${parts.day} ${parts.date}`;}
 function minutes(value){
   if(!value)return null;
   const [h,m]=String(value).split(':').map(Number);
@@ -142,10 +143,12 @@ function partsCard(shift,blocks){
   </section>`;
 }
 function renderShift(shift){
-  const blocks=Domain.blocks(shift);
+  const blocks=Domain.blocks(shift),parts=dateParts(shift.date);
   root.innerHTML=`
-    <div class="detail-date">${esc(dateLong(shift.date))}</div>
-    <a class="detail-back" href="shifts/">← Zpět</a>
+    <div class="detail-heading">
+      <div class="detail-heading-date"><span>${esc(parts.day)}</span><strong>${esc(parts.date)}</strong></div>
+      <a class="detail-back" href="shifts/">← Zpět</a>
+    </div>
     ${summaryTable(shift,blocks)}
     ${galleryHTML(shift)}
     ${partsCard(shift,blocks)}
