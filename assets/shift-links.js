@@ -18,9 +18,10 @@ function markCards(){
     if(!href)return;
     card.dataset.detailHref=href;
     card.classList.add('shift-detail-link');
+    card.style.cursor='pointer';
     card.setAttribute('role','link');
     if(!card.hasAttribute('tabindex'))card.tabIndex=0;
-    card.setAttribute('aria-label',`${card.getAttribute('aria-label')||'Otevřít detail směny'}`);
+    card.setAttribute('aria-label',card.getAttribute('aria-label')||'Otevřít detail směny');
   });
 }
 function openCard(card){
