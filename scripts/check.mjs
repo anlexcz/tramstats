@@ -108,6 +108,12 @@ assert.doesNotMatch(coreCode,/function timeline\(/);
 assert.doesNotMatch(coreCode,/JSON\.stringify\(s\)/);
 assert.doesNotMatch(coreCode,/function shiftHTML\(/);
 
+const sharedCss=read('assets/app.css');
+assert.doesNotMatch(sharedCss,/\.kpis\b|\.kpi\b|\.recent\b|\.pager\b|\.count\b/,'Legacy dashboard/shift-list CSS se nesmí vrátit do app.css.');
+assert.doesNotMatch(sharedCss,/body:has\(\.shift\)/,'Legacy width hack se nesmí vrátit.');
+const componentsCss=read('assets/components.css');
+assert.doesNotMatch(componentsCss,/\.summary-vehicles\b/,'Legacy summary-vehicles komponenta se už nepoužívá.');
+
 const removedLegacyFiles=[
   'assets/live-source.js',
   'assets/shifts-v2.js','assets/shifts-v2.css',
@@ -127,4 +133,4 @@ assert.match(shiftsHtml,/assets\/shifts-page\.css/);
 assert.match(shiftsHtml,/assets\/shifts-date-range\.js/);
 assert.doesNotMatch(shiftsHtml,/shifts-v\d|shifts-polish/);
 
-console.log('PASS: relational data, shared shift domain, dashboard and unified shifts page');
+console.log('PASS: relational data, shared shift domain, dashboard, shifts and shared CSS');
