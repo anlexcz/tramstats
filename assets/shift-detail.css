@@ -1,7 +1,10 @@
 .page-shift-detail .page-head{display:none}
 .page-shift-detail main{max-width:760px}
-.detail-date{font:700 28px/1.2 Montserrat,Arial,sans-serif;margin:2px 0 12px;color:#f5f6f7}
-.detail-back{display:inline-flex;align-items:center;margin:0 0 16px;padding:6px 9px;background:var(--badge-bg);color:#d9dde2;font-size:11px;font-weight:700;border:1px solid #454a52}
+.detail-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 14px}
+.detail-heading-date{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
+.detail-heading-date span{font-size:13px;font-weight:400;color:#b8bdc5}
+.detail-heading-date strong{font-size:25px;line-height:1.15;color:#f5f6f7;font-weight:700}
+.detail-back{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:5px 8px;background:var(--badge-bg);color:#d9dde2;font-size:10.5px;font-weight:700;border:1px solid #454a52}
 .detail-back:hover{background:#34373d;color:#fff}
 .detail-summary-card{border:1px solid #3f434a;background:var(--surface);margin-bottom:16px;border-radius:0;overflow:hidden}
 .detail-summary-row{display:grid;grid-template-columns:104px minmax(0,1fr);min-height:38px;border-bottom:1px solid #353941}
@@ -53,9 +56,12 @@
 .detail-note-card{padding:12px 13px;border:1px solid #3f434a;background:var(--surface);border-radius:0;color:#e1e4e8}
 .detail-note-card strong{display:block;margin-bottom:5px;font-size:11.5px}.detail-note-card p{margin:0;font-size:10.5px;line-height:1.5}
 @media(max-width:650px){
-  .page-shift-detail main{padding-top:16px}
-  .detail-date{font-size:28px;margin-bottom:10px}
-  .detail-back{margin-bottom:14px}
+  .page-shift-detail main{padding-top:14px}
+  .detail-heading{margin:0 0 12px;gap:10px}
+  .detail-heading-date{gap:6px}
+  .detail-heading-date span{font-size:11.5px}
+  .detail-heading-date strong{font-size:22px}
+  .detail-back{padding:5px 7px;font-size:10px}
   .detail-summary-row{grid-template-columns:88px minmax(0,1fr);min-height:36px}
   .detail-summary-row>*{padding:0 10px}
   .detail-summary-label{font-size:10px}
@@ -72,6 +78,9 @@
   .detail-part-vehicle,.detail-part-duration{font-size:11.5px}
 }
 @media(max-width:390px){
+  .detail-heading-date span{font-size:11px}
+  .detail-heading-date strong{font-size:20px}
+  .detail-back{font-size:9.5px}
   .detail-summary-split .detail-summary-row:not(.detail-summary-wide){grid-template-columns:80px repeat(3,minmax(0,1fr))}
   .detail-summary-wide{grid-template-columns:80px minmax(0,1fr)}
   .detail-part-top{gap:8px}
