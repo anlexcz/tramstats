@@ -22,10 +22,11 @@ const state={
 
 const icons={
   overview:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
-  shifts:'<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>'
+  shifts:'<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>',
+  vehicles:'<rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M9 19l-2 3M15 19l2 3M9 15h.01M15 15h.01"/>'
 };
-const labels={overview:'Přehled',shifts:'Směny'};
-const pageUrls={overview:'./',shifts:'shifts/'};
+const labels={overview:'Přehled',shifts:'Směny',vehicles:'Vozy'};
+const pageUrls={overview:'./',shifts:'shifts/',vehicles:'vozy/'};
 const icon=key=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[key]}</svg>`;
 
 function nav(){
@@ -37,7 +38,7 @@ function nav(){
 
 const parts=shifts=>shifts.flatMap(shift=>(shift.parts||[]).map(part=>({...part,date:shift.date})));
 const sumKm=partRows=>partRows.reduce((sum,part)=>sum+(part.km??0),0);
-const worked=shift=>(shift.parts||[]).length>0&&!['V','VVS','KS','D','PN','P16','MD'].includes(shift.actualShift);
+const worked=shift=>(shift.parts||[]).length>0&&!['V','VVS','KS','D','PN','SD','P16','MD'].includes(shift.actualShift);
 
 function groups(shifts){
   const lines={},types={},vehicles={};
@@ -62,11 +63,14 @@ function groups(shifts){
 }
 
 let shiftList=()=>'<div class="empty">Načítám seznam směn…</div>';
+let vehicleList=()=>'<div class="empty">Načítám seznam vozů…</div>';
 const dashboardFallback=()=>'<div class="empty">Načítám přehled…</div>';
 
 function currentView(){
   const path=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean).at(-1)||'';
-  return path==='shifts'?'shifts':'overview';
+  if(path==='shifts')return'shifts';
+  if(path==='vozy')return'vehicles';
+  return'overview';
 }
 
 function render(){
@@ -77,8 +81,9 @@ function render(){
   if(!app)return;
   app.innerHTML=state.view==='overview'
     ?(typeof window.dashboard==='function'?window.dashboard(state.shifts):dashboardFallback())
-    :shiftList(state.shifts);
+    :state.view==='shifts'?shiftList(state.shifts):vehicleList(state.db);
   if(state.view==='overview'&&typeof window.dashboardMounted==='function')window.dashboardMounted();
+  if(state.view==='vehicles'&&typeof window.vehiclesMounted==='function')window.vehiclesMounted();
 }
 
 async function boot(){
