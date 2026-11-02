@@ -1,0 +1,28 @@
+/* Shared component styles that do not belong to a single page renderer. */
+.summary-vehicles[data-tram-icon]{display:flex!important;align-items:center;gap:6px}
+.tram-thumb{display:inline-flex;width:34px;height:34px;flex:0 0 34px;align-items:center;justify-content:center;overflow:hidden;background:#f4f4f4;border:1px solid var(--line)}
+.tram-thumb img{width:100%;height:100%;display:block;object-fit:contain}
+.vehicle[data-tram-icon]{position:relative;min-height:118px;padding-right:86px}
+.vehicle .tram-thumb{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:68px;height:68px;flex-basis:68px;border:0}
+.vehicle .tram-thumb img{width:68px;height:68px}
+.summary-vehicles .tram-thumb{width:31px;height:31px;flex-basis:31px;border:0}
+
+.detail-page{max-width:980px}
+.detail-back{display:inline-flex;color:#aeb3bc;text-decoration:none;font-size:13px;font-weight:700;margin:0 0 18px}
+.detail-back:hover{color:#fff}
+.detail-head{border-left:4px solid var(--red);padding:8px 0 8px 16px;margin-bottom:18px}
+.detail-head h1{margin:0;font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.03em}
+.detail-head p{margin:4px 0 0;color:#aeb3bc;font-weight:600}
+.detail-page .parts{display:flex;flex-direction:column;gap:8px}
+.detail-page .part,.detail-page .bp{background:#24262b;border:1px solid #34373d;padding:14px}
+.detail-page h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.04em;margin:24px 0 10px}
+
+@media(max-width:650px){
+  .shift summary .summary-vehicles:before{content:none!important}
+  .shift summary .summary-vehicles{color:#d7d9de!important;font-weight:600}
+  .summary-vehicles .tram-thumb{width:34px;height:34px;flex-basis:34px}
+  .vehicle[data-tram-icon]{min-height:108px;padding-right:78px}
+  .vehicle .tram-thumb,.vehicle .tram-thumb img{width:62px;height:62px}
+  .detail-head h1{font-size:36px}
+  .detail-page .part{overflow-x:auto}
+}
