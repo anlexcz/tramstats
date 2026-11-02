@@ -69,19 +69,14 @@ function vehicleText(part){
   if(!pair&&!family)return'';
   return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${pair?`<span class="detail-vehicle-ids">${esc(pair)}</span>`:''}`;
 }
-function galleryPlaceholder(){
-  return `<section class="detail-gallery" aria-label="Fotografie směny">
-    <div class="detail-gallery-stage">
-      <div class="detail-gallery-empty">${detailIcon('camera')}<strong>Fotografie směny</strong><span>Zde se zobrazí fotografie navázané na části směny.</span></div>
-      <button class="detail-gallery-arrow prev" type="button" aria-label="Předchozí fotografie" disabled>‹</button>
-      <button class="detail-gallery-arrow next" type="button" aria-label="Další fotografie" disabled>›</button>
-      <div class="detail-gallery-counter">0 / 0</div>
-    </div>
-  </section>`;
+function galleryHTML(shift){
+  const photos=shift.photos||[];
+  if(!photos.length)return'';
+  return `<section class="detail-gallery" aria-label="Fotografie směny"></section>`;
 }
 function partRow(part,{splitStart=false}={}){
   const duration=partDuration(part);
-  const hasPhoto=false;
+  const hasPhoto=Array.isArray(part.photos)&&part.photos.length>0;
   return `<article class="detail-part${splitStart?' detail-part-split-start':''}">
     ${splitStart?'<span class="detail-split-label">Šejdrpauza</span>':''}
     <div class="detail-part-top">
@@ -152,7 +147,7 @@ function renderShift(shift){
     <div class="detail-date">${esc(dateLong(shift.date))}</div>
     <a class="detail-back" href="shifts/">← Zpět</a>
     ${summaryTable(shift,blocks)}
-    ${galleryPlaceholder()}
+    ${galleryHTML(shift)}
     ${partsCard(shift,blocks)}
     ${shift.note?`<section class="detail-note-card"><strong>Poznámka</strong><p>${esc(shift.note)}</p></section>`:''}
     <section class="detail-breaks" hidden></section>`;
