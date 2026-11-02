@@ -93,13 +93,19 @@ async function boot(){
     state.db=db;
     state.shifts=db.shifts;
     const status=$('#status');
-    if(status)status.textContent='';
+    if(status){
+      status.textContent='';
+      status.classList.remove('status-error');
+    }
     render();
   }catch(error){
     const message=String(error?.message||error);
     const status=$('#status'),app=$('#app');
-    if(status)status.textContent='Databáze TramStats není dostupná. '+message;
-    if(app)app.innerHTML='<div class="empty">Data se nepodařilo načíst z read-only API.</div>';
+    if(status){
+      status.textContent='Databáze TramStats není dostupná. '+message;
+      status.classList.add('status-error');
+    }
+    if(app)app.innerHTML='<div class="empty error">Data se nepodařilo načíst z read-only API.</div>';
     nav();
   }
 }
