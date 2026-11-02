@@ -13,13 +13,18 @@
   --control-bg:#292c31;
   --label-muted:#8f959f;
   --text-strong:#f1f2f4;
+  --text-xs:11px;
+  --text-sm:12px;
+  --text-base:14px;
+  --text-md:15px;
+  --text-lg:17px;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
   background:var(--bg);
   color:#f4f4f6;
-  font:13px Montserrat,Arial,sans-serif;
+  font:var(--text-base) Montserrat,Arial,sans-serif;
   font-variant-numeric:tabular-nums;
 }
 button,input,select{
@@ -73,7 +78,7 @@ svg{
 }
 .sandbox{
   margin-left:auto;
-  font-size:10px;
+  font-size:var(--text-xs);
   letter-spacing:1px;
   color:var(--muted);
 }
@@ -90,7 +95,7 @@ main{
   margin-bottom:25px;
 }
 .eyebrow{
-  font-size:10px;
+  font-size:var(--text-xs);
   letter-spacing:2px;
   color:var(--muted);
   margin-bottom:7px;
@@ -100,9 +105,9 @@ h1{
   margin:0;
   letter-spacing:1px;
 }
-h2{font-size:15px;margin:0 0 24px;font-weight:600}
+h2{font-size:var(--text-lg);margin:0 0 24px;font-weight:600}
 .hint{
-  font-size:11px;
+  font-size:var(--text-sm);
   line-height:1.8;
   color:var(--muted);
   margin:20px 0 0;
@@ -117,10 +122,10 @@ footer{
   padding-top:16px;
   border-top:1px solid var(--line);
   color:var(--muted);
-  font-size:10px;
+  font-size:var(--text-xs);
   line-height:1.9;
 }
-#status:not(:empty){padding:12px 0;font-size:12px;color:var(--cyan)}
+#status:not(:empty){padding:12px 0;font-size:var(--text-sm);color:var(--cyan)}
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
@@ -132,13 +137,13 @@ footer{
   header{height:57px;padding:0 16px}
   header nav{display:none}
   .brand{font-size:29px}
-  .sandbox{display:block;font-size:8px}
+  .sandbox{display:block;font-size:var(--text-xs)}
   .sandbox b{display:none}
   main{padding:18px 12px 86px}
   .page-head{margin-bottom:12px}
   h1{font-size:46px}
-  .eyebrow{font-size:8px}
-  h2{font-size:13px;margin-bottom:18px}
+  .eyebrow{font-size:var(--text-xs)}
+  h2{font-size:var(--text-md);margin-bottom:18px}
   #mobile-nav{
     display:flex;
     position:fixed;
