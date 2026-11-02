@@ -28,15 +28,30 @@ const typeLabel=s=>s.shiftType?.name||s.actualShift||'';
 const depotLabel=s=>s.depotMeta?.name||s.depot||'';
 const hasTimedPart=s=>(s.parts||[]).some(p=>p.start&&p.end);
 
-function durationLabel(parts){
-  let total=0,known=false;
+function blockDuration(parts){
+  let first=null,last=null;
   for(const p of parts){
-    if(!p.duration) continue;
-    const m=mins(p.duration);
-    if(m==null) continue;
-    total+=m;known=true;
+    if(!p.start||!p.end)continue;
+    const startBase=mins(p.start);
+    let endBase=mins(p.end);
+    if(startBase==null||endBase==null)continue;
+    const offset=(Number(p.startDayOffset)||0)*1440;
+    const start=startBase+offset;
+    let end=endBase+offset;
+    if(end<start)end+=1440;
+    if(first==null||start<first)first=start;
+    if(last==null||end>last)last=end;
   }
-  return known?hm(total):'';
+  return first!=null&&last!=null&&last>=first?last-first:null;
+}
+function durationLabel(s){
+  const parts=s.parts||[];
+  const split=Number(s.splitSeq);
+  const blocks=s.actualShift==='Š'&&Number.isFinite(split)&&split>0
+    ?[parts.filter(p=>Number(p.partNo)<=split),parts.filter(p=>Number(p.partNo)>split)].filter(x=>x.length)
+    :[parts];
+  const durations=blocks.map(blockDuration).filter(v=>v!=null);
+  return durations.length?hm(durations.reduce((a,b)=>a+b,0)):'';
 }
 function performanceRows(s){
   const parts=s.parts||[];
@@ -106,7 +121,7 @@ function workMetrics(s){
     type:typeLabel(s),
     depot:depotLabel(s),
     km:knownKm?`${fmt(sumKm(ps))} km`:'',
-    duration:durationLabel(ps),
+    duration:durationLabel(s),
     performances:performanceRows(s)
   };
 }
