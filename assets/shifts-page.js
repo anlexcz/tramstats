@@ -14,6 +14,7 @@ const iconDepot='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="t
 const iconKm='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5c-2 0-3 1.3-3 3s1 3 3 3h12c2 0 3 1.3 3 3s-1 3-3 3H8"/><path d="M8 14l-3 3 3 3"/></svg>';
 const iconClock='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>';
 const iconInterval='<svg class="shift-list-interval-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg>';
+const SEARCH_CACHE=new WeakMap();
 
 state.year='all';
 state.dateFrom=state.dateFrom||'';
@@ -22,7 +23,7 @@ state.workOnly=state.workOnly||false;
 state.pageSize=state.pageSize||25;
 state.visibleCount=Number(sessionStorage.getItem('tramstats-shifts-visible'))||state.pageSize;
 
-const norm=value=>String(value??'').toLocaleLowerCase('cs').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const norm=value=>String(value??'').toLocaleLowerCase('cs').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const fullDay=iso=>DAY_NAMES[new Date(iso+'T12:00:00').getDay()]||'';
 const typeLabel=s=>s.shiftType?.name||s.actualShift||'';
 const depotLabel=s=>s.depotMeta?.name||s.depot||'';
@@ -150,15 +151,87 @@ function shiftCard(s){
   </a>`;
 }
 
+function addSearchValue(index,value,{exact=false}={}){
+  if(value==null||value==='')return;
+  const normalized=norm(value);
+  if(!normalized)return;
+  index.text.push(normalized);
+  if(exact)index.exact.add(normalized);
+}
+function addDateValues(index,iso){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return;
+  const [y,m,d]=iso.split('-');
+  for(const value of [iso,`${d}.${m}.${y}`,`${d}.${m}.`,`${d}/${m}/${y}`,`${d}/${m}`])addSearchValue(index,value,{exact:true});
+}
+function searchIndex(s){
+  const cached=SEARCH_CACHE.get(s);
+  if(cached)return cached;
+  const index={text:[],exact:new Set()};
+
+  addDateValues(index,s.date);
+  addSearchValue(index,s.actualShift,{exact:true});
+  addSearchValue(index,typeLabel(s));
+  addSearchValue(index,s.depot,{exact:true});
+  addSearchValue(index,depotLabel(s));
+  addSearchValue(index,s.note);
+
+  const absence=ABSENCES[s.actualShift];
+  if(absence)addSearchValue(index,absence.label);
+
+  for(const p of s.parts||[]){
+    addSearchValue(index,p.course,{exact:true});
+    addSearchValue(index,p.order,{exact:true});
+    addSearchValue(index,p.vehicleType);
+    addSearchValue(index,p.frontVehicle,{exact:true});
+    addSearchValue(index,p.rearVehicle,{exact:true});
+    addSearchValue(index,p.frontVehicleMeta?.type);
+    addSearchValue(index,p.frontVehicleMeta?.family);
+    addSearchValue(index,p.rearVehicleMeta?.type);
+    addSearchValue(index,p.rearVehicleMeta?.family);
+    addSearchValue(index,p.note);
+
+    for(const lp of p.lineParts||[]){
+      const code=String(lp.line??'').trim();
+      if(!code)continue;
+      addSearchValue(index,code,{exact:true});
+      addSearchValue(index,lp.lineMeta?.alias,{exact:true});
+      addSearchValue(index,lp.lineMeta?.name);
+      if(code==='Z')addSearchValue(index,'Záloha');
+      if(code==='73'){
+        addSearchValue(index,'L',{exact:true});
+        addSearchValue(index,'Cvičná jízda');
+      }
+      if(p.course!=null&&p.course!=='')addSearchValue(index,`${code}/${p.course}`,{exact:true});
+      if(p.order!=null&&p.order!=='')addSearchValue(index,`${code}/${p.order}`,{exact:true});
+    }
+  }
+
+  index.blob=` ${index.text.join(' ')} `;
+  SEARCH_CACHE.set(s,index);
+  return index;
+}
+function queryTokens(query){
+  return norm(query).split(/\s+/).filter(Boolean);
+}
+function tokenMatches(index,token){
+  if(/^\d+$/.test(token))return index.exact.has(token);
+  if(index.exact.has(token))return true;
+  return index.blob.includes(token);
+}
+function matchesSearch(s,query){
+  const tokens=queryTokens(query);
+  if(!tokens.length)return true;
+  const index=searchIndex(s);
+  return tokens.every(token=>tokenMatches(index,token));
+}
 function filterRows(ss){
-  const q=norm(state.query);
   return ss.filter(s=>{
     if(state.type&&s.actualShift!==state.type)return false;
     if(state.depot&&s.depot!==state.depot)return false;
     if(state.dateFrom&&s.date<state.dateFrom)return false;
     if(state.dateTo&&s.date>state.dateTo)return false;
     if(state.workOnly&&!hasTimedPart(s))return false;
-    if(q&&!norm(JSON.stringify(s)).includes(q))return false;
+    if(state.query&&!matchesSearch(s,state.query))return false;
     return true;
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
@@ -188,7 +261,7 @@ function shiftPage(ss){
   const filterBody=controls(ss);
   const mobileBody=controls(ss,'mobile-');
   return `<div class="shift-filters">
-      <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 3 9118, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open">FILTRY${active?` <b>${active}</b>`:''}</button></div>
+      <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open">FILTRY${active?` <b>${active}</b>`:''}</button></div>
       <div class="shift-desktop-controls">${filterBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button></div>
       <div class="shift-count">Zobrazeno ${shown} z ${list.length} evidovaných dnů</div>
       <div class="shift-mobile-sheet" aria-hidden="true"><button class="shift-sheet-backdrop" type="button" aria-label="Zavřít filtry"></button><div class="shift-sheet-panel"><div class="shift-sheet-head"><strong>FILTRY</strong><button class="shift-sheet-close" type="button">×</button></div>${mobileBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button><button type="button" class="shift-sheet-done">ZOBRAZIT ${list.length} SMĚN</button></div></div>
