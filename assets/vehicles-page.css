@@ -25,21 +25,23 @@
   .page-vehicles main{padding-top:14px}
   .vehicles-controls{gap:10px;margin-bottom:12px}
   .vehicles-families,.vehicles-periods{gap:6px}
-  .vehicles-families button,.vehicles-periods button{padding:7px 10px;font-size:10px}
-  .vehicles-search input{width:100%}
-  .vehicles-head,.vehicles-row{grid-template-columns:minmax(112px,1.2fr) 52px 92px 76px}
+  .vehicles-families button,.vehicles-periods button{padding:7px 10px;font-size:11px}
+  .vehicles-search input{width:100%;font-size:13px}
+  .vehicles-count{font-size:11px}
+  .vehicles-head,.vehicles-row{grid-template-columns:minmax(112px,1.2fr) 54px 94px 78px}
   .vehicles-head>span,.vehicles-row>span{padding:0 8px}
-  .vehicles-head{min-height:36px}
-  .vehicles-row{min-height:44px}
+  .vehicles-head{min-height:37px;font-size:10.5px}
+  .vehicles-row{min-height:45px}
   .vehicles-id{gap:6px}
-  .vehicles-id small{font-size:9.5px}
-  .vehicles-id strong{font-size:12px}
+  .vehicles-id small{font-size:10.5px}
+  .vehicles-id strong{font-size:13.5px}
   .vehicles-metric{gap:4px}
-  .vehicles-metric svg{width:13px;height:13px}
-  .vehicles-metric b{font-size:10.5px}
+  .vehicles-metric svg{width:14px;height:14px}
+  .vehicles-metric b{font-size:11.5px}
 }
 @media(max-width:390px){
-  .vehicles-head,.vehicles-row{grid-template-columns:minmax(104px,1.2fr) 46px 86px 70px}
+  .vehicles-head,.vehicles-row{grid-template-columns:minmax(104px,1.2fr) 48px 88px 72px}
   .vehicles-head>span,.vehicles-row>span{padding:0 6px}
-  .vehicles-metric b{font-size:10px}
+  .vehicles-id strong{font-size:13px}
+  .vehicles-metric b{font-size:11px}
 }
