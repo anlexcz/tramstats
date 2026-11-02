@@ -24,13 +24,13 @@
 .vehicle-occurrence-meta small{color:#9da3ac;font-size:9.5px}
 .vehicle-gallery{margin:0 0 14px}
 .vehicle-history{border:1px solid #3f434a;background:var(--surface);margin-bottom:16px}
-.vehicle-year-divider{position:relative;height:19px;border-bottom:1px solid rgba(40,199,199,.18);border-top:1px solid rgba(40,199,199,.18);background:#1b1d21;text-align:center}
-.vehicle-year-divider:first-child{border-top:0}
-.vehicle-year-divider:before{content:'';position:absolute;left:16px;right:16px;top:50%;height:1px;background:rgba(40,199,199,.26)}
-.vehicle-year-divider span{position:relative;z-index:1;padding:0 8px;background:#1b1d21;color:rgba(40,199,199,.78);font-size:8.5px;font-weight:700;line-height:19px}
-.vehicle-history-row{display:grid;grid-template-columns:minmax(86px,1.15fr) minmax(64px,.75fr) minmax(66px,.7fr) minmax(82px,.85fr) 20px;align-items:center;min-height:42px;padding:0 10px;border-bottom:1px solid #30343a;gap:8px;cursor:pointer}
+.vehicle-history-row{position:relative;display:grid;grid-template-columns:minmax(86px,1.15fr) minmax(64px,.75fr) minmax(66px,.7fr) minmax(82px,.85fr) 20px;align-items:center;min-height:42px;padding:0 10px;border-bottom:1px solid #30343a;gap:8px;cursor:pointer}
 .vehicle-history-row:last-child{border-bottom:0}
 .vehicle-history-row:hover,.vehicle-history-row:focus-visible{background:#22252a;outline:none}
+.vehicle-history-year-start{border-top:1px solid rgba(40,199,199,.28)}
+.vehicle-history-year-start:first-child{border-top:0}
+.vehicle-history-year-label{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);z-index:2;padding:0 8px;background:var(--surface);color:rgba(40,199,199,.78);font-size:9px;font-weight:700;line-height:1.4;white-space:nowrap}
+.vehicle-history-row:first-child .vehicle-history-year-label{top:1px}
 .vehicle-history-date,.vehicle-history-performance{font-size:10.5px;color:#eef0f2;white-space:nowrap}
 .vehicle-history-date{font-weight:600}
 .vehicle-history-performance{font-weight:700}
@@ -40,20 +40,24 @@
 .vehicle-history-photo{display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#aeb4bd}
 .vehicle-history-photo-space{width:20px}
 @media(max-width:650px){
-  .vehicle-detail-title span{font-size:17px}
-  .vehicle-detail-title strong{font-size:24px}
-  .vehicle-detail-back{font-size:10px;padding:5px 7px}
-  .vehicle-summary-head,.vehicle-summary-row{grid-template-columns:.9fr .48fr .92fr .72fr;min-height:36px}
+  .vehicle-detail-title span{font-size:18px}
+  .vehicle-detail-title strong{font-size:25px}
+  .vehicle-detail-back{font-size:10.5px;padding:5px 7px}
+  .vehicle-summary-head,.vehicle-summary-row{grid-template-columns:.9fr .48fr .92fr .72fr;min-height:37px}
   .vehicle-summary-head>span,.vehicle-summary-row>*{padding:0 8px}
-  .vehicle-summary-row{font-size:11px}
-  .vehicle-occurrence-meta{font-size:10px}
-  .vehicle-history-row{grid-template-columns:minmax(82px,1.08fr) minmax(54px,.65fr) 62px 78px 18px;gap:6px;padding:0 8px;min-height:40px}
-  .vehicle-history-date,.vehicle-history-performance{font-size:10px}
-  .vehicle-history-metric b{font-size:9.5px}
-  .vehicle-history-metric svg,.vehicle-history-photo svg{width:12px;height:12px}
+  .vehicle-summary-head{font-size:10px}
+  .vehicle-summary-row{font-size:12px}
+  .vehicle-summary-row strong{font-size:11.5px}
+  .vehicle-occurrence-meta{font-size:11px;line-height:1.65}
+  .vehicle-occurrence-meta small{font-size:10px}
+  .vehicle-history-row{grid-template-columns:minmax(82px,1.08fr) minmax(54px,.65fr) 64px 80px 18px;gap:6px;padding:0 8px;min-height:41px}
+  .vehicle-history-date,.vehicle-history-performance{font-size:11px}
+  .vehicle-history-metric b{font-size:10.5px}
+  .vehicle-history-metric svg,.vehicle-history-photo svg{width:13px;height:13px}
+  .vehicle-history-year-label{font-size:9.5px}
 }
 @media(max-width:390px){
-  .vehicle-history-row{grid-template-columns:minmax(78px,1fr) minmax(50px,.6fr) 58px 72px 16px;gap:4px;padding:0 6px}
-  .vehicle-history-date,.vehicle-history-performance{font-size:9.5px}
-  .vehicle-history-metric b{font-size:9px}
+  .vehicle-history-row{grid-template-columns:minmax(78px,1fr) minmax(50px,.6fr) 60px 74px 16px;gap:4px;padding:0 6px}
+  .vehicle-history-date,.vehicle-history-performance{font-size:10.5px}
+  .vehicle-history-metric b{font-size:10px}
 }
