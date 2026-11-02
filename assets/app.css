@@ -211,6 +211,96 @@ footer{
   }
 }
 
+/* Desktop/tablet shift rows: compact one-line date, stable performance axis,
+   and a single right-aligned metadata group. Mobile keeps its dedicated layout. */
+@media(min-width:651px){
+  .page-shifts #shift-results .shift-list-card{
+    position:relative;
+  }
+  .page-shifts #shift-results .shift-list-work{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-height:50px;
+    padding:8px 10px;
+  }
+  .page-shifts #shift-results .shift-list-work::before{
+    content:'';
+    position:absolute;
+    left:-1px;
+    top:-1px;
+    bottom:-1px;
+    width:3px;
+    background:var(--separator-emphasis);
+    pointer-events:none;
+  }
+  .page-shifts #shift-results .shift-list-date{
+    flex:0 0 118px;
+    display:flex;
+    flex-direction:row;
+    align-items:baseline;
+    gap:7px;
+    white-space:nowrap;
+  }
+  .page-shifts #shift-results .shift-list-date strong{
+    order:1;
+    font-size:14px;
+  }
+  .page-shifts #shift-results .shift-list-date small{
+    order:2;
+    margin:0;
+    font-size:10px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .page-shifts #shift-results .shift-list-type{
+    flex:0 0 110px;
+    width:110px;
+  }
+  .page-shifts #shift-results .shift-list-performances{
+    flex:1 1 auto;
+    min-width:190px;
+  }
+  .page-shifts #shift-results .shift-list-depot,
+  .page-shifts #shift-results .shift-list-km,
+  .page-shifts #shift-results .shift-list-duration{
+    flex:0 0 auto;
+    min-width:0;
+    width:auto;
+  }
+  .page-shifts #shift-results .shift-list-depot{
+    margin-left:auto;
+  }
+  .page-shifts #shift-results .shift-list-km .shift-list-meta,
+  .page-shifts #shift-results .shift-list-duration .shift-list-meta{
+    justify-content:flex-start;
+  }
+  .page-shifts #shift-results .shift-list-absence{
+    min-height:50px;
+    padding:8px 10px;
+  }
+  .page-shifts #shift-results .shift-list-absence .shift-list-date{
+    flex:none;
+  }
+}
+@media(min-width:651px) and (max-width:1150px){
+  .page-shifts #shift-results .shift-list-work{
+    gap:8px;
+    padding:7px 9px;
+  }
+  .page-shifts #shift-results .shift-list-date{
+    flex-basis:104px;
+    gap:5px;
+  }
+  .page-shifts #shift-results .shift-list-type{
+    flex-basis:88px;
+    width:88px;
+  }
+  .page-shifts #shift-results .shift-list-performances{
+    min-width:160px;
+  }
+}
+
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
