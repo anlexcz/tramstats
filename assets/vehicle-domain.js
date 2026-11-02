@@ -16,11 +16,6 @@ const partDuration=part=>{
 };
 const performanceLabel=part=>{
   const line=part.line||'';
-  if(line==='Z')return 'Záloha';
-  if(line==='MJ')return 'Manipulační jízda';
-  if(line==='JP')return 'Jiné práce';
-  if(line==='73')return 'Cvičná jízda';
-  if(part.course)return `${line||'—'}/${part.course}`;
   if(part.order)return `${line||'—'}/${part.order}`;
   return line||'—';
 };
