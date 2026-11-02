@@ -1,6 +1,7 @@
 (()=>{
 'use strict';
 
+const Domain=window.TramStatsShiftDomain;
 const ABSENCES={
   V:{label:'Volno',tone:'off'},
   VVS:{label:'Volno vzniklé svátkem',tone:'off'},
@@ -45,119 +46,30 @@ const fullDay=iso=>DAY_NAMES[new Date(iso+'T12:00:00').getDay()]||'';
 const typeLabel=s=>s.shiftType?.name||s.actualShift||'';
 const depotLabel=s=>s.depotMeta?.name||s.depot||'';
 const hasTimedPart=s=>(s.parts||[]).some(p=>p.start&&p.end);
+const durationLabel=s=>{const minutes=Domain.durationMinutes(s);return minutes!=null?hm(minutes):'';};
+const performanceRows=s=>Domain.performanceRows(s);
 
-function shiftBlocks(s){
-  const parts=s.parts||[];
-  const split=Number(s.splitSeq);
-  if(s.actualShift==='Š'&&Number.isFinite(split)&&split>0){
-    return [
-      {key:'morning',parts:parts.filter(p=>Number(p.partNo)<=split)},
-      {key:'afternoon',parts:parts.filter(p=>Number(p.partNo)>split)}
-    ].filter(block=>block.parts.length);
-  }
-  return [{key:'main',parts}];
-}
-function blockDuration(parts){
-  let first=null,last=null;
-  for(const p of parts){
-    if(!p.start||!p.end)continue;
-    const startBase=mins(p.start);
-    let endBase=mins(p.end);
-    if(startBase==null||endBase==null)continue;
-    const offset=(Number(p.startDayOffset)||0)*1440;
-    const start=startBase+offset;
-    let end=endBase+offset;
-    if(end<start)end+=1440;
-    if(first==null||start<first)first=start;
-    if(last==null||end>last)last=end;
-  }
-  return first!=null&&last!=null&&last>=first?last-first:null;
-}
-function durationLabel(s){
-  const durations=shiftBlocks(s).map(block=>blockDuration(block.parts)).filter(v=>v!=null);
-  return durations.length?hm(durations.reduce((a,b)=>a+b,0)):'';
-}
-function performanceRows(s){
-  const blocks=shiftBlocks(s);
-  const hasValue=v=>v!=null&&v!=='';
-  const lineTokens=line=>String(line||'').split('+').map(x=>x.trim()).filter(Boolean);
-  const isHidden=line=>line==='MJ'||line==='JP';
-
-  return blocks.map((block,index)=>{
-    const badges=[];
-    const seen=new Set();
-    const courseBadges=new Map();
-    let start='',end='';
-
-    for(const p of block.parts){
-      if(!start&&p.start)start=p.start;
-      if(p.end)end=p.end;
-      const line=String(p.line||'').trim();
-      if(!line||isHidden(line))continue;
-
-      if(line==='Z'){
-        if(!seen.has('Z')){badges.push({key:'Z',label:'Záloha'});seen.add('Z');}
-        continue;
-      }
-      if(line==='73'){
-        if(!seen.has('73')){badges.push({key:'73',label:'Cvičná jízda'});seen.add('73');}
-        continue;
-      }
-
-      if(hasValue(p.course)){
-        const key=`course|${p.course}`;
-        const tokens=lineTokens(line);
-        let badge=courseBadges.get(key);
-        if(!badge){
-          badge={key,lines:[],label:''};
-          courseBadges.set(key,badge);
-          badges.push(badge);
-        }
-        for(const token of tokens)if(!badge.lines.includes(token))badge.lines.push(token);
-        badge.label=`${badge.lines.join('+')}/${p.course}`;
-        continue;
-      }
-
-      const ref=p.order??'';
-      const key=`order|${line}|${ref}`;
-      if(seen.has(key))continue;
-      seen.add(key);
-      badges.push({key,label:hasValue(ref)?`${line}/${ref}`:line});
-    }
-
-    return {
-      key:block.key||`block-${index+1}`,
-      badges,
-      start,
-      end,
-      interval:start&&end?`${start}–${end}`:''
-    };
-  }).filter(r=>r.badges.length||r.interval);
-}
 function workMetrics(s){
   const ps=s.parts||[];
-  const knownKm=ps.some(p=>p.km!=null);
   return {
     type:typeLabel(s),
     depot:depotLabel(s),
-    km:knownKm?`${fmt(sumKm(ps))} km`:'',
+    km:ps.some(p=>p.km!=null)?`${fmt(sumKm(ps))} km`:'',
     duration:durationLabel(s),
     performances:performanceRows(s)
   };
 }
 function performancesHTML(rows){
   if(!rows.length)return '<span class="shift-list-empty">Bez výkonu</span>';
-  return rows.map(r=>`<span class="shift-list-performance">${(r.badges||[]).map(b=>`<b>${esc(b.label||'—')}</b>`).join('')}${r.interval?`<span class="shift-list-range">${iconInterval}<span>${esc(r.interval)}</span></span>`:''}</span>`).join('');
+  return rows.map(row=>`<span class="shift-list-performance">${(row.badges||[]).map(b=>`<b>${esc(b.label||'—')}</b>`).join('')}${row.interval?`<span class="shift-list-range">${iconInterval}<span>${esc(row.interval)}</span></span>`:''}</span>`).join('');
 }
 function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta ${cls}">${icon}<span>${esc(label)}</span></span>`:'';}
-
 function shiftCard(s){
   const absence=ABSENCES[s.actualShift];
   if(absence){
     return `<a class="shift-list-card shift-list-absence shift-list-absence-${absence.tone}" href="shifts/detail/?date=${encodeURIComponent(s.date)}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></a>`;
   }
-  const m=workMetrics(s);
-  const performance=performancesHTML(m.performances);
+  const m=workMetrics(s),performance=performancesHTML(m.performances);
   return `<a class="shift-list-card shift-list-work" href="shifts/detail/?date=${encodeURIComponent(s.date)}" data-shift-date="${esc(s.date)}">
     <span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span>
     <span class="shift-list-type">${esc(m.type)}</span>
@@ -186,17 +98,14 @@ function searchIndex(s){
   const cached=SEARCH_CACHE.get(s);
   if(cached)return cached;
   const index={text:[],exact:new Set()};
-
   addDateValues(index,s.date);
   addSearchValue(index,s.actualShift,{exact:true});
   addSearchValue(index,typeLabel(s));
   addSearchValue(index,s.depot,{exact:true});
   addSearchValue(index,depotLabel(s));
   addSearchValue(index,s.note);
-
   const absence=ABSENCES[s.actualShift];
   if(absence)addSearchValue(index,absence.label);
-
   for(const p of s.parts||[]){
     addSearchValue(index,p.course,{exact:true});
     addSearchValue(index,p.order,{exact:true});
@@ -208,7 +117,6 @@ function searchIndex(s){
     addSearchValue(index,p.rearVehicleMeta?.type);
     addSearchValue(index,p.rearVehicleMeta?.family);
     addSearchValue(index,p.note);
-
     for(const lp of p.lineParts||[]){
       const code=String(lp.line??'').trim();
       if(!code)continue;
@@ -224,24 +132,15 @@ function searchIndex(s){
       if(p.order!=null&&p.order!=='')addSearchValue(index,`${code}/${p.order}`,{exact:true});
     }
   }
-
   index.blob=` ${index.text.join(' ')} `;
   SEARCH_CACHE.set(s,index);
   return index;
 }
-function queryTokens(query){
-  return norm(query).split(/\s+/).filter(Boolean);
-}
-function tokenMatches(index,token){
-  if(/^\d+$/.test(token))return index.exact.has(token);
-  if(index.exact.has(token))return true;
-  return index.blob.includes(token);
-}
 function matchesSearch(s,query){
-  const tokens=queryTokens(query);
+  const tokens=norm(query).split(/\s+/).filter(Boolean);
   if(!tokens.length)return true;
   const index=searchIndex(s);
-  return tokens.every(token=>tokenMatches(index,token));
+  return tokens.every(token=>/^\d+$/.test(token)?index.exact.has(token):index.exact.has(token)||index.blob.includes(token));
 }
 function filterRowsWith(ss,values){
   return ss.filter(s=>{
@@ -278,8 +177,7 @@ function shiftPage(ss){
   const list=filterRows(ss);
   const shown=Math.min(Math.max(state.visibleCount,state.pageSize),list.length);
   const active=[state.type,state.depot,state.dateFrom||state.dateTo,state.workOnly].filter(Boolean).length;
-  const filterBody=controls(ss);
-  const mobileBody=controls(ss,'mobile-',state);
+  const filterBody=controls(ss),mobileBody=controls(ss,'mobile-',state);
   return `<div class="shift-filters">
       <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open" aria-expanded="false" aria-controls="mobile-filter-sheet">FILTRY${active?` <b>${active}</b>`:''}</button></div>
       <div class="shift-desktop-controls">${filterBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button></div>
@@ -291,13 +189,14 @@ function shiftPage(ss){
 }
 shiftList=shiftPage;
 
-function rerender(reset=true){
-  if(reset)state.visibleCount=state.pageSize;
-  render();
-}
+function rerender(reset=true){if(reset)state.visibleCount=state.pageSize;render();}
 function setFilter(target){
   const id=target.id;
-  if(id==='shift-search'){state.query=target.value;rerender(true);requestAnimationFrame(()=>{const x=document.querySelector('#shift-search');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length);}});return true;}
+  if(id==='shift-search'){
+    state.query=target.value;rerender(true);
+    requestAnimationFrame(()=>{const x=document.querySelector('#shift-search');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length);}});
+    return true;
+  }
   if(id==='shift-type-filter'){state.type=target.value;rerender(true);return true;}
   if(id==='depot-filter'){state.depot=target.value;rerender(true);return true;}
   if(id==='work-only-filter'){state.workOnly=target.checked;rerender(true);return true;}
@@ -307,9 +206,7 @@ function makeMobileDraft(){return {query:state.query||'',type:state.type||'',dep
 function mobileResultCount(){return mobileDraft?filterRowsWith(state.shifts||[],mobileDraft).length:filterRows(state.shifts||[]).length;}
 function refreshMobileDraftUI(){
   if(!mobileDraft)return;
-  const type=document.querySelector('#mobile-shift-type-filter');
-  const depot=document.querySelector('#mobile-depot-filter');
-  const work=document.querySelector('#mobile-work-only-filter');
+  const type=document.querySelector('#mobile-shift-type-filter'),depot=document.querySelector('#mobile-depot-filter'),work=document.querySelector('#mobile-work-only-filter');
   if(type)type.value=mobileDraft.type||'';
   if(depot)depot.value=mobileDraft.depot||'';
   if(work)work.checked=!!mobileDraft.workOnly;
@@ -325,8 +222,7 @@ window.TramStatsMobileFilterDraft={
 };
 function openMobileFilters(){
   mobileDraft=makeMobileDraft();
-  const sheet=document.querySelector('.shift-mobile-sheet');
-  const opener=document.querySelector('#mobile-filter-open');
+  const sheet=document.querySelector('.shift-mobile-sheet'),opener=document.querySelector('#mobile-filter-open');
   document.body.classList.add('shift-filters-open');
   sheet?.setAttribute('aria-hidden','false');
   opener?.setAttribute('aria-expanded','true');
@@ -354,25 +250,12 @@ function applyMobileFilters(){
   render();
   requestAnimationFrame(()=>document.querySelector('#mobile-filter-open')?.focus());
 }
-function clearMobileDraft(){
-  mobileDraft={query:state.query||'',type:'',depot:'',dateFrom:'',dateTo:'',workOnly:false,pageSize:state.pageSize||25};
-  refreshMobileDraftUI();
-}
+function clearMobileDraft(){mobileDraft={query:state.query||'',type:'',depot:'',dateFrom:'',dateTo:'',workOnly:false,pageSize:state.pageSize||25};refreshMobileDraftUI();}
 function saveReturnState(){
-  const snapshot={
-    query:state.query||'',
-    type:state.type||'',
-    depot:state.depot||'',
-    dateFrom:state.dateFrom||'',
-    dateTo:state.dateTo||'',
-    workOnly:!!state.workOnly,
-    pageSize:state.pageSize||25,
-    visibleCount:state.visibleCount||state.pageSize||25,
-    scrollY:window.scrollY||0
-  };
-  sessionStorage.setItem(RETURN_KEY,JSON.stringify(snapshot));
+  sessionStorage.setItem(RETURN_KEY,JSON.stringify({query:state.query||'',type:state.type||'',depot:state.depot||'',dateFrom:state.dateFrom||'',dateTo:state.dateTo||'',workOnly:!!state.workOnly,pageSize:state.pageSize||25,visibleCount:state.visibleCount||state.pageSize||25,scrollY:window.scrollY||0}));
   history.replaceState({...history.state,tramstatsShiftList:true},'');
 }
+
 document.addEventListener('input',e=>{if(e.target.id==='shift-search')setFilter(e.target);});
 document.addEventListener('change',e=>{
   if(e.target.id==='mobile-shift-type-filter'){if(mobileDraft){mobileDraft.type=e.target.value;refreshMobileDraftUI();}return;}
@@ -396,8 +279,7 @@ document.addEventListener('click',e=>{
   }
   const more=e.target.closest('#shift-load-more');
   if(more){state.visibleCount+=state.pageSize;render();return;}
-  const card=e.target.closest('.shift-list-card');
-  if(card)saveReturnState();
+  if(e.target.closest('.shift-list-card'))saveReturnState();
 });
 document.addEventListener('keydown',e=>{
   if(!document.body.classList.contains('shift-filters-open'))return;
@@ -406,7 +288,7 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Tab')return;
   const panel=document.querySelector('.shift-sheet-panel');
   if(!panel)return;
-  const focusables=[...panel.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled]),[href], [tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
+  const focusables=[...panel.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled]),[href],[tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
   if(!focusables.length)return;
   const first=focusables[0],last=focusables.at(-1);
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
