@@ -2,6 +2,7 @@
 'use strict';
 
 const Domain=window.TramStatsShiftDomain;
+let vehicleTickerTimers=[];
 const dashIcon=kind=>({
   km:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-8 8-8 16-10M16 5l4 2-2 4"/></svg>',
   time:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
@@ -22,38 +23,39 @@ function dashWindows(){
     previous:{from:previousFrom,to:previousTo,shifts:shiftsBetween(dated,previousFrom,previousTo)}
   };
 }
-function dashPair(line,order,course,{alias=false}={}){
-  if(!line)return'';
-  return `<span class="dash-performance"><span class="dash-line${alias?' dash-line-alias':''}">${esc(line)}</span>${order!=null&&order!==''?`<span class="dash-order">${esc(order)}</span>`:''}${course!=null&&course!==''?`<span class="dash-course">${esc(course)}</span>`:''}</span>`;
-}
 function dashBadge(badge){
-  if(badge.kind==='special')return dashPair(badge.label,null,null,{alias:true});
-  const line=(badge.lines||[]).join('+')||badge.label;
-  if(badge.kind==='course')return dashPair(line,null,badge.course,{alias:line.includes('+')});
-  return dashPair(line,badge.order,null,{alias:line.includes('+')});
+  const label=badge?.label||'';
+  if(!label)return'';
+  return `<span class="dash-performance-badge${badge.kind==='special'?' special':''}">${esc(label)}</span>`;
 }
-function dashPerformances(shift){
-  return Domain.performanceRows(shift).flatMap(row=>row.badges||[]).map(dashBadge).join('');
-}
-function dashVehicleBadges(parts){
-  const seen=new Set(),out=[];
-  for(const part of parts){
-    if(part.frontVehicle){
-      const key='f'+part.frontVehicle;
-      if(!seen.has(key)){seen.add(key);out.push(`<span class="dash-vehicle dash-front">${esc(part.frontVehicle)}</span>`);}
-    }
-    if(part.rearVehicle){
-      const key='r'+part.rearVehicle;
-      if(!seen.has(key)){seen.add(key);out.push(`<span class="dash-vehicle dash-rear">${esc(part.rearVehicle)}</span>`);}
-    }
+function vehicleSets(parts){
+  const seen=new Set(),sets=[];
+  for(const part of parts||[]){
+    const vehicles=[part.frontVehicle,part.rearVehicle].filter(Boolean);
+    if(!vehicles.length)continue;
+    const label=vehicles.join(' + ');
+    if(seen.has(label))continue;
+    seen.add(label);
+    sets.push(label);
   }
-  return out.join('');
+  return sets;
+}
+function vehicleTicker(parts){
+  const values=vehicleSets(parts);
+  if(!values.length)return'';
+  if(values.length===1)return `<span class="dash-vehicle-text">${esc(values[0])}</span>`;
+  return `<span class="dash-vehicle-ticker" data-values="${esc(JSON.stringify(values))}"><span class="dash-vehicle-current">${esc(values[0])}</span><span class="dash-vehicle-next" aria-hidden="true"></span></span>`;
+}
+function dashShiftRows(shift){
+  const rows=Domain.performanceRows(shift);
+  if(!rows.length)return'';
+  return rows.map(row=>`<div class="dash-shift-row"><span class="dash-performances">${(row.badges||[]).map(dashBadge).join('')}</span><span class="dash-row-vehicles">${vehicleTicker(row.parts)}</span></div>`).join('');
 }
 function shiftDuration(shift){return Domain.durationMinutes(shift)||0;}
 function dashRecent(shift){
   const ps=shift.parts||[];
   const kmKnown=ps.some(p=>p.km!=null),km=kmKnown?sumKm(ps):null,duration=shiftDuration(shift);
-  return `<div class="dash-shift"><div class="dash-shift-top"><span class="dash-date">${date(shift.date)}</span><span class="dash-measures">${km!=null?`<span>${dashIcon('km')}<b>${fmt(km)} km</b></span>`:''}${duration?`<span>${dashIcon('time')}<b>${hm(duration)}</b></span>`:''}</span></div><div class="dash-shift-bottom"><span class="dash-duty">${shift.actualShift?`<b class="dash-ss">${esc(shift.actualShift)}</b>`:''}<span class="dash-performances">${dashPerformances(shift)}</span></span><span class="dash-vehicles">${dashVehicleBadges(ps)}</span></div></div>`;
+  return `<div class="dash-shift"><div class="dash-shift-top"><span class="dash-date-line"><span class="dash-date">${date(shift.date)}</span>${shift.actualShift?`<b class="dash-shift-code">${esc(shift.actualShift)}</b>`:''}</span><span class="dash-measures">${km!=null?`<span>${dashIcon('km')}<b>${fmt(km)} km</b></span>`:''}${duration?`<span>${dashIcon('time')}<b>${hm(duration)}</b></span>`:''}</span></div><div class="dash-shift-rows">${dashShiftRows(shift)}</div></div>`;
 }
 function trendDirection(current,previous,epsilon=0){
   const diff=current-previous;
@@ -123,7 +125,37 @@ function dashboardV2(){
   const currentTypes=Object.entries(current.groups.types||{}),previousTypes=Object.entries(previous.groups.types||{});
   return `<div class="dash-context">Posledních 30 dní <span>· srovnání s předchozími 30 dny</span></div><section class="dash-kpis"><div class="kpi-km"><span>${dashIcon('km')}Kilometry</span><strong>${fmt(current.km)} <small>km</small></strong>${kpiTrend(current.km,previous.km,diff=>signedNumber(diff)+' km',0.05)}</div><div class="kpi-time"><span>${dashIcon('time')}Čas</span><strong>${hm(current.duration)}</strong>${kpiTrend(current.duration,previous.duration,signedTime)}</div><div><span>${dashIcon('shifts')}Počet směn</span><strong>${fmt(current.shiftCount,0)}</strong>${kpiTrend(current.shiftCount,previous.shiftCount,diff=>signedNumber(diff,0))}</div><div><span>${dashIcon('vehicles')}Počet vozů</span><strong>${current.vehicleCount}</strong>${kpiTrend(current.vehicleCount,previous.vehicleCount,diff=>signedNumber(diff,0))}</div></section><section class="dash-layout"><div class="dash-analytics"><section><div class="dash-section-head"><h2>Linky</h2></div><div class="dash-bars">${dashBars(Object.entries(current.groups.lines),Object.entries(previous.groups.lines),'lines')}</div></section><section class="dash-types"><div class="dash-section-head"><h2>Vozy</h2></div><div class="dash-bars">${dashBars(currentTypes,previousTypes,'types')}</div></section><section class="dash-depots"><div class="dash-section-head"><h2>Vozovny</h2></div><div class="dash-bars">${dashBars(Object.entries(current.depots),Object.entries(previous.depots),'depots','count')}</div></section></div><section class="dash-main"><div class="dash-section-head"><h2>Poslední směny</h2><a href="shifts/">Všechny směny →</a></div><div class="dash-shifts">${recent.map(dashRecent).join('')||'<p class="hint">V posledních 30 dnech není pracovní směna.</p>'}</div></section>${dashExtremes(current.work)}</section>`;
 }
+function mountVehicleTickers(){
+  for(const timer of vehicleTickerTimers)clearInterval(timer);
+  vehicleTickerTimers=[];
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+  document.querySelectorAll('.dash-vehicle-ticker').forEach((ticker,tickerIndex)=>{
+    let values=[];
+    try{values=JSON.parse(ticker.dataset.values||'[]');}catch{}
+    if(values.length<2)return;
+    const current=ticker.querySelector('.dash-vehicle-current'),next=ticker.querySelector('.dash-vehicle-next');
+    if(!current||!next)return;
+    let index=0,busy=false;
+    const advance=()=>{
+      if(busy)return;
+      busy=true;
+      const nextIndex=(index+1)%values.length;
+      next.textContent=values[nextIndex];
+      ticker.classList.add('is-moving');
+      window.setTimeout(()=>{
+        current.textContent=values[nextIndex];
+        next.textContent='';
+        ticker.classList.remove('is-moving');
+        index=nextIndex;
+        busy=false;
+      },360);
+    };
+    const timer=window.setInterval(advance,3400+tickerIndex*180);
+    vehicleTickerTimers.push(timer);
+  });
+}
 
 window.dashboard=dashboardV2;
+window.dashboardMounted=mountVehicleTickers;
 if(typeof state!=='undefined'&&state.shifts?.length&&state.view==='overview'&&typeof render==='function')render();
 })();
