@@ -20,16 +20,16 @@
 .vehicle-occurrence-meta{margin:0 0 14px;padding:0 2px;color:#d4d8dd;font-size:var(--font-meta);line-height:1.6}
 .vehicle-occurrence-meta p{margin:0}
 .vehicle-occurrence-meta span{color:#b9bec6;font-weight:600}
-.vehicle-occurrence-meta a{color:inherit;text-decoration-line:underline;text-decoration-color:var(--cyan);text-decoration-thickness:1px;text-underline-offset:3px}
+.vehicle-occurrence-meta a{color:inherit;text-decoration-line:underline;text-decoration-color:var(--link-accent);text-decoration-thickness:1px;text-underline-offset:3px}
 .vehicle-occurrence-meta small{color:#9da3ac;font-size:var(--font-caption)}
 .vehicle-gallery{margin:0 0 14px}
 .vehicle-history{border:1px solid #3f434a;background:var(--surface);margin-bottom:16px}
 .vehicle-history-row{position:relative;display:grid;grid-template-columns:minmax(96px,1.15fr) minmax(72px,.75fr) minmax(74px,.7fr) minmax(90px,.85fr) 20px;align-items:center;min-height:44px;padding:0 10px;border-bottom:1px solid #30343a;gap:8px;cursor:pointer}
 .vehicle-history-row:last-child{border-bottom:0}
 .vehicle-history-row:hover,.vehicle-history-row:focus-visible{background:#22252a;outline:none}
-.vehicle-history-year-start{border-top:1px solid rgba(40,199,199,.28)}
+.vehicle-history-year-start{border-top:1px solid var(--separator-emphasis)}
 .vehicle-history-year-start:first-child{border-top:0}
-.vehicle-history-year-label{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);z-index:2;padding:0 8px;background:var(--surface);color:rgba(40,199,199,.78);font-size:var(--font-caption);font-weight:700;line-height:1.4;white-space:nowrap}
+.vehicle-history-year-label{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);z-index:2;padding:0 8px;background:var(--surface);color:var(--label-muted);font-size:var(--font-caption);font-weight:700;line-height:1.4;white-space:nowrap}
 .vehicle-history-row:first-child .vehicle-history-year-label{top:1px}
 .vehicle-history-date,.vehicle-history-performance{font-size:var(--font-control);color:#eef0f2;white-space:nowrap}
 .vehicle-history-date{font-weight:600}
