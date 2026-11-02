@@ -18,9 +18,9 @@
   --link-accent:var(--accent-secondary);
   --semantic-positive:#47be7e;
   --semantic-warning:#f2c94c;
+  --semantic-negative:#d96a6a;
   --semantic-error:#ff5c5c;
   --semantic-danger:var(--semantic-error);
-  --semantic-negative:var(--semantic-error);
   --separator-emphasis:#4a4f57;
 
   --card:#24262b;
@@ -147,6 +147,11 @@ h2{font-size:var(--font-section);margin:0 0 24px;font-weight:600}
   border:1px solid var(--line);
   color:var(--muted);
 }
+.empty.error{
+  border-color:color-mix(in srgb,var(--semantic-error) 45%,var(--line));
+  box-shadow:inset 3px 0 var(--semantic-error);
+  color:#f0d7d7;
+}
 footer{
   margin-top:30px;
   padding-top:16px;
@@ -156,6 +161,26 @@ footer{
   line-height:1.9;
 }
 #status:not(:empty){padding:12px 0;font-size:var(--font-meta);color:var(--muted)}
+#status.status-error{color:var(--semantic-error)}
+
+/* Semantic state overrides for shift absences. Keep brand red out of data-state meaning. */
+.page-shifts .shift-list-absence-off{
+  border-color:color-mix(in srgb,var(--semantic-positive) 42%,transparent);
+  box-shadow:inset 2px 0 color-mix(in srgb,var(--semantic-positive) 48%,transparent);
+}
+.page-shifts .shift-list-absence-off .shift-list-absence-badge{
+  border-color:color-mix(in srgb,var(--semantic-positive) 42%,transparent);
+  color:color-mix(in srgb,var(--semantic-positive) 28%,white);
+}
+.page-shifts .shift-list-absence-sick{
+  border-color:color-mix(in srgb,var(--semantic-negative) 42%,transparent);
+  box-shadow:inset 2px 0 color-mix(in srgb,var(--semantic-negative) 48%,transparent);
+}
+.page-shifts .shift-list-absence-sick .shift-list-absence-badge{
+  border-color:color-mix(in srgb,var(--semantic-negative) 42%,transparent);
+  color:color-mix(in srgb,var(--semantic-negative) 28%,white);
+}
+
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
