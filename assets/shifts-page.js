@@ -3,12 +3,12 @@
 
 const Domain=window.TramStatsShiftDomain;
 const ABSENCES={
-  V:{label:'Volno',tone:'off'},
-  VVS:{label:'Volno vzniklé svátkem',tone:'off'},
-  D:{label:'Dovolená',tone:'off'},
-  PN:{label:'Nemocenská',tone:'sick'},
-  SD:{label:'Sick day',tone:'sick'},
-  MD:{label:'Mateřská dovolená',tone:'off'}
+  V:{label:'Volno',tone:'positive'},
+  VVS:{label:'Volno vzniklé svátkem',tone:'positive'},
+  D:{label:'Dovolená',tone:'positive'},
+  PN:{label:'Nemocenská',tone:'negative'},
+  SD:{label:'Sick day',tone:'negative'},
+  MD:{label:'Mateřská dovolená',tone:'positive'}
 };
 const DAY_NAMES=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
 const iconDepot='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10M10 20v-6h4v6"/></svg>';
@@ -53,7 +53,7 @@ function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta 
 function shiftCard(s){
   const absence=ABSENCES[s.actualShift];
   if(absence){
-    return `<div class="shift-list-card shift-list-absence shift-list-absence-${absence.tone}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></div>`;
+    return `<div class="shift-list-card shift-list-absence" data-tone="${esc(absence.tone)}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></div>`;
   }
   const m=workMetrics(s),performance=performancesHTML(m.performances);
   return `<div class="shift-list-card shift-list-work" data-shift-date="${esc(s.date)}">
