@@ -16,6 +16,7 @@ const iconClock='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="t
 const iconInterval='<svg class="shift-list-interval-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg>';
 const SEARCH_CACHE=new WeakMap();
 const RETURN_KEY='tramstats-shifts-return-state';
+let mobileDraft=null;
 
 function readReturnState(){
   if(history.state?.tramstatsShiftList!==true)return null;
@@ -240,66 +241,120 @@ function matchesSearch(s,query){
   const index=searchIndex(s);
   return tokens.every(token=>tokenMatches(index,token));
 }
-function filterRows(ss){
+function filterRowsWith(ss,values){
   return ss.filter(s=>{
-    if(state.type&&s.actualShift!==state.type)return false;
-    if(state.depot&&s.depot!==state.depot)return false;
-    if(state.dateFrom&&s.date<state.dateFrom)return false;
-    if(state.dateTo&&s.date>state.dateTo)return false;
-    if(state.workOnly&&!hasTimedPart(s))return false;
-    if(state.query&&!matchesSearch(s,state.query))return false;
+    if(values.type&&s.actualShift!==values.type)return false;
+    if(values.depot&&s.depot!==values.depot)return false;
+    if(values.dateFrom&&s.date<values.dateFrom)return false;
+    if(values.dateTo&&s.date>values.dateTo)return false;
+    if(values.workOnly&&!hasTimedPart(s))return false;
+    if(values.query&&!matchesSearch(s,values.query))return false;
     return true;
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
+function filterRows(ss){return filterRowsWith(ss,state);}
 filtered=filterRows;
 shiftHTML=shiftCard;
 
 function optionRows(items,selected,labelFn=x=>x){
   return items.map(x=>`<option value="${esc(x)}" ${selected===x?'selected':''}>${esc(labelFn(x))}</option>`).join('');
 }
-function controls(ss,prefix=''){
+function controls(ss,prefix='',values=state){
   const id=x=>prefix+x;
   const types=[...new Set(ss.map(s=>s.actualShift).filter(Boolean))].sort();
   const depots=[...new Set(ss.map(s=>s.depot).filter(Boolean))].sort();
   const typeNames=new Map(ss.map(s=>[s.actualShift,typeLabel(s)]));
   const depotNames=new Map(ss.map(s=>[s.depot,depotLabel(s)]));
-  const dateField=window.TramStatsDateRange?.field(prefix)||'';
-  return `<label>TYP SMĚNY<select id="${id('shift-type-filter')}"><option value="">Všechny typy směn</option>${optionRows(types,state.type,x=>typeNames.get(x)||x)}</select></label>
-    <label>VOZOVNA<select id="${id('depot-filter')}"><option value="">Všechny vozovny</option>${optionRows(depots,state.depot,x=>depotNames.get(x)||x)}</select></label>
+  const dateField=window.TramStatsDateRange?.field(prefix,values)||'';
+  return `<label>TYP SMĚNY<select id="${id('shift-type-filter')}"><option value="">Všechny typy směn</option>${optionRows(types,values.type,x=>typeNames.get(x)||x)}</select></label>
+    <label>VOZOVNA<select id="${id('depot-filter')}"><option value="">Všechny vozovny</option>${optionRows(depots,values.depot,x=>depotNames.get(x)||x)}</select></label>
     ${dateField}
-    <label class="shift-work-only"><input id="${id('work-only-filter')}" type="checkbox" ${state.workOnly?'checked':''}><span>Jen pracovní záznamy</span></label>
-    <div class="shift-page-size"><span>NAČÍST PO</span><div>${[25,50,100,200].map(n=>`<button type="button" data-page-size="${n}" class="${state.pageSize===n?'active':''}">${n}</button>`).join('')}</div></div>`;
+    <label class="shift-work-only"><input id="${id('work-only-filter')}" type="checkbox" ${values.workOnly?'checked':''}><span>Jen pracovní záznamy</span></label>
+    <div class="shift-page-size"><span>NAČÍST PO</span><div>${[25,50,100,200].map(n=>`<button type="button" data-page-size="${n}" class="${Number(values.pageSize)===n?'active':''}">${n}</button>`).join('')}</div></div>`;
 }
 function shiftPage(ss){
   const list=filterRows(ss);
   const shown=Math.min(Math.max(state.visibleCount,state.pageSize),list.length);
   const active=[state.type,state.depot,state.dateFrom||state.dateTo,state.workOnly].filter(Boolean).length;
   const filterBody=controls(ss);
-  const mobileBody=controls(ss,'mobile-');
+  const mobileBody=controls(ss,'mobile-',state);
   return `<div class="shift-filters">
-      <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open">FILTRY${active?` <b>${active}</b>`:''}</button></div>
+      <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open" aria-expanded="false" aria-controls="mobile-filter-sheet">FILTRY${active?` <b>${active}</b>`:''}</button></div>
       <div class="shift-desktop-controls">${filterBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button></div>
       <div class="shift-count">Zobrazeno ${shown} z ${list.length} evidovaných dnů</div>
-      <div class="shift-mobile-sheet" aria-hidden="true"><button class="shift-sheet-backdrop" type="button" aria-label="Zavřít filtry"></button><div class="shift-sheet-panel"><div class="shift-sheet-head"><strong>FILTRY</strong><button class="shift-sheet-close" type="button">×</button></div>${mobileBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button><button type="button" class="shift-sheet-done">ZOBRAZIT ${list.length} SMĚN</button></div></div>
+      <div class="shift-mobile-sheet" id="mobile-filter-sheet" aria-hidden="true"><button class="shift-sheet-backdrop" type="button" aria-label="Zavřít filtry"></button><div class="shift-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title"><div class="shift-sheet-head"><strong id="mobile-filter-title">FILTRY</strong><button class="shift-sheet-close" type="button" aria-label="Zavřít filtry">×</button></div>${mobileBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button><button type="button" class="shift-sheet-done">ZOBRAZIT ${list.length} SMĚN</button></div></div>
     </div>
     <div id="shift-results">${list.slice(0,shown).map(shiftCard).join('')||'<div class="empty">Žádný odpovídající záznam.</div>'}</div>
     ${shown<list.length?`<div class="shift-load-more"><button type="button" id="shift-load-more">NAČÍST DALŠÍCH ${Math.min(state.pageSize,list.length-shown)}</button><span>${shown} / ${list.length}</span></div>`:''}`;
 }
 shiftList=shiftPage;
 
-function rerender(reset=true,keepSheet=false){
+function rerender(reset=true){
   if(reset)state.visibleCount=state.pageSize;
   render();
-  if(keepSheet)document.body.classList.add('shift-filters-open');
 }
 function setFilter(target){
   const id=target.id;
-  const mobile=id.startsWith('mobile-');
-  if(id==='shift-search'){state.query=target.value;rerender(true,false);requestAnimationFrame(()=>{const x=document.querySelector('#shift-search');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length);}});return true;}
-  if(id==='shift-type-filter'||id==='mobile-shift-type-filter'){state.type=target.value;rerender(true,mobile);return true;}
-  if(id==='depot-filter'||id==='mobile-depot-filter'){state.depot=target.value;rerender(true,mobile);return true;}
-  if(id==='work-only-filter'||id==='mobile-work-only-filter'){state.workOnly=target.checked;rerender(true,mobile);return true;}
+  if(id==='shift-search'){state.query=target.value;rerender(true);requestAnimationFrame(()=>{const x=document.querySelector('#shift-search');if(x){x.focus();x.setSelectionRange(x.value.length,x.value.length);}});return true;}
+  if(id==='shift-type-filter'){state.type=target.value;rerender(true);return true;}
+  if(id==='depot-filter'){state.depot=target.value;rerender(true);return true;}
+  if(id==='work-only-filter'){state.workOnly=target.checked;rerender(true);return true;}
   return false;
+}
+function makeMobileDraft(){return {query:state.query||'',type:state.type||'',depot:state.depot||'',dateFrom:state.dateFrom||'',dateTo:state.dateTo||'',workOnly:!!state.workOnly,pageSize:state.pageSize||25};}
+function mobileResultCount(){return mobileDraft?filterRowsWith(state.shifts||[],mobileDraft).length:filterRows(state.shifts||[]).length;}
+function refreshMobileDraftUI(){
+  if(!mobileDraft)return;
+  const type=document.querySelector('#mobile-shift-type-filter');
+  const depot=document.querySelector('#mobile-depot-filter');
+  const work=document.querySelector('#mobile-work-only-filter');
+  if(type)type.value=mobileDraft.type||'';
+  if(depot)depot.value=mobileDraft.depot||'';
+  if(work)work.checked=!!mobileDraft.workOnly;
+  document.querySelectorAll('.shift-sheet-panel [data-page-size]').forEach(b=>b.classList.toggle('active',Number(b.dataset.pageSize)===Number(mobileDraft.pageSize)));
+  const range=document.querySelector('.shift-sheet-panel .range-field>span');
+  if(range&&window.TramStatsDateRange?.label)range.textContent=window.TramStatsDateRange.label(mobileDraft);
+  const done=document.querySelector('.shift-sheet-done');
+  if(done)done.textContent=`ZOBRAZIT ${mobileResultCount()} SMĚN`;
+}
+window.TramStatsMobileFilterDraft={
+  get:()=>mobileDraft||makeMobileDraft(),
+  setDates:(dateFrom,dateTo)=>{if(!mobileDraft)mobileDraft=makeMobileDraft();mobileDraft.dateFrom=dateFrom||'';mobileDraft.dateTo=dateTo||'';refreshMobileDraftUI();}
+};
+function openMobileFilters(){
+  mobileDraft=makeMobileDraft();
+  const sheet=document.querySelector('.shift-mobile-sheet');
+  const opener=document.querySelector('#mobile-filter-open');
+  document.body.classList.add('shift-filters-open');
+  sheet?.setAttribute('aria-hidden','false');
+  opener?.setAttribute('aria-expanded','true');
+  refreshMobileDraftUI();
+  requestAnimationFrame(()=>document.querySelector('#mobile-shift-type-filter')?.focus());
+}
+function closeMobileFilters({restoreFocus=true}={}){
+  document.querySelector('.range-popover')?.remove();
+  document.body.classList.remove('shift-filters-open');
+  document.querySelector('.shift-mobile-sheet')?.setAttribute('aria-hidden','true');
+  document.querySelector('#mobile-filter-open')?.setAttribute('aria-expanded','false');
+  mobileDraft=null;
+  if(restoreFocus)requestAnimationFrame(()=>document.querySelector('#mobile-filter-open')?.focus());
+}
+function applyMobileFilters(){
+  if(!mobileDraft){closeMobileFilters();return;}
+  state.type=mobileDraft.type||'';
+  state.depot=mobileDraft.depot||'';
+  state.dateFrom=mobileDraft.dateFrom||'';
+  state.dateTo=mobileDraft.dateTo||'';
+  state.workOnly=!!mobileDraft.workOnly;
+  state.pageSize=Number(mobileDraft.pageSize)||25;
+  state.visibleCount=state.pageSize;
+  closeMobileFilters({restoreFocus:false});
+  render();
+  requestAnimationFrame(()=>document.querySelector('#mobile-filter-open')?.focus());
+}
+function clearMobileDraft(){
+  mobileDraft={query:state.query||'',type:'',depot:'',dateFrom:'',dateTo:'',workOnly:false,pageSize:state.pageSize||25};
+  refreshMobileDraftUI();
 }
 function saveReturnState(){
   const snapshot={
@@ -317,17 +372,43 @@ function saveReturnState(){
   history.replaceState({...history.state,tramstatsShiftList:true},'');
 }
 document.addEventListener('input',e=>{if(e.target.id==='shift-search')setFilter(e.target);});
-document.addEventListener('change',e=>setFilter(e.target));
+document.addEventListener('change',e=>{
+  if(e.target.id==='mobile-shift-type-filter'){if(mobileDraft){mobileDraft.type=e.target.value;refreshMobileDraftUI();}return;}
+  if(e.target.id==='mobile-depot-filter'){if(mobileDraft){mobileDraft.depot=e.target.value;refreshMobileDraftUI();}return;}
+  if(e.target.id==='mobile-work-only-filter'){if(mobileDraft){mobileDraft.workOnly=e.target.checked;refreshMobileDraftUI();}return;}
+  setFilter(e.target);
+});
 document.addEventListener('click',e=>{
   const size=e.target.closest('[data-page-size]');
-  if(size){state.pageSize=Number(size.dataset.pageSize);rerender(true,document.body.classList.contains('shift-filters-open'));return;}
-  if(e.target.closest('#mobile-filter-open')){document.body.classList.add('shift-filters-open');return;}
-  if(e.target.closest('.shift-sheet-close,.shift-sheet-backdrop,.shift-sheet-done')){document.body.classList.remove('shift-filters-open');return;}
-  if(e.target.closest('.shift-clear-filters')){state.query='';state.type='';state.depot='';state.dateFrom='';state.dateTo='';state.workOnly=false;rerender(true,false);return;}
+  if(size){
+    if(size.closest('.shift-sheet-panel')){if(mobileDraft){mobileDraft.pageSize=Number(size.dataset.pageSize);refreshMobileDraftUI();}return;}
+    state.pageSize=Number(size.dataset.pageSize);rerender(true);return;
+  }
+  if(e.target.closest('#mobile-filter-open')){openMobileFilters();return;}
+  if(e.target.closest('.shift-sheet-close,.shift-sheet-backdrop')){closeMobileFilters();return;}
+  if(e.target.closest('.shift-sheet-done')){applyMobileFilters();return;}
+  const clear=e.target.closest('.shift-clear-filters');
+  if(clear){
+    if(clear.closest('.shift-sheet-panel')){clearMobileDraft();return;}
+    state.query='';state.type='';state.depot='';state.dateFrom='';state.dateTo='';state.workOnly=false;rerender(true);return;
+  }
   const more=e.target.closest('#shift-load-more');
   if(more){state.visibleCount+=state.pageSize;render();return;}
   const card=e.target.closest('.shift-list-card');
   if(card)saveReturnState();
+});
+document.addEventListener('keydown',e=>{
+  if(!document.body.classList.contains('shift-filters-open'))return;
+  if(document.querySelector('.range-popover'))return;
+  if(e.key==='Escape'){e.preventDefault();closeMobileFilters();return;}
+  if(e.key!=='Tab')return;
+  const panel=document.querySelector('.shift-sheet-panel');
+  if(!panel)return;
+  const focusables=[...panel.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled]),[href], [tabindex]:not([tabindex="-1"])')].filter(el=>el.offsetParent!==null);
+  if(!focusables.length)return;
+  const first=focusables[0],last=focusables.at(-1);
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 });
 window.addEventListener('load',()=>{
   if(Number(restored?.scrollY)>0)requestAnimationFrame(()=>window.scrollTo({top:Number(restored.scrollY),behavior:'instant'}));
