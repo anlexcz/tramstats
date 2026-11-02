@@ -1,47 +1,67 @@
 # TramStats
 
-Funkční read-only sandbox osobní tramvajové evidence. Živý web: https://anlexcz.github.io/tramstats/
+Read-only frontend osobní tramvajové evidence. Živý web: https://anlexcz.github.io/tramstats/
+
+## Aktuální rozsah
+
+Repozitář je záměrně zúžený na dvě živé části:
+
+- **Přehled / Dashboard**
+- **Směny**
+
+Statistiky, samostatný přehled vozů a detail směny byly odstraněny. Až se budou znovu stavět, vzniknou od nuly nad současnou datovou a doménovou vrstvou.
 
 ## Spuštění
 
-Bez buildu a aplikačních závislostí. Spusťte v kořeni `python -m http.server 8000` a otevřete `http://localhost:8000`.
+Bez buildu a aplikačních závislostí. V kořeni lze spustit například `python -m http.server 8000` a otevřít `http://localhost:8000`.
 
 ## Data
 
-Jediným runtime zdrojem dat je Google sešit **TramStats – databáze**. GitHub repozitář neobsahuje ani neemuluje statické JSON snapshoty směn nebo BP.
+Jediným runtime zdrojem je Google sešit **TramStats – databáze** přes Google Apps Script read-only API.
 
 Tok dat:
 
-`Google Sheets (TramStats – databáze) → Google Apps Script read-only API → assets/data.js → UI`
+`Google Sheets → read-only API → assets/data.js → UI`
 
-Datová vrstva načítá relační tabulky potřebné frontendem:
+Frontend aktuálně načítá jen tabulky potřebné Dashboardem a Směnami:
 
 - `shifts`
 - `shift_parts`
 - `shift_part_lines`
-- `breaks`
 - `vehicles`
 - `depots`
 - `lines`
 - `shift_types`
-- `shift_courses`
-- `tags`
-- `shift_part_tags`
 
-`assets/data.js` drží relační tabulky a indexy a vytváří pouze lehký view model pro současné UI. Linkové statistiky používají přímo řádky `shift_part_lines`; neexistuje `kmFormula` ani compatibility manifest. Svačinář se bere pouze z `shift_courses.is_snack`, typ/family fyzického vozu z masteru `vehicles` a provozní metadata z `tags` + `shift_part_tags`.
+`assets/data.js` normalizuje relační data do lehkého view modelu. Odpovědi se krátce cachují v `sessionStorage`; při nedostupnosti API se nepoužívá starý statický snapshot.
 
-Po dobu jedné browser session se odpovědi veřejných tabulek cachují krátce v `sessionStorage`, aby přechody mezi stránkami zbytečně neopakovaly celý download. Při nedostupnosti API aplikace nezobrazí žádný starý snapshot.
+## Doménová logika směn
 
-## Statistická pravidla
+Společná pravidla jsou v `assets/shift-domain.js`. Dashboard i stránka Směny používají stejnou implementaci pro:
 
-Pracovní směna je evidovaný den s pracovními částmi, mimo V, VVS, KS, D, PN, P16 a MD. Volno a nepřítomnosti zůstávají v přehledu dnů. Více částí netvoří více směn.
+- bloky směny,
+- `split_seq` u šejdru,
+- rozsah a délku směny,
+- přechod přes půlnoc,
+- agregaci výkonů,
+- Zálohu (`Z`),
+- Cvičnou jízdu (`73`),
+- skrytí `MJ` a `JP` v kompaktním přehledu,
+- slučování linek stejného kurzu.
 
-Osobní km části se započítají jednou. U soupravy dostane každý fyzický vůz do své vozové statistiky km dané části, ale osobní součet se tím nenásobí. Rozpad složené linky vychází z `shift_part_lines`; neznámé linkové km se nedopočítávají.
+## Struktura UI
 
-BP se načítají z `breaks` a respektují `shift_date`, `break_no` a `start_day_offset`, takže přestávka po půlnoci zůstává u data nástupu směny.
+- `index.html` + `assets/dashboard-v2.js/.css` — Dashboard
+- `shifts/index.html` + `assets/shifts-page.js/.css` — Směny
+- `assets/shifts-date-range.js/.css` — datumový filtr Směn
+- `assets/app.js/.css` — minimální společný shell a runtime
+- `assets/components.css` — sdílené komponenty, aktuálně hlavně footer
+- `assets/footer-v2.js` — footer
 
-## Rozhraní a provoz
+## Kontrola
 
-Přehled, hledání a filtry směn, detail částí a BP, statistiky a přehled vozů. Mobil má spodní navigaci a přeskupené řádky.
+Základní regresní kontrola:
 
-GitHub Pages publikuje kořen větve `main`. Kontrola základní relační logiky: `node scripts/check.mjs`.
+`node scripts/check.mjs`
+
+Test hlídá relační normalizaci, společnou doménovou logiku a také to, že se odstraněné legacy stránky, routy a komponenty do projektu nevrátí.
