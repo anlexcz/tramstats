@@ -4,8 +4,22 @@
   --surface:#1a1c20;
   --line:#393c43;
   --muted:#a5abb5;
+
+  /* Brand palette */
   --red:#ff3636;
   --cyan:#28c7c7;
+
+  /* Semantic color roles. Components should use these instead of assigning
+     brand colors ad hoc. */
+  --accent-primary:var(--red);
+  --accent-secondary:var(--cyan);
+  --interactive-active:var(--accent-primary);
+  --interactive-focus:var(--accent-primary);
+  --link-accent:var(--accent-secondary);
+  --semantic-positive:#47be7e;
+  --semantic-negative:#ff5252;
+  --separator-emphasis:#4a4f57;
+
   --card:#24262b;
   --badge-bg:#303238;
   --card-border:#34373d;
@@ -49,9 +63,9 @@ button,input,select{
 button,a,select{touch-action:manipulation}
 button,a{cursor:pointer}
 button:hover{background:#30333a}
-a{color:var(--cyan);text-decoration:none}
+a{color:var(--link-accent);text-decoration:none}
 button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{
-  outline:2px solid var(--cyan);
+  outline:2px solid var(--interactive-focus);
   outline-offset:3px;
 }
 header{
@@ -79,7 +93,7 @@ nav a{
   font-size:var(--font-control);
   font-weight:500;
 }
-nav a.active{color:white;border-color:var(--red)}
+nav a.active{color:white;border-color:var(--interactive-active)}
 svg{
   width:20px;
   height:20px;
@@ -95,7 +109,7 @@ svg{
   letter-spacing:1px;
   color:var(--muted);
 }
-.sandbox b{color:var(--cyan)}
+.sandbox b{color:#c2c6cd}
 main{
   max-width:1448px;
   margin:auto;
@@ -138,7 +152,7 @@ footer{
   font-size:var(--font-caption);
   line-height:1.9;
 }
-#status:not(:empty){padding:12px 0;font-size:var(--font-meta);color:var(--cyan)}
+#status:not(:empty){padding:12px 0;font-size:var(--font-meta);color:var(--muted)}
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
@@ -176,13 +190,13 @@ footer{
     position:relative;
     background:none;
   }
-  #mobile-nav a.active{color:var(--red)}
+  #mobile-nav a.active{color:var(--interactive-active)}
   #mobile-nav a.active:after{
     position:absolute;
     content:'';
     width:16px;
     height:2px;
-    background:var(--red);
+    background:var(--interactive-active);
     bottom:4px;
     left:calc(50% - 8px);
   }
