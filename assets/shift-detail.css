@@ -2,7 +2,7 @@
 .page-shift-detail main{max-width:760px}
 .detail-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 14px}
 .detail-heading-date{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
-.detail-heading-date span{font-size:13px;font-weight:400;color:#b8bdc5}
+.detail-heading-date span{font-size:21px;font-weight:400;color:#f5f6f7}
 .detail-heading-date strong{font-size:25px;line-height:1.15;color:#f5f6f7;font-weight:700}
 .detail-back{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:5px 8px;background:var(--badge-bg);color:#d9dde2;font-size:10.5px;font-weight:700;border:1px solid #454a52}
 .detail-back:hover{background:#34373d;color:#fff}
@@ -59,7 +59,7 @@
   .page-shift-detail main{padding-top:14px}
   .detail-heading{margin:0 0 12px;gap:10px}
   .detail-heading-date{gap:6px}
-  .detail-heading-date span{font-size:11.5px}
+  .detail-heading-date span{font-size:18.5px;color:#f5f6f7;font-weight:400}
   .detail-heading-date strong{font-size:22px}
   .detail-back{padding:5px 7px;font-size:10px}
   .detail-summary-row{grid-template-columns:88px minmax(0,1fr);min-height:36px}
@@ -78,7 +78,7 @@
   .detail-part-vehicle,.detail-part-duration{font-size:11.5px}
 }
 @media(max-width:390px){
-  .detail-heading-date span{font-size:11px}
+  .detail-heading-date span{font-size:17px}
   .detail-heading-date strong{font-size:20px}
   .detail-back{font-size:9.5px}
   .detail-summary-split .detail-summary-row:not(.detail-summary-wide){grid-template-columns:80px repeat(3,minmax(0,1fr))}
