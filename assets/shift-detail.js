@@ -114,7 +114,7 @@ function summaryTable(shift,blocks){
     return `<section class="detail-summary-card detail-summary-normal">
       ${summaryRow('Vozovna',[`<a href="#" class="detail-future-link">${esc(depotName)}</a>`])}
       ${summaryRow('Typ',[esc(typeName)])}
-      ${summaryRow('Směna',[esc(blockPerformance(block))])}
+      ${summaryRow('Výkon',[esc(blockPerformance(block))])}
       ${summaryRow('Začátek',[esc(r.start)])}
       ${summaryRow('Konec',[esc(r.end)])}
       ${summaryRow('Délka',[r.duration!=null?hm(r.duration):'—'])}
@@ -126,8 +126,7 @@ function summaryTable(shift,blocks){
   return `<section class="detail-summary-card detail-summary-split">
     ${summaryRow('Vozovna',[`<span class="detail-span-all"><a href="#" class="detail-future-link">${esc(depotName)}</a></span>`,'',''])}
     ${summaryRow('Typ',[`<span class="detail-span-all">${esc(typeName)}</span>`,'',''])}
-    <div class="detail-summary-columns"><span></span><small>Celkem</small><small>Ranní</small><small>Odpolední</small></div>
-    ${summaryRow('Směna',[esc(blockPerformance({parts:shift.parts})),esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
+    ${summaryRow('Výkon',['',esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
     ${summaryRow('Začátek',[esc(allRange.start),esc(mr.start),esc(ar.start)])}
     ${summaryRow('Konec',[esc(allRange.end),esc(mr.end),esc(ar.end)])}
     ${summaryRow('Délka',[allDuration!=null?hm(allDuration):'—',mr.duration!=null?hm(mr.duration):'—',ar.duration!=null?hm(ar.duration):'—'])}
@@ -138,10 +137,8 @@ function partsCard(shift,blocks){
   const split=blocks.length>1;
   if(!split)return `<section class="detail-parts-card">${(blocks[0]?.parts||shift.parts).map(partRow).join('')}</section>`;
   return `<section class="detail-parts-card detail-parts-split">
-    <div class="detail-block-label">Ranní část</div>
     ${blocks[0].parts.map(partRow).join('')}
     <div class="detail-split-divider"><span>Šejdrpauza</span></div>
-    <div class="detail-block-label">Odpolední část</div>
     ${blocks[1].parts.map(partRow).join('')}
   </section>`;
 }
