@@ -1,0 +1,45 @@
+.page-vehicles main{max-width:980px}
+.vehicles-controls{display:grid;gap:12px;margin-bottom:16px}
+.vehicles-families,.vehicles-periods{display:flex;gap:8px;flex-wrap:wrap}
+.vehicles-families button,.vehicles-periods button{border:1px solid #3b3f46;background:#202226;color:#c9cdd3;padding:7px 11px;font:600 11px/1 Montserrat,Arial,sans-serif}
+.vehicles-families button.active,.vehicles-periods button.active{border-color:var(--cyan);color:#f4f6f7;box-shadow:inset 0 -2px 0 var(--cyan)}
+.vehicles-search input{width:min(360px,100%);background:#1d1f23;border:1px solid #3b3f46;color:#f2f3f5;padding:10px 12px;font:500 12px/1.2 Montserrat,Arial,sans-serif}
+.vehicles-search input::placeholder{color:#777d86}
+.vehicles-count{font-size:10px;color:#9da3ac;text-transform:uppercase;letter-spacing:.45px}
+.vehicles-table{border:1px solid #3f434a;background:var(--surface)}
+.vehicles-head,.vehicles-row{display:grid;grid-template-columns:minmax(150px,1.6fr) minmax(70px,.55fr) minmax(110px,.8fr) minmax(90px,.7fr);align-items:center}
+.vehicles-head{min-height:40px;background:#1b1d21;border-bottom:1px solid #343840;color:#aeb4bd;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.45px}
+.vehicles-head>span,.vehicles-row>span{padding:0 12px}
+.vehicles-head>span:not(:first-child){display:flex;justify-content:flex-end}
+.vehicles-head svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vehicles-row{min-height:48px;color:inherit;text-decoration:none;border-bottom:1px solid #30343a}
+.vehicles-row:last-child{border-bottom:0}
+.vehicles-row:hover,.vehicles-row:focus-visible{background:#22252a;outline:none}
+.vehicles-id{display:flex;align-items:baseline;gap:9px;min-width:0}
+.vehicles-id small{color:#b7bcc4;font-size:10.5px;font-weight:500}
+.vehicles-id strong{color:#f3f4f6;font-size:13px;font-weight:700}
+.vehicles-metric{display:flex;align-items:center;justify-content:flex-end;gap:6px;white-space:nowrap;color:#cbd0d6}
+.vehicles-metric svg{width:14px;height:14px;fill:none;stroke:#8f96a0;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.vehicles-metric b{font-size:11.5px;font-weight:600}
+@media(max-width:650px){
+  .page-vehicles main{padding-top:14px}
+  .vehicles-controls{gap:10px;margin-bottom:12px}
+  .vehicles-families,.vehicles-periods{gap:6px}
+  .vehicles-families button,.vehicles-periods button{padding:7px 10px;font-size:10px}
+  .vehicles-search input{width:100%}
+  .vehicles-head,.vehicles-row{grid-template-columns:minmax(112px,1.2fr) 52px 92px 76px}
+  .vehicles-head>span,.vehicles-row>span{padding:0 8px}
+  .vehicles-head{min-height:36px}
+  .vehicles-row{min-height:44px}
+  .vehicles-id{gap:6px}
+  .vehicles-id small{font-size:9.5px}
+  .vehicles-id strong{font-size:12px}
+  .vehicles-metric{gap:4px}
+  .vehicles-metric svg{width:13px;height:13px}
+  .vehicles-metric b{font-size:10.5px}
+}
+@media(max-width:390px){
+  .vehicles-head,.vehicles-row{grid-template-columns:minmax(104px,1.2fr) 46px 86px 70px}
+  .vehicles-head>span,.vehicles-row>span{padding:0 6px}
+  .vehicles-metric b{font-size:10px}
+}
