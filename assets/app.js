@@ -78,6 +78,7 @@ function render(){
   app.innerHTML=state.view==='overview'
     ?(typeof window.dashboard==='function'?window.dashboard(state.shifts):dashboardFallback())
     :shiftList(state.shifts);
+  if(state.view==='overview'&&typeof window.dashboardMounted==='function')window.dashboardMounted();
 }
 
 async function boot(){
