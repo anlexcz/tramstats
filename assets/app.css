@@ -134,11 +134,11 @@ footer{
   .brand{font-size:29px}
   .sandbox{display:block;font-size:8px}
   .sandbox b{display:none}
-  main{padding:22px 12px 90px}
-  .page-head{margin-bottom:15px}
+  main{padding:18px 12px 86px}
+  .page-head{margin-bottom:12px}
   h1{font-size:46px}
   .eyebrow{font-size:8px}
-  h2{font-size:13px;margin-bottom:22px}
+  h2{font-size:13px;margin-bottom:18px}
   #mobile-nav{
     display:flex;
     position:fixed;
