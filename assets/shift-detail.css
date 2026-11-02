@@ -1,0 +1,72 @@
+.page-shift-detail .page-head{display:none}
+.page-shift-detail main{max-width:980px}
+.detail-back{display:inline-flex;align-items:center;margin-bottom:24px;color:var(--muted);font-size:12px;font-weight:600}
+.detail-back:hover{color:var(--text-strong)}
+.detail-hero{height:auto;padding:0;background:none;border:0;display:block}
+.detail-date{font:44px/1.05 'Bebas Neue','Arial Narrow',sans-serif;letter-spacing:.8px;color:var(--text-strong);text-transform:uppercase}
+.detail-hero-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+.detail-shift-type{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;background:var(--badge-bg);border-left:3px solid var(--red);font-weight:700;color:var(--text-strong)}
+.detail-depot{color:var(--muted);font-size:13px}
+.detail-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.detail-totals>div{padding:17px 18px 16px;border-right:1px solid var(--line)}
+.detail-totals>div:last-child{border-right:0}
+.detail-totals span{display:block;margin-bottom:7px;color:var(--label-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.detail-totals strong{display:block;font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-block-summaries{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:14px;background:var(--line);border:1px solid var(--line)}
+.detail-block-summary{background:var(--surface);padding:14px 16px}
+.detail-block-summary span{display:block;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.detail-block-summary strong{display:block;margin-top:7px;font-size:15px}
+.detail-block-summary small{display:block;margin-top:4px;color:#c3c7cd;font-size:11px}
+.detail-flow-block,.detail-note{margin-top:30px}
+.detail-section-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.detail-section-head h2{margin:0;font-size:16px}
+.detail-parts{display:grid}
+.detail-part{padding:15px 2px;border-bottom:1px solid var(--card-border)}
+.detail-part-main{display:grid;grid-template-columns:160px minmax(0,1fr) 100px;gap:14px;align-items:center}
+.detail-part-time{display:flex;align-items:center;gap:5px;min-width:0;font-size:13px}
+.detail-part-time strong{font-size:14px}
+.detail-part-time span{color:var(--muted)}
+.detail-part-time small{margin-left:7px;color:var(--muted);font-size:10px}
+.detail-part-performance{min-width:0}
+.detail-performance-badge{display:inline-flex;align-items:center;min-height:32px;padding:0 10px;background:var(--badge-bg);border-left:3px solid var(--red);font-size:13px;font-weight:700;white-space:nowrap}
+.detail-part-km{text-align:right;font-size:13px;font-weight:700;white-space:nowrap}
+.detail-part-meta{display:flex;align-items:center;gap:8px;margin-top:8px;padding-left:174px;color:#cbd0d6;font-size:12px}
+.detail-vehicle-type{color:var(--muted)}
+.detail-vehicle-ids{color:var(--cyan);font-weight:600}
+.detail-part-note{margin-top:9px;padding-left:174px;color:#c4c8ce;font-size:11px;line-height:1.55}
+.detail-note p{margin:14px 0 0;color:#d2d5da;line-height:1.65}
+#detail-gallery:empty{display:none}
+@media(max-width:650px){
+  .page-shift-detail main{padding-top:18px}
+  .detail-back{margin-bottom:18px;font-size:11px}
+  .detail-date{font-size:34px;line-height:1.08}
+  .detail-hero-row{margin-top:12px}
+  .detail-shift-type{min-height:28px;padding:0 9px;font-size:12px}
+  .detail-depot{font-size:12px}
+  .detail-totals{grid-template-columns:1fr 1fr;margin-top:17px}
+  .detail-totals>div{padding:14px 12px}
+  .detail-totals>div:nth-child(2){border-right:0}
+  .detail-totals>div:nth-child(3){grid-column:1/-1;border-top:1px solid var(--line);border-right:0}
+  .detail-totals span{font-size:9px;margin-bottom:6px}
+  .detail-totals strong{font-size:18px}
+  .detail-block-summaries{grid-template-columns:1fr;margin-top:12px}
+  .detail-block-summary{padding:12px 13px}
+  .detail-block-summary strong{font-size:14px}
+  .detail-flow-block,.detail-note{margin-top:27px}
+  .detail-section-head h2{font-size:15px}
+  .detail-part{padding:14px 1px}
+  .detail-part-main{grid-template-columns:auto minmax(0,1fr) auto;gap:9px}
+  .detail-part-time{font-size:11px;gap:4px;white-space:nowrap}
+  .detail-part-time strong{font-size:12px}
+  .detail-part-time small{display:none}
+  .detail-performance-badge{min-height:30px;padding:0 8px;font-size:12px}
+  .detail-part-km{font-size:12px}
+  .detail-part-meta{padding-left:0;margin-top:8px;font-size:12px}
+  .detail-part-note{padding-left:0;margin-top:8px;font-size:11px}
+}
+@media(max-width:390px){
+  .detail-part-main{grid-template-columns:1fr auto;grid-template-areas:'time km' 'performance performance'}
+  .detail-part-time{grid-area:time}
+  .detail-part-performance{grid-area:performance;margin-top:3px}
+  .detail-part-km{grid-area:km}
+}
