@@ -9,6 +9,9 @@ const fmt=(value,digits=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits
 const hm=minutes=>`${Math.floor(minutes/60)}:${String(Math.round(minutes%60)).padStart(2,'0')}`;
 const dayNames=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
 const detailIcon=kind=>({
+  km:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-8 8-8 16-10M16 5l4 2-2 4"/></svg>',
+  time:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
+  vehicle:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M9 19l-2 3M15 19l2 3M9 15h.01M15 15h.01"/></svg>',
   camera:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'
 }[kind]||'');
 
@@ -77,19 +80,19 @@ function galleryPlaceholder(){
 }
 function partRow(part){
   const duration=partDuration(part);
-  const hasPhoto=false; // dokud není připojen skutečný zdroj fotek, ikonu u části nevykreslujeme
+  const hasPhoto=false;
   return `<article class="detail-part">
     <div class="detail-part-top">
       <strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>
       <span class="detail-part-right">
-        <strong class="detail-part-time">${esc(part.start||'—')}–${esc(part.end||'—')}</strong>
-        <strong class="detail-part-km">${part.km!=null?`${fmt(part.km)} km`:'—'}</strong>
+        <strong class="detail-part-time">${detailIcon('time')}${esc(part.start||'—')}–${esc(part.end||'—')}</strong>
+        <strong class="detail-part-km">${detailIcon('km')}${part.km!=null?`${fmt(part.km)} km`:'—'}</strong>
       </span>
     </div>
     <div class="detail-part-bottom">
-      <div class="detail-part-vehicle">${vehicleText(part)||'<span class="detail-muted">—</span>'}</div>
+      <div class="detail-part-vehicle">${detailIcon('vehicle')}${vehicleText(part)||'<span class="detail-muted">—</span>'}</div>
       <div class="detail-part-bottom-right">
-        ${duration!=null?`<span class="detail-part-duration">${hm(duration)}</span>`:''}
+        ${duration!=null?`<span class="detail-part-duration">${detailIcon('time')}${hm(duration)}</span>`:''}
         ${hasPhoto?`<button class="detail-photo-mark" type="button" aria-label="Fotografie této části směny">${detailIcon('camera')}</button>`:''}
       </div>
     </div>
