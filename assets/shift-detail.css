@@ -4,11 +4,10 @@
 .detail-back{display:inline-flex;align-items:center;margin:0 0 16px;padding:6px 9px;background:var(--badge-bg);color:#d9dde2;font-size:11px;font-weight:700;border:1px solid #454a52}
 .detail-back:hover{background:#34373d;color:#fff}
 .detail-summary-card{border:1px solid #3f434a;background:var(--surface);margin-bottom:16px;border-radius:12px;overflow:hidden}
-.detail-summary-row{display:grid;grid-template-columns:104px minmax(0,1fr);min-height:40px;border-bottom:1px solid #353941}
+.detail-summary-row{display:grid;grid-template-columns:104px minmax(0,1fr);min-height:38px;border-bottom:1px solid #353941}
 .detail-summary-row:last-child{border-bottom:0}
 .detail-summary-row>*{display:flex;align-items:center;padding:0 12px}
-.detail-summary-label{gap:7px;color:#c0c5cc;font-size:10.5px;font-weight:700;background:#1d1f23}
-.detail-summary-label svg{width:14px;height:14px;color:#8f969f;flex:0 0 auto}
+.detail-summary-label{color:#c0c5cc;font-size:10.5px;font-weight:700;background:#1d1f23}
 .detail-summary-row>span{font-size:13px;color:#f0f2f4;font-weight:500}
 .detail-future-link{color:#f0f2f4}
 .detail-future-link:hover{color:var(--cyan)}
@@ -30,20 +29,20 @@
 .detail-gallery-arrow:disabled{opacity:.35;cursor:default}
 .detail-gallery-counter{position:absolute;right:10px;bottom:9px;padding:4px 7px;background:#17191ddd;border:1px solid #3f434a;color:#aeb4bd;font-size:9px}
 .detail-parts-card{border:1px solid #3f434a;background:var(--surface);border-radius:12px;overflow:hidden;margin-bottom:16px}
-.detail-part{padding:11px 13px;border-bottom:1px solid #343840}
+.detail-part{padding:10px 12px;border-bottom:1px solid #343840}
 .detail-part:last-child{border-bottom:0}
-.detail-part-top{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:10px;align-items:center}
-.detail-part-performance{font-size:13px;color:#f4f5f7}
-.detail-part-time,.detail-part-km{display:inline-flex;align-items:center;gap:5px;color:#eef0f2;white-space:nowrap}
-.detail-part-time{font-size:12px}
-.detail-part-time b{font-weight:700}
-.detail-part-km{font-size:12px;text-align:right}
-.detail-part-time svg,.detail-part-km svg,.detail-part-vehicle>svg{width:14px;height:14px;color:#9299a3;flex:0 0 auto}
-.detail-part-bottom{display:flex;align-items:center;gap:10px;margin-top:6px}
+.detail-part-top,.detail-part-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.detail-part-performance{font-size:13px;color:#f4f5f7;white-space:nowrap}
+.detail-part-right,.detail-part-bottom-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0;margin-left:auto}
+.detail-part-time,.detail-part-km{color:#eef0f2;white-space:nowrap;font-size:12px;font-weight:700}
+.detail-part-km{min-width:70px;text-align:right}
+.detail-part-bottom{margin-top:6px}
 .detail-part-vehicle{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;color:#d7dbe0}
 .detail-vehicle-type{color:#b9bec6}
 .detail-vehicle-ids{color:var(--cyan);font-weight:600}
-.detail-photo-mark{margin-left:auto;color:#aeb3bb}
+.detail-part-duration{color:#c1c6cd;font-size:11.5px;font-weight:600;white-space:nowrap}
+.detail-photo-mark{display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;color:#aeb3bb}
+.detail-photo-mark:hover{background:transparent;color:#fff}
 .detail-photo-mark svg{width:15px;height:15px}
 .detail-muted{color:#a2a8b1}
 .detail-part-note{margin-top:7px;padding-top:7px;border-top:1px dashed #3a3d43;color:#d0d4d9;font-size:10.5px;line-height:1.45}
@@ -57,25 +56,27 @@
   .page-shift-detail main{padding-top:16px}
   .detail-date{font-size:28px;margin-bottom:10px}
   .detail-back{margin-bottom:14px}
-  .detail-summary-row{grid-template-columns:88px minmax(0,1fr);min-height:38px}
+  .detail-summary-row{grid-template-columns:88px minmax(0,1fr);min-height:36px}
   .detail-summary-row>*{padding:0 10px}
   .detail-summary-label{font-size:10px}
-  .detail-summary-label svg{width:13px;height:13px}
   .detail-summary-row>span{font-size:12.5px}
   .detail-summary-split .detail-summary-row{grid-template-columns:88px repeat(3,minmax(0,1fr))}
   .detail-summary-split .detail-summary-columns{grid-template-columns:88px repeat(3,minmax(0,1fr))}
   .detail-summary-columns small{padding:6px 5px;font-size:7.5px}
   .detail-gallery-stage{min-height:190px}
   .detail-gallery-empty{padding:18px}
-  .detail-part{padding:10px 11px}
-  .detail-part-top{grid-template-columns:minmax(62px,1fr) auto auto;gap:7px}
+  .detail-part{padding:9px 10px}
   .detail-part-performance{font-size:12.5px}
+  .detail-part-right{gap:11px}
   .detail-part-time,.detail-part-km{font-size:11.5px}
-  .detail-part-vehicle{font-size:11.5px}
+  .detail-part-km{min-width:66px}
+  .detail-part-vehicle,.detail-part-duration{font-size:11.5px}
 }
 @media(max-width:390px){
   .detail-summary-split .detail-summary-row{grid-template-columns:80px repeat(3,minmax(0,1fr))}
   .detail-summary-split .detail-summary-columns{grid-template-columns:80px repeat(3,minmax(0,1fr))}
-  .detail-part-top{grid-template-columns:1fr auto;grid-template-areas:'performance km' 'time time'}
-  .detail-part-performance{grid-area:performance}.detail-part-time{grid-area:time;margin-top:1px}.detail-part-km{grid-area:km}
+  .detail-part-top{gap:8px}
+  .detail-part-right{gap:8px}
+  .detail-part-time,.detail-part-km{font-size:11px}
+  .detail-part-km{min-width:62px}
 }
