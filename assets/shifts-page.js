@@ -16,30 +16,16 @@ const iconKm='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true
 const iconClock='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>';
 const iconInterval='<svg class="shift-list-interval-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg>';
 const SEARCH_CACHE=new WeakMap();
-const RETURN_KEY='tramstats-shifts-return-state';
 let mobileDraft=null;
 
-function readReturnState(){
-  if(history.state?.tramstatsShiftList!==true)return null;
-  let saved=null;
-  try{saved=JSON.parse(sessionStorage.getItem(RETURN_KEY)||'null');}catch{}
-  sessionStorage.removeItem(RETURN_KEY);
-  const next={...(history.state||{})};
-  delete next.tramstatsShiftList;
-  history.replaceState(next,'');
-  return saved&&typeof saved==='object'?saved:null;
-}
-const restored=readReturnState();
-
-state.year='all';
-state.query=restored?.query??state.query??'';
-state.type=restored?.type??state.type??'';
-state.depot=restored?.depot??state.depot??'';
-state.dateFrom=restored?.dateFrom??'';
-state.dateTo=restored?.dateTo??'';
-state.workOnly=restored?.workOnly??false;
-state.pageSize=Number(restored?.pageSize)||state.pageSize||25;
-state.visibleCount=Number(restored?.visibleCount)||state.pageSize;
+state.query=state.query||'';
+state.type=state.type||'';
+state.depot=state.depot||'';
+state.dateFrom=state.dateFrom||'';
+state.dateTo=state.dateTo||'';
+state.workOnly=!!state.workOnly;
+state.pageSize=Number(state.pageSize)||25;
+state.visibleCount=Number(state.visibleCount)||state.pageSize;
 
 const norm=value=>String(value??'').toLocaleLowerCase('cs').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const fullDay=iso=>DAY_NAMES[new Date(iso+'T12:00:00').getDay()]||'';
@@ -67,10 +53,10 @@ function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta 
 function shiftCard(s){
   const absence=ABSENCES[s.actualShift];
   if(absence){
-    return `<a class="shift-list-card shift-list-absence shift-list-absence-${absence.tone}" href="shifts/detail/?date=${encodeURIComponent(s.date)}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></a>`;
+    return `<div class="shift-list-card shift-list-absence shift-list-absence-${absence.tone}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></div>`;
   }
   const m=workMetrics(s),performance=performancesHTML(m.performances);
-  return `<a class="shift-list-card shift-list-work" href="shifts/detail/?date=${encodeURIComponent(s.date)}" data-shift-date="${esc(s.date)}">
+  return `<div class="shift-list-card shift-list-work" data-shift-date="${esc(s.date)}">
     <span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span>
     <span class="shift-list-type">${esc(m.type)}</span>
     <span class="shift-list-mobile-head"><span class="shift-list-mobile-date"><strong>${date(s.date)}</strong><small>${esc(fullDay(s.date))}</small></span><span class="shift-list-mobile-type">${esc(m.type)}</span></span>
@@ -79,7 +65,7 @@ function shiftCard(s){
     <span class="shift-list-km">${metaItem(iconKm,m.km)}</span>
     <span class="shift-list-duration">${metaItem(iconClock,m.duration)}</span>
     <span class="shift-list-mobile-meta">${metaItem(iconDepot,m.depot)}${metaItem(iconKm,m.km)}${metaItem(iconClock,m.duration)}</span>
-  </a>`;
+  </div>`;
 }
 
 function addSearchValue(index,value,{exact=false}={}){
@@ -92,7 +78,8 @@ function addSearchValue(index,value,{exact=false}={}){
 function addDateValues(index,iso){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')))return;
   const [y,m,d]=iso.split('-');
-  for(const value of [iso,`${d}.${m}.${y}`,`${d}.${m}.`,`${d}/${m}/${y}`,`${d}/${m}`])addSearchValue(index,value,{exact:true});
+  const shortDay=String(Number(d)),shortMonth=String(Number(m));
+  for(const value of [iso,`${d}.${m}.${y}`,`${d}.${m}.`,`${d}/${m}/${y}`,`${d}/${m}`,`${shortDay}.${shortMonth}.${y}`,`${shortDay}.${shortMonth}.`,`${shortDay}/${shortMonth}/${y}`,`${shortDay}/${shortMonth}`])addSearchValue(index,value,{exact:true});
 }
 function searchIndex(s){
   const cached=SEARCH_CACHE.get(s);
@@ -107,6 +94,7 @@ function searchIndex(s){
   const absence=ABSENCES[s.actualShift];
   if(absence)addSearchValue(index,absence.label);
   for(const p of s.parts||[]){
+    addSearchValue(index,p.line);
     addSearchValue(index,p.course,{exact:true});
     addSearchValue(index,p.order,{exact:true});
     addSearchValue(index,p.vehicleType);
@@ -154,8 +142,6 @@ function filterRowsWith(ss,values){
   }).sort((a,b)=>b.date.localeCompare(a.date));
 }
 function filterRows(ss){return filterRowsWith(ss,state);}
-filtered=filterRows;
-shiftHTML=shiftCard;
 
 function optionRows(items,selected,labelFn=x=>x){
   return items.map(x=>`<option value="${esc(x)}" ${selected===x?'selected':''}>${esc(labelFn(x))}</option>`).join('');
@@ -251,10 +237,6 @@ function applyMobileFilters(){
   requestAnimationFrame(()=>document.querySelector('#mobile-filter-open')?.focus());
 }
 function clearMobileDraft(){mobileDraft={query:state.query||'',type:'',depot:'',dateFrom:'',dateTo:'',workOnly:false,pageSize:state.pageSize||25};refreshMobileDraftUI();}
-function saveReturnState(){
-  sessionStorage.setItem(RETURN_KEY,JSON.stringify({query:state.query||'',type:state.type||'',depot:state.depot||'',dateFrom:state.dateFrom||'',dateTo:state.dateTo||'',workOnly:!!state.workOnly,pageSize:state.pageSize||25,visibleCount:state.visibleCount||state.pageSize||25,scrollY:window.scrollY||0}));
-  history.replaceState({...history.state,tramstatsShiftList:true},'');
-}
 
 document.addEventListener('input',e=>{if(e.target.id==='shift-search')setFilter(e.target);});
 document.addEventListener('change',e=>{
@@ -278,8 +260,7 @@ document.addEventListener('click',e=>{
     state.query='';state.type='';state.depot='';state.dateFrom='';state.dateTo='';state.workOnly=false;rerender(true);return;
   }
   const more=e.target.closest('#shift-load-more');
-  if(more){state.visibleCount+=state.pageSize;render();return;}
-  if(e.target.closest('.shift-list-card'))saveReturnState();
+  if(more){state.visibleCount+=state.pageSize;render();}
 });
 document.addEventListener('keydown',e=>{
   if(!document.body.classList.contains('shift-filters-open'))return;
@@ -293,9 +274,6 @@ document.addEventListener('keydown',e=>{
   const first=focusables[0],last=focusables.at(-1);
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
-});
-window.addEventListener('load',()=>{
-  if(Number(restored?.scrollY)>0)requestAnimationFrame(()=>window.scrollTo({top:Number(restored.scrollY),behavior:'instant'}));
 });
 
 if(state.shifts?.length)render();
