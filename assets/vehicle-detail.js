@@ -48,9 +48,10 @@ function occurrenceMeta(rows){
     <p><span>Poslední výskyt:</span> <a href="${shiftHref(newest.date)}">${date(newest.date)}</a> <small>· ${esc(dayText(Domain.daysAgo(newest.date)))}</small></p>
   </section>`;
 }
-function historyRow(row){
+function historyRow(row,{yearStart=false,year=null}={}){
   const hasPhoto=(row.photos||[]).length>0;
-  return `<article class="vehicle-history-row" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
+  return `<article class="vehicle-history-row${yearStart?' vehicle-history-year-start':''}" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
+    ${yearStart?`<span class="vehicle-history-year-label">${esc(year)}</span>`:''}
     <strong class="vehicle-history-date">${date(row.date)}</strong>
     <strong class="vehicle-history-performance">${esc(row.performance)}</strong>
     <span class="vehicle-history-metric">${icon('time')}<b>${row.duration!=null?hm(row.duration):'—'}</b></span>
@@ -60,10 +61,9 @@ function historyRow(row){
 }
 function history(rows){
   const years=Domain.yearly(rows);
-  return `<section class="vehicle-history" aria-label="Historie jízd">${years.map(group=>`
-    <div class="vehicle-year-divider"><span>${esc(group.year)}</span></div>
-    ${group.rows.map(historyRow).join('')}
-  `).join('')}</section>`;
+  return `<section class="vehicle-history" aria-label="Historie jízd">${years.map(group=>
+    group.rows.map((row,index)=>historyRow(row,{yearStart:index===0,year:group.year})).join('')
+  ).join('')}</section>`;
 }
 function render(vehicle,rows){
   root.innerHTML=`
