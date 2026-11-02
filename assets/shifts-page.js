@@ -46,6 +46,17 @@ const typeLabel=s=>s.shiftType?.name||s.actualShift||'';
 const depotLabel=s=>s.depotMeta?.name||s.depot||'';
 const hasTimedPart=s=>(s.parts||[]).some(p=>p.start&&p.end);
 
+function shiftBlocks(s){
+  const parts=s.parts||[];
+  const split=Number(s.splitSeq);
+  if(s.actualShift==='Š'&&Number.isFinite(split)&&split>0){
+    return [
+      {key:'morning',parts:parts.filter(p=>Number(p.partNo)<=split)},
+      {key:'afternoon',parts:parts.filter(p=>Number(p.partNo)>split)}
+    ].filter(block=>block.parts.length);
+  }
+  return [{key:'main',parts}];
+}
 function blockDuration(parts){
   let first=null,last=null;
   for(const p of parts){
@@ -63,20 +74,11 @@ function blockDuration(parts){
   return first!=null&&last!=null&&last>=first?last-first:null;
 }
 function durationLabel(s){
-  const parts=s.parts||[];
-  const split=Number(s.splitSeq);
-  const blocks=s.actualShift==='Š'&&Number.isFinite(split)&&split>0
-    ?[parts.filter(p=>Number(p.partNo)<=split),parts.filter(p=>Number(p.partNo)>split)].filter(x=>x.length)
-    :[parts];
-  const durations=blocks.map(blockDuration).filter(v=>v!=null);
+  const durations=shiftBlocks(s).map(block=>blockDuration(block.parts)).filter(v=>v!=null);
   return durations.length?hm(durations.reduce((a,b)=>a+b,0)):'';
 }
 function performanceRows(s){
-  const parts=s.parts||[];
-  const split=Number(s.splitSeq);
-  const blocks=s.actualShift==='Š'&&Number.isFinite(split)&&split>0
-    ?[parts.filter(p=>Number(p.partNo)<=split),parts.filter(p=>Number(p.partNo)>split)].filter(x=>x.length)
-    :[parts];
+  const blocks=shiftBlocks(s);
   const hasValue=v=>v!=null&&v!=='';
   const lineTokens=line=>String(line||'').split('+').map(x=>x.trim()).filter(Boolean);
   const isHidden=line=>line==='MJ'||line==='JP';
@@ -87,7 +89,7 @@ function performanceRows(s){
     const courseBadges=new Map();
     let start='',end='';
 
-    for(const p of block){
+    for(const p of block.parts){
       if(!start&&p.start)start=p.start;
       if(p.end)end=p.end;
       const line=String(p.line||'').trim();
@@ -124,7 +126,7 @@ function performanceRows(s){
     }
 
     return {
-      key:`block-${index+1}`,
+      key:block.key||`block-${index+1}`,
       badges,
       start,
       end,
