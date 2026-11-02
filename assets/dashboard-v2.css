@@ -6,16 +6,16 @@
 .dash-kpis>div{padding:22px 24px;border-right:1px solid var(--line);position:relative}
 .dash-kpis>div:last-child{border-right:0}
 .dash-kpis .kpi-km:before,.dash-kpis .kpi-time:before{content:'';position:absolute;left:-1px;right:-1px;top:-1px;height:3px}
-.dash-kpis .kpi-km:before{background:var(--red)}
-.dash-kpis .kpi-time:before{background:var(--cyan)}
+.dash-kpis .kpi-km:before{background:var(--accent-primary)}
+.dash-kpis .kpi-time:before{background:var(--separator-emphasis)}
 .dash-kpis span{display:flex;align-items:center;gap:8px;color:#c2c6cd;font-size:var(--text-base);font-weight:600;margin-bottom:12px}
 .dash-kpis span svg{width:18px;height:18px;color:#d8dbe0}
 .dash-kpis strong{font-size:31px}
 .dash-kpis small{font-size:var(--text-sm);color:var(--muted);font-weight:500}
 .dash-kpis .dash-trend{display:flex;align-items:center;gap:5px;width:max-content;margin-top:8px;font-size:var(--text-xs);line-height:1;font-weight:700}
 .dash-kpis .dash-trend span{display:inline;margin:0;color:inherit;font-size:var(--text-sm);font-weight:800}
-.dash-trend.up,.dash-mini-trend.up{color:var(--cyan)}
-.dash-trend.down,.dash-mini-trend.down{color:var(--red)}
+.dash-trend.up,.dash-mini-trend.up{color:var(--semantic-positive)}
+.dash-trend.down,.dash-mini-trend.down{color:var(--semantic-negative)}
 .dash-trend.flat,.dash-mini-trend.flat{color:#7f858f}
 .dash-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(410px,.85fr);gap:28px;align-items:start}
 .dash-analytics,.dash-main{min-width:0}
@@ -26,11 +26,10 @@
 .dash-bars{display:grid;gap:12px;padding:17px 0 2px}
 .dash-bar-row{display:grid;grid-template-columns:48px minmax(100px,1fr) 100px 22px;gap:10px;align-items:center}
 .dash-stat-badge{display:inline-flex;width:38px;min-width:38px;height:34px;padding:0 6px;align-items:center;justify-content:center;background:var(--badge-bg);font-size:var(--text-sm);font-weight:700;color:var(--text-strong);justify-self:start}
-.dash-bar-row.lines .dash-stat-badge,.dash-bar-row.depots .dash-stat-badge{border-left:3px solid var(--red)}
-.dash-bar-row.types .dash-stat-badge{width:auto;min-width:38px;border-left:3px solid var(--cyan)}
+.dash-bar-row.lines .dash-stat-badge,.dash-bar-row.depots .dash-stat-badge,.dash-bar-row.types .dash-stat-badge{border-left:3px solid var(--accent-primary)}
+.dash-bar-row.types .dash-stat-badge{width:auto;min-width:38px}
 .dash-track{height:8px;background:#30333a;overflow:hidden}
-.dash-track i{display:block;height:100%;background:var(--red)}
-.dash-bar-row.types .dash-track i{background:var(--cyan)}
+.dash-track i{display:block;height:100%;background:var(--accent-primary)}
 .dash-bar-row strong{text-align:right;font-size:var(--text-sm)}
 .dash-mini-trend{justify-self:center;font-size:15px;line-height:1;font-weight:800}
 .dash-shift{display:block;color:inherit;padding:14px 3px;border-bottom:1px solid var(--card-border)}
@@ -46,8 +45,8 @@
 .dash-shift-rows{display:grid;gap:8px;margin-top:11px}
 .dash-shift-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,44%);gap:12px;align-items:center;min-height:30px}
 .dash-performances{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
-.dash-performance-badge{display:inline-flex;min-height:30px;padding:0 10px;align-items:center;background:var(--badge-bg);border-left:3px solid var(--red);color:var(--text-strong);font-size:var(--text-sm);font-weight:750;white-space:nowrap}
-.dash-performance-badge.special{border-left-color:var(--cyan)}
+.dash-performance-badge{display:inline-flex;min-height:30px;padding:0 10px;align-items:center;background:var(--badge-bg);border-left:3px solid var(--accent-primary);color:var(--text-strong);font-size:var(--text-sm);font-weight:750;white-space:nowrap}
+.dash-performance-badge.special{border-left-color:var(--accent-secondary)}
 .dash-row-vehicles{display:block;min-width:0;max-width:100%;overflow:hidden;text-align:right}
 .dash-vehicle-list{display:block;width:100%;overflow:hidden;white-space:nowrap;color:#cfd3d9;font-size:var(--text-base);font-weight:500;letter-spacing:.01em;text-align:right}
 .dash-vehicle-item,.dash-vehicle-more{display:inline;font:inherit;color:inherit}
