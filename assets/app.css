@@ -17,7 +17,10 @@
   --interactive-focus:var(--accent-primary);
   --link-accent:var(--accent-secondary);
   --semantic-positive:#47be7e;
-  --semantic-negative:#ff5252;
+  --semantic-warning:#f2c94c;
+  --semantic-error:#ff5c5c;
+  --semantic-danger:var(--semantic-error);
+  --semantic-negative:var(--semantic-error);
   --separator-emphasis:#4a4f57;
 
   --card:#24262b;
