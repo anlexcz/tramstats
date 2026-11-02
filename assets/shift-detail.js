@@ -65,10 +65,11 @@ function blockPerformance(block){
   return badges.map(badge=>badge.label).filter(Boolean).join(' · ')||'—';
 }
 function vehicleText(part){
-  const pair=[part.frontVehicle,part.rearVehicle].filter(Boolean).join(' + ');
+  const ids=[part.frontVehicle,part.rearVehicle].filter(Boolean);
   const family=part.frontVehicleMeta?.family||part.rearVehicleMeta?.family||part.vehicleType||'';
-  if(!pair&&!family)return'';
-  return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${pair?`<span class="detail-vehicle-ids">${esc(pair)}</span>`:''}`;
+  if(!ids.length&&!family)return'';
+  const linked=ids.map(id=>`<a class="detail-future-link" href="vozy/${encodeURIComponent(id)}/">${esc(id)}</a>`).join(' + ');
+  return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${ids.length?`<span class="detail-vehicle-ids">${linked}</span>`:''}`;
 }
 function galleryHTML(shift){
   const photos=shift.photos||[];
