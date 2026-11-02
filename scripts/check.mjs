@@ -8,41 +8,34 @@ const exists=file=>fs.existsSync(new URL(file,root));
 
 const dataCtx=vm.createContext({window:{},sessionStorage:{getItem(){return null},setItem(){},removeItem(){}},fetch:async()=>{throw new Error('not used')},AbortController,Date,Set,Map,Number,String,Object,Math,JSON,Promise,setTimeout,clearTimeout});
 vm.runInContext(read('assets/data.js'),dataCtx);
-const normalize=dataCtx.window.TramStatsData.normalize;
+const dataApi=dataCtx.window.TramStatsData;
+assert.deepEqual(dataApi.TABLES,['shifts','shift_parts','shift_part_lines','vehicles','depots','lines','shift_types']);
 const raw={
   shifts:[{date:'2026-01-01',shift_type:'N',depot:'KO',split_seq:'',note:''}],
   shift_parts:[{shift_date:'2026-01-01',part_no:1,course:'109',order_no:'7',vehicle_type:'T3',front_vehicle:'8151',rear_vehicle:'8185',start_time:'23:00',end_time:'01:00',start_day_offset:0,km:'30',note:'Test'}],
   shift_part_lines:[{shift_date:'2026-01-01',part_no:1,seq:1,line:'6',km:'10'},{shift_date:'2026-01-01',part_no:1,seq:2,line:'34',km:'20'}],
-  breaks:[],
   vehicles:[{id:'8151',type:'T3R.P',family:'T3'},{id:'8185',type:'T3R.P',family:'T3'}],
   depots:[{code:'KO',name:'Kobylisy'}],
   lines:[{code:'6',alias:'',name:''},{code:'34',alias:'',name:''}],
-  shift_types:[{code:'N',name:'Noční'}],
-  shift_courses:[{shift_date:'2026-01-01',course:'109',is_snack:true}],
-  tags:[{id:1,code:'training',name:'Zácvik'}],
-  shift_part_tags:[{shift_date:'2026-01-01',part_no:1,tag_id:1}]
+  shift_types:[{code:'N',name:'Noční'}]
 };
-const db=normalize(raw);
+const db=dataApi.normalize(raw);
 assert.equal(db.shifts[0].parts[0].line,'6+34');
 assert.equal(db.shifts[0].parts[0].lineParts.map(x=>x.km).join(','),'10,20');
-assert.equal(db.shifts[0].parts[0].isSnack,true);
 assert.equal(db.shifts[0].parts[0].frontVehicleMeta.type,'T3R.P');
-assert.equal(db.shifts[0].parts[0].tags[0].code,'training');
+assert.equal(db.minDate,'2026-01-01');
+assert.equal(db.maxDate,'2026-01-01');
 
 const domainCtx=vm.createContext({window:{},Set,Map,Number,String,Object,Math});
 vm.runInContext(read('assets/shift-domain.js'),domainCtx);
 const domain=domainCtx.window.TramStatsShiftDomain;
 const part=(partNo,start,end,line,{course=null,order=null,offset=0}={})=>({partNo:String(partNo),start,end,line,course,order,startDayOffset:offset});
-
-const normal={actualShift:'R',splitSeq:null,parts:[part(1,'08:00','10:00','10',{course:'100'}),part(2,'10:30','12:00','10',{course:'100'})]};
-assert.equal(domain.durationMinutes(normal),240);
-const overnight={actualShift:'N',parts:[part(1,'23:00','01:00','10')]};
-assert.equal(domain.durationMinutes(overnight),120);
+assert.equal(domain.durationMinutes({actualShift:'R',parts:[part(1,'08:00','10:00','10'),part(2,'10:30','12:00','10')]}),240);
+assert.equal(domain.durationMinutes({actualShift:'N',parts:[part(1,'23:00','01:00','10')]}),120);
 const split={actualShift:'Š',splitSeq:2,parts:[part(1,'05:00','07:00','30',{course:'223'}),part(2,'07:20','09:00','30',{course:'223'}),part(3,'14:00','16:00','24',{course:'17'}),part(4,'16:30','18:00','24',{course:'17'})]};
 assert.deepEqual(domain.blocks(split).map(x=>x.key),['morning','afternoon']);
 assert.equal(domain.durationMinutes(split),480);
-const incomplete={actualShift:'R',parts:[part(1,'08:00',null,'10'),part(2,'10:00','12:00','10')]};
-assert.equal(domain.durationMinutes(incomplete),120);
+assert.equal(domain.durationMinutes({actualShift:'R',parts:[part(1,'08:00',null,'10'),part(2,'10:00','12:00','10')]}),120);
 const reserve={actualShift:'R',parts:[part(1,'06:00','07:00','Z'),part(2,'07:00','09:00','10',{order:'7'}),part(3,'09:00','10:00','Z')]};
 assert.deepEqual(domain.performanceRows(reserve)[0].badges.map(x=>x.label),['Záloha','10/7']);
 const hidden={actualShift:'R',parts:[part(1,'05:00','06:00','MJ'),part(2,'06:00','10:00','16',{order:'12'}),part(3,'10:00','11:00','JP')]};
@@ -85,24 +78,18 @@ const removedFiles=[
 for(const file of removedFiles)assert.equal(exists(file),false,`Legacy file still exists: ${file}`);
 
 const coreCode=read('assets/app.js');
-assert.doesNotMatch(coreCode,/\bstats\b|vehicleList|detailHTML|partHTML|modal\(|showModal|data-vehicle|vehicle-sort|vehicle-search/,'Core runtime must not contain removed pages or detail modal.');
-assert.doesNotMatch(coreCode,/stats\/|vehicles\/|shifts\/detail\//);
-
+assert.doesNotMatch(coreCode,/\bstats\b|vehicleList|detailHTML|partHTML|modal\(|showModal|data-vehicle|vehicle-sort|vehicle-search|stats\/|vehicles\/|shifts\/detail\//);
 const dashboardCode=read('assets/dashboard-v2.js');
 assert.match(dashboardCode,/TramStatsShiftDomain/);
 assert.match(dashboardCode,/durationMinutes/);
-assert.doesNotMatch(dashboardCode,/stats\/|vehicles\/|shifts\/detail\/|data-detail=/,'Dashboard must not reference removed pages.');
-
+assert.doesNotMatch(dashboardCode,/stats\/|vehicles\/|shifts\/detail\/|data-detail=/);
 const shiftsCode=read('assets/shifts-page.js');
 assert.match(shiftsCode,/TramStatsShiftDomain/);
-assert.doesNotMatch(shiftsCode,/shifts\/detail\/|RETURN_KEY|saveReturnState|tramstats-shifts-return-state/,'Shift list must not contain removed detail navigation state.');
-assert.doesNotMatch(shiftsCode,/function shiftBlocks\(/);
-
+assert.doesNotMatch(shiftsCode,/shifts\/detail\/|RETURN_KEY|saveReturnState|tramstats-shifts-return-state|function shiftBlocks\(/);
 const sharedCss=read('assets/app.css');
-assert.doesNotMatch(sharedCss,/\.grid\b|\.panel\b|\.chart-columns\b|\.vehicle\b|\.shift\b|\.part\b|\.bp\b|dialog\b|\.badge\b|\.line\b/,'Shared CSS must not contain removed stats, vehicles or detail styles.');
+assert.doesNotMatch(sharedCss,/\.grid\b|\.panel\b|\.chart-columns\b|\.vehicle\b|\.shift\b|\.part\b|\.bp\b|dialog\b|\.badge\b|\.line\b/);
 const componentsCss=read('assets/components.css');
-assert.doesNotMatch(componentsCss,/tram-thumb|vehicle|detail-|\.part\b|\.bp\b/,'Components CSS must contain only current shared components.');
-
+assert.doesNotMatch(componentsCss,/tram-thumb|vehicle|detail-|\.part\b|\.bp\b/);
 for(const file of ['index.html','shifts/index.html']){
   const html=read(file);
   assert.doesNotMatch(html,/vehicle-icons|<dialog|stats\/|vehicles\/|shifts\/detail\//);
