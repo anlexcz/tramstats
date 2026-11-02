@@ -192,6 +192,25 @@ footer{
   color:color-mix(in srgb,var(--state-tone) 28%,white);
 }
 
+/* Absence rows do not need to reserve the work-performance column. Keep the
+   work grid untouched so all performances stay aligned to one vertical axis. */
+@media(min-width:651px){
+  .page-shifts .shift-list-absence{
+    grid-template-columns:minmax(96px,118px) minmax(0,1fr);
+  }
+  .page-shifts .shift-list-absence-badge{
+    grid-column:2;
+    max-width:none;
+    overflow:visible;
+    text-overflow:clip;
+  }
+}
+@media(min-width:651px) and (max-width:1150px){
+  .page-shifts .shift-list-absence{
+    grid-template-columns:minmax(88px,104px) minmax(0,1fr);
+  }
+}
+
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
