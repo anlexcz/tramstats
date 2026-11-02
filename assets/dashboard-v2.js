@@ -2,7 +2,7 @@
 'use strict';
 
 const Domain=window.TramStatsShiftDomain;
-let vehicleTickerTimers=[];
+let vehicleOverflowObserver=null;
 const dashIcon=kind=>({
   km:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-8 8-8 16-10M16 5l4 2-2 4"/></svg>',
   time:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
@@ -33,23 +33,22 @@ function vehicleSets(parts){
   for(const part of parts||[]){
     const vehicles=[part.frontVehicle,part.rearVehicle].filter(Boolean);
     if(!vehicles.length)continue;
-    const label=vehicles.join(' + ');
+    const label=vehicles.join(' + '),count=vehicles.length;
     if(seen.has(label))continue;
     seen.add(label);
-    sets.push(label);
+    sets.push({label,count});
   }
   return sets;
 }
-function vehicleTicker(parts){
+function vehicleList(parts){
   const values=vehicleSets(parts);
   if(!values.length)return'';
-  if(values.length===1)return `<span class="dash-vehicle-text">${esc(values[0])}</span>`;
-  return `<span class="dash-vehicle-ticker" data-values="${esc(JSON.stringify(values))}"><span class="dash-vehicle-current">${esc(values[0])}</span><span class="dash-vehicle-next" aria-hidden="true"></span></span>`;
+  return `<span class="dash-vehicle-list" data-vehicle-count="${values.reduce((sum,item)=>sum+item.count,0)}">${values.map((item,index)=>`<span class="dash-vehicle-item" data-count="${item.count}">${index?', ':''}${esc(item.label)}</span>`).join('')}<span class="dash-vehicle-more" hidden></span></span>`;
 }
 function dashShiftRows(shift){
   const rows=Domain.performanceRows(shift);
   if(!rows.length)return'';
-  return rows.map(row=>`<div class="dash-shift-row"><span class="dash-performances">${(row.badges||[]).map(dashBadge).join('')}</span><span class="dash-row-vehicles">${vehicleTicker(row.parts)}</span></div>`).join('');
+  return rows.map(row=>`<div class="dash-shift-row"><span class="dash-performances">${(row.badges||[]).map(dashBadge).join('')}</span><span class="dash-row-vehicles">${vehicleList(row.parts)}</span></div>`).join('');
 }
 function shiftDuration(shift){return Domain.durationMinutes(shift)||0;}
 function dashRecent(shift){
@@ -125,37 +124,33 @@ function dashboardV2(){
   const currentTypes=Object.entries(current.groups.types||{}),previousTypes=Object.entries(previous.groups.types||{});
   return `<div class="dash-context">Posledních 30 dní <span>· srovnání s předchozími 30 dny</span></div><section class="dash-kpis"><div class="kpi-km"><span>${dashIcon('km')}Kilometry</span><strong>${fmt(current.km)} <small>km</small></strong>${kpiTrend(current.km,previous.km,diff=>signedNumber(diff)+' km',0.05)}</div><div class="kpi-time"><span>${dashIcon('time')}Čas</span><strong>${hm(current.duration)}</strong>${kpiTrend(current.duration,previous.duration,signedTime)}</div><div><span>${dashIcon('shifts')}Počet směn</span><strong>${fmt(current.shiftCount,0)}</strong>${kpiTrend(current.shiftCount,previous.shiftCount,diff=>signedNumber(diff,0))}</div><div><span>${dashIcon('vehicles')}Počet vozů</span><strong>${current.vehicleCount}</strong>${kpiTrend(current.vehicleCount,previous.vehicleCount,diff=>signedNumber(diff,0))}</div></section><section class="dash-layout"><div class="dash-analytics"><section><div class="dash-section-head"><h2>Linky</h2></div><div class="dash-bars">${dashBars(Object.entries(current.groups.lines),Object.entries(previous.groups.lines),'lines')}</div></section><section class="dash-types"><div class="dash-section-head"><h2>Vozy</h2></div><div class="dash-bars">${dashBars(currentTypes,previousTypes,'types')}</div></section><section class="dash-depots"><div class="dash-section-head"><h2>Vozovny</h2></div><div class="dash-bars">${dashBars(Object.entries(current.depots),Object.entries(previous.depots),'depots','count')}</div></section></div><section class="dash-main"><div class="dash-section-head"><h2>Poslední směny</h2><a href="shifts/">Všechny směny →</a></div><div class="dash-shifts">${recent.map(dashRecent).join('')||'<p class="hint">V posledních 30 dnech není pracovní směna.</p>'}</div></section>${dashExtremes(current.work)}</section>`;
 }
-function mountVehicleTickers(){
-  for(const timer of vehicleTickerTimers)clearInterval(timer);
-  vehicleTickerTimers=[];
-  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
-  document.querySelectorAll('.dash-vehicle-ticker').forEach((ticker,tickerIndex)=>{
-    let values=[];
-    try{values=JSON.parse(ticker.dataset.values||'[]');}catch{}
-    if(values.length<2)return;
-    const current=ticker.querySelector('.dash-vehicle-current'),next=ticker.querySelector('.dash-vehicle-next');
-    if(!current||!next)return;
-    let index=0,busy=false;
-    const advance=()=>{
-      if(busy)return;
-      busy=true;
-      const nextIndex=(index+1)%values.length;
-      next.textContent=values[nextIndex];
-      ticker.classList.add('is-moving');
-      window.setTimeout(()=>{
-        current.textContent=values[nextIndex];
-        next.textContent='';
-        ticker.classList.remove('is-moving');
-        index=nextIndex;
-        busy=false;
-      },360);
-    };
-    const timer=window.setInterval(advance,3400+tickerIndex*180);
-    vehicleTickerTimers.push(timer);
+function fitVehicleLists(){
+  document.querySelectorAll('.dash-vehicle-list').forEach(list=>{
+    const items=[...list.querySelectorAll('.dash-vehicle-item')],more=list.querySelector('.dash-vehicle-more');
+    if(!more)return;
+    items.forEach(item=>item.hidden=false);
+    more.hidden=true;more.textContent='';
+    if(list.scrollWidth<=list.clientWidth+1)return;
+    let hiddenVehicles=0;
+    for(let i=items.length-1;i>=0;i--){
+      hiddenVehicles+=Number(items[i].dataset.count)||1;
+      items[i].hidden=true;
+      more.hidden=false;
+      more.textContent=`${items.slice(0,i).some(item=>!item.hidden)?', ':''}+${hiddenVehicles} vozů`;
+      if(list.scrollWidth<=list.clientWidth+1)return;
+    }
   });
+}
+function mountVehicleLists(){
+  if(vehicleOverflowObserver)vehicleOverflowObserver.disconnect();
+  fitVehicleLists();
+  if(typeof ResizeObserver==='function'){
+    vehicleOverflowObserver=new ResizeObserver(fitVehicleLists);
+    document.querySelectorAll('.dash-row-vehicles').forEach(el=>vehicleOverflowObserver.observe(el));
+  }
 }
 
 window.dashboard=dashboardV2;
-window.dashboardMounted=mountVehicleTickers;
+window.dashboardMounted=mountVehicleLists;
 if(typeof state!=='undefined'&&state.shifts?.length&&state.view==='overview'&&typeof render==='function')render();
 })();
