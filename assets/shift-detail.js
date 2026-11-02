@@ -7,7 +7,7 @@ const status=document.querySelector('#status');
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const fmt=(value,digits=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:digits}).format(value);
 const hm=minutes=>`${Math.floor(minutes/60)}:${String(Math.round(minutes%60)).padStart(2,'0')}`;
-const dayNames=['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
+const dayNames=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
 
 function routeDate(){
   const match=location.pathname.match(/\/smeny\/(\d{8})(?:\/|$)/);
@@ -17,8 +17,7 @@ function routeDate(){
 }
 function dateLong(iso){
   const d=new Date(`${iso}T12:00:00`);
-  const label=`${dayNames[d.getDay()]} ${d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})}`;
-  return label.charAt(0).toUpperCase()+label.slice(1);
+  return `${dayNames[d.getDay()]} ${d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})}`;
 }
 function minutes(value){
   if(!value)return null;
@@ -37,10 +36,11 @@ function sumKm(parts){
   const known=(parts||[]).filter(part=>part.km!=null);
   return known.length?known.reduce((sum,part)=>sum+part.km,0):null;
 }
-function range(parts){
-  const complete=(parts||[]).filter(part=>part.start&&part.end);
-  if(!complete.length)return'';
-  return `${complete[0].start}–${complete.at(-1).end}`;
+function blockRange(block){
+  const complete=(block?.parts||[]).filter(part=>part.start&&part.end);
+  if(!complete.length)return {start:'—',end:'—',duration:null};
+  const range=Domain.blockRange(block.parts);
+  return {start:complete[0].start,end:complete.at(-1).end,duration:range?.duration??null};
 }
 function performanceLabel(part){
   const line=part.line||'';
@@ -51,6 +51,11 @@ function performanceLabel(part){
   if(part.course)return `${line||'—'}/${part.course}`;
   if(part.order)return `${line||'—'}/${part.order}`;
   return line||'—';
+}
+function blockPerformance(block){
+  const fakeShift={actualShift:'',splitSeq:null,parts:block?.parts||[]};
+  const badges=Domain.performanceRows(fakeShift).flatMap(row=>row.badges||[]);
+  return badges.map(badge=>badge.label).filter(Boolean).join(' · ')||'—';
 }
 function vehicleText(part){
   const pair=[part.frontVehicle,part.rearVehicle].filter(Boolean).join(' + ');
@@ -63,7 +68,7 @@ function cameraIcon(){
 function galleryPlaceholder(){
   return `<section class="detail-gallery" aria-label="Fotografie směny">
     <div class="detail-gallery-stage">
-      <div class="detail-gallery-empty">${cameraIcon()}<strong>Fotografie směny</strong><span>Galerie je připravená pro fotografie navázané na jednotlivé části směny.</span></div>
+      <div class="detail-gallery-empty">${cameraIcon()}<strong>Fotografie směny</strong><span>Zde se zobrazí fotografie navázané na části směny.</span></div>
       <button class="detail-gallery-arrow prev" type="button" aria-label="Předchozí fotografie" disabled>‹</button>
       <button class="detail-gallery-arrow next" type="button" aria-label="Další fotografie" disabled>›</button>
       <div class="detail-gallery-counter">0 / 0</div>
@@ -71,68 +76,75 @@ function galleryPlaceholder(){
   </section>`;
 }
 function partRow(part){
-  const duration=partDuration(part);
   return `<article class="detail-part">
     <div class="detail-part-top">
-      <span class="detail-performance-badge">${esc(performanceLabel(part))}</span>
-      <span class="detail-part-time">${esc(part.start||'—')}–${esc(part.end||'—')}</span>
+      <strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>
+      <strong class="detail-part-time">${esc(part.start||'—')} – ${esc(part.end||'—')}</strong>
       <strong class="detail-part-km">${part.km!=null?`${fmt(part.km)} km`:'—'}</strong>
     </div>
     <div class="detail-part-bottom">
-      <div class="detail-part-vehicle">${vehicleText(part)||'<span class="detail-muted">Bez vozu</span>'}</div>
-      ${duration!=null?`<span class="detail-part-duration">${hm(duration)}</span>`:''}
+      <div class="detail-part-vehicle">${vehicleText(part)||'<span class="detail-muted">—</span>'}</div>
+      <span class="detail-photo-mark" aria-hidden="true">${cameraIcon()}</span>
     </div>
     ${part.note?`<div class="detail-part-note">${esc(part.note)}</div>`:''}
   </article>`;
 }
-function summaryRow(label,value){
-  return `<div class="detail-summary-row"><span>${label}</span><strong>${value}</strong></div>`;
+function summaryRow(label,values){
+  return `<div class="detail-summary-row"><strong class="detail-summary-label">${label}</strong>${values.map(value=>`<span>${value}</span>`).join('')}</div>`;
 }
-function blockSummary(block,label){
-  const km=sumKm(block.parts),duration=Domain.blockRange(block.parts)?.duration??null;
-  return `<div class="detail-split-card"><span>${label}</span><strong>${esc(range(block.parts)||'—')}</strong><small>${duration!=null?hm(duration):'—'}${km!=null?` · ${fmt(km)} km`:''}</small></div>`;
-}
-function blockSection(block,label){
-  return `<section class="detail-flow-block">
-    <div class="detail-section-head"><h2>${label}</h2></div>
-    <div class="detail-parts-card">${block.parts.map(partRow).join('')}</div>
-  </section>`;
-}
-function overallRange(shift){
-  const blocks=Domain.blocks(shift);
-  const first=blocks[0]?.parts?.find(part=>part.start)?.start;
-  const lastParts=blocks.at(-1)?.parts||[];
-  const last=lastParts.slice().reverse().find(part=>part.end)?.end;
-  return first&&last?`${first}–${last}`:'';
-}
-function renderShift(shift){
-  const blocks=Domain.blocks(shift),split=blocks.length>1;
-  const totalKm=sumKm(shift.parts),totalDuration=Domain.durationMinutes(shift),fullRange=overallRange(shift);
-  const [start='—',end='—']=fullRange?fullRange.split('–'):[];
+function summaryTable(shift,blocks){
+  const split=blocks.length>1;
+  const all={parts:shift.parts};
+  const allRange=blockRange(all),allKm=sumKm(shift.parts),allDuration=Domain.durationMinutes(shift);
   const typeName=shift.shiftType?.name||shift.actualShift||'Směna';
   const depotName=shift.depotMeta?.name||shift.depot||'—';
-  const splitCards=split?`<div class="detail-split-grid">${blocks.map((block,index)=>blockSummary(block,index===0?'Ranní část':'Odpolední část')).join('')}</div>`:'';
-  const flow=blocks.map((block,index)=>blockSection(block,split?(index===0?'Ranní část':'Odpolední část'):'Průběh směny')).join('');
+  if(!split){
+    const block=blocks[0]||{parts:shift.parts};
+    const r=blockRange(block),km=sumKm(block.parts);
+    return `<section class="detail-summary-card detail-summary-normal">
+      ${summaryRow('Vozovna',[`<a href="#" class="detail-future-link">${esc(depotName)}</a>`])}
+      ${summaryRow('Typ',[esc(typeName)])}
+      ${summaryRow('Směna',[esc(blockPerformance(block))])}
+      ${summaryRow('Začátek',[esc(r.start)])}
+      ${summaryRow('Konec',[esc(r.end)])}
+      ${summaryRow('Délka',[r.duration!=null?hm(r.duration):'—'])}
+      ${summaryRow('Kilometry',[km!=null?`${fmt(km)} km`:'—'])}
+    </section>`;
+  }
+  const morning=blocks[0],afternoon=blocks[1];
+  const mr=blockRange(morning),ar=blockRange(afternoon),mKm=sumKm(morning.parts),aKm=sumKm(afternoon.parts);
+  return `<section class="detail-summary-card detail-summary-split">
+    ${summaryRow('Vozovna',[`<span class="detail-span-all"><a href="#" class="detail-future-link">${esc(depotName)}</a></span>`,'',''])}
+    ${summaryRow('Typ',[`<span class="detail-span-all">${esc(typeName)}</span>`,'',''])}
+    <div class="detail-summary-columns"><span></span><small>Celkem</small><small>Ranní</small><small>Odpolední</small></div>
+    ${summaryRow('Směna',[esc(blockPerformance({parts:shift.parts})),esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
+    ${summaryRow('Začátek',[esc(allRange.start),esc(mr.start),esc(ar.start)])}
+    ${summaryRow('Konec',[esc(allRange.end),esc(mr.end),esc(ar.end)])}
+    ${summaryRow('Délka',[allDuration!=null?hm(allDuration):'—',mr.duration!=null?hm(mr.duration):'—',ar.duration!=null?hm(ar.duration):'—'])}
+    ${summaryRow('Kilometry',[allKm!=null?`${fmt(allKm)} km`:'—',mKm!=null?`${fmt(mKm)} km`:'—',aKm!=null?`${fmt(aKm)} km`:'—'])}
+  </section>`;
+}
+function partsCard(shift,blocks){
+  const split=blocks.length>1;
+  if(!split)return `<section class="detail-parts-card">${(blocks[0]?.parts||shift.parts).map(partRow).join('')}</section>`;
+  return `<section class="detail-parts-card detail-parts-split">
+    <div class="detail-block-label">Ranní část</div>
+    ${blocks[0].parts.map(partRow).join('')}
+    <div class="detail-split-divider"><span>Šejdrpauza</span></div>
+    <div class="detail-block-label">Odpolední část</div>
+    ${blocks[1].parts.map(partRow).join('')}
+  </section>`;
+}
+function renderShift(shift){
+  const blocks=Domain.blocks(shift);
   root.innerHTML=`
-    <a class="detail-back" href="shifts/">← Směny</a>
     <div class="detail-date">${esc(dateLong(shift.date))}</div>
-    <section class="detail-summary-card">
-      <div class="detail-summary-head">
-        <div><span class="detail-shift-type">${esc(typeName)}</span><span class="detail-depot">${esc(depotName)}</span></div>
-        <span class="detail-summary-range">${esc(fullRange||'')}</span>
-      </div>
-      <div class="detail-summary-grid">
-        ${summaryRow('Začátek',esc(start))}
-        ${summaryRow('Konec',esc(end))}
-        ${summaryRow('Délka',totalDuration!=null?hm(totalDuration):'—')}
-        ${summaryRow('Kilometry',totalKm!=null?`${fmt(totalKm)} km`:'—')}
-      </div>
-      ${splitCards}
-    </section>
+    <a class="detail-back" href="shifts/">← Zpět</a>
+    ${summaryTable(shift,blocks)}
     ${galleryPlaceholder()}
-    ${flow}
-    ${shift.note?`<section class="detail-note"><div class="detail-section-head"><h2>Poznámka</h2></div><div class="detail-note-card">${esc(shift.note)}</div></section>`:''}
-    <section class="detail-breaks" hidden><div class="detail-section-head"><h2>Bezpečnostní přestávky</h2></div></section>`;
+    ${partsCard(shift,blocks)}
+    ${shift.note?`<section class="detail-note-card"><strong>Poznámka</strong><p>${esc(shift.note)}</p></section>`:''}
+    <section class="detail-breaks" hidden></section>`;
 }
 async function boot(){
   const wanted=routeDate();
