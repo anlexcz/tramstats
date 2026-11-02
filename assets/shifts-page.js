@@ -10,7 +10,6 @@ const ABSENCES={
   MD:{label:'Mateřská dovolená',tone:'off'}
 };
 const DAY_NAMES=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
-const iconShift='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="1"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>';
 const iconDepot='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10M10 20v-6h4v6"/></svg>';
 const iconKm='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5c-2 0-3 1.3-3 3s1 3 3 3h12c2 0 3 1.3 3 3s-1 3-3 3H8"/><path d="M8 14l-3 3 3 3"/></svg>';
 const iconClock='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>';
@@ -41,16 +40,23 @@ function durationLabel(parts){
 }
 function performanceRows(s){
   const out=[];
+  const byKey=new Map();
   for(const p of s.parts||[]){
     if(!p.line&&!p.start&&!p.end) continue;
     const line=p.line||(/^Záloha(?:\s|$)/i.test(p.note||'')?'Z':'');
-    const ref=p.order??p.course??'';
+    const ref=p.course??p.order??'';
+    const refKind=p.course!=null&&p.course!==''?'course':'order';
     const label=line==='Z'?'Záloha':line?(ref!==''?`${line}/${ref}`:line):'';
-    const interval=p.start&&p.end?`${p.start}–${p.end}`:'';
-    const key=`${label}|${interval}`;
-    if(!out.some(x=>x.key===key))out.push({key,label,interval});
+    const key=line==='Z'?`Z|${p.partNo??out.length}`:`${line}|${refKind}|${ref}`;
+    const existing=byKey.get(key);
+    if(existing){
+      if(p.end)existing.end=p.end;
+      continue;
+    }
+    const row={key,label,start:p.start||'',end:p.end||''};
+    byKey.set(key,row);out.push(row);
   }
-  return out;
+  return out.map(r=>({...r,interval:r.start&&r.end?`${r.start}–${r.end}`:''}));
 }
 function workMetrics(s){
   const ps=s.parts||[];
@@ -79,11 +85,12 @@ function shiftCard(s){
   return `<a class="shift-list-card shift-list-work" href="shifts/detail/?date=${encodeURIComponent(s.date)}" data-shift-date="${esc(s.date)}">
     <span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span>
     <span class="shift-list-type">${esc(m.type)}</span>
+    <span class="shift-list-mobile-head"><span class="shift-list-mobile-date"><strong>${date(s.date)}</strong><small>${esc(fullDay(s.date))}</small></span><span class="shift-list-mobile-type">${esc(m.type)}</span></span>
     <span class="shift-list-performances">${performance}</span>
     <span class="shift-list-depot">${metaItem(iconDepot,m.depot)}</span>
     <span class="shift-list-km">${metaItem(iconKm,m.km)}</span>
     <span class="shift-list-duration">${metaItem(iconClock,m.duration)}</span>
-    <span class="shift-list-mobile-meta">${metaItem(iconShift,m.type,'shift-list-meta-type')}${metaItem(iconDepot,m.depot)}${metaItem(iconKm,m.km)}${metaItem(iconClock,m.duration)}</span>
+    <span class="shift-list-mobile-meta">${metaItem(iconDepot,m.depot)}${metaItem(iconKm,m.km)}${metaItem(iconClock,m.duration)}</span>
   </a>`;
 }
 
@@ -167,7 +174,5 @@ window.addEventListener('load',()=>{
   if(y>0){requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'instant'}));sessionStorage.removeItem('tramstats-shifts-scroll');}
 });
 
-// app.js can finish loading from session cache before this page module executes.
-// Re-render once when data are already present so this renderer is always authoritative.
 if(state.shifts?.length)render();
 })();
