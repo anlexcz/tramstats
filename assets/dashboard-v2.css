@@ -13,6 +13,9 @@
   letter-spacing:.5px;
   margin:-2px 0 14px;
 }
+.dash-context span {
+  color:#777d87;
+}
 .dash-kpis {
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -64,6 +67,26 @@
   color:var(--muted);
   font-weight:500;
 }
+.dash-kpis .dash-trend {
+  display:flex;
+  align-items:center;
+  gap:5px;
+  width:max-content;
+  margin-top:8px;
+  font-size:11px;
+  line-height:1;
+  font-weight:700;
+}
+.dash-kpis .dash-trend span {
+  display:inline;
+  margin:0;
+  color:inherit;
+  font-size:13px;
+  font-weight:800;
+}
+.dash-trend.up,.dash-mini-trend.up { color:var(--cyan); }
+.dash-trend.down,.dash-mini-trend.down { color:var(--red); }
+.dash-trend.flat,.dash-mini-trend.flat { color:#7f858f; }
 .dash-layout {
   display:grid;
   grid-template-columns:minmax(0,1.35fr) minmax(410px,.85fr);
@@ -98,8 +121,8 @@
 }
 .dash-bar-row {
   display:grid;
-  grid-template-columns:48px minmax(100px,1fr) 100px;
-  gap:13px;
+  grid-template-columns:48px minmax(100px,1fr) 100px 22px;
+  gap:10px;
   align-items:center;
 }
 .dash-stat-badge {
@@ -140,6 +163,12 @@
 .dash-bar-row strong {
   text-align:right;
   font-size:11px;
+}
+.dash-mini-trend {
+  justify-self:center;
+  font-size:15px;
+  line-height:1;
+  font-weight:800;
 }
 .dash-shift {
   display:block;
@@ -333,14 +362,21 @@
   }
   .dash-context {
     font-size:12px;
+    line-height:1.45;
     margin:-2px 0 13px;
+  }
+  .dash-context span {
+    display:block;
+    margin-top:2px;
+    font-size:10px;
   }
   .dash-kpis {
     grid-template-columns:1fr 1fr;
     margin:0 0 27px;
   }
   .dash-kpis>div {
-    padding:18px 15px;
+    min-width:0;
+    padding:17px 14px 15px;
     border-bottom:1px solid var(--line);
   }
   .dash-kpis>div:nth-child(2) {
@@ -353,19 +389,32 @@
     border-right:0;
   }
   .dash-kpis span {
-    font-size:13px;
-    gap:7px;
-    margin-bottom:10px;
+    font-size:12px;
+    gap:6px;
+    margin-bottom:9px;
   }
   .dash-kpis span svg {
-    width:17px;
-    height:17px;
+    width:16px;
+    height:16px;
   }
   .dash-kpis strong {
-    font-size:27px;
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:26px;
+    white-space:nowrap;
   }
   .dash-kpis small {
-    font-size:11px;
+    font-size:10px;
+  }
+  .dash-kpis .dash-trend {
+    margin-top:8px;
+    font-size:10px;
+    white-space:nowrap;
+  }
+  .dash-kpis .dash-trend span {
+    font-size:12px;
   }
   .dash-layout {
     gap:30px;
@@ -432,8 +481,8 @@
     padding-top:15px;
   }
   .dash-bar-row {
-    grid-template-columns:46px 1fr 96px;
-    gap:10px;
+    grid-template-columns:46px minmax(70px,1fr) 82px 20px;
+    gap:7px;
   }
   .dash-stat-badge {
     height:36px;
@@ -446,7 +495,11 @@
     min-width:40px;
   }
   .dash-bar-row strong {
-    font-size:12px;
+    font-size:11px;
+    white-space:nowrap;
+  }
+  .dash-mini-trend {
+    font-size:16px;
   }
   .dash-track {
     height:9px;
