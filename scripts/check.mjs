@@ -9,7 +9,7 @@ const exists=file=>fs.existsSync(new URL(file,root));
 const dataCtx=vm.createContext({window:{},sessionStorage:{getItem(){return null},setItem(){},removeItem(){}},fetch:async()=>{throw new Error('not used')},AbortController,Date,Set,Map,Number,String,Object,Math,JSON,Promise,setTimeout,clearTimeout});
 vm.runInContext(read('assets/data.js'),dataCtx);
 const dataApi=dataCtx.window.TramStatsData;
-assert.deepEqual(dataApi.TABLES,['shifts','shift_parts','shift_part_lines','vehicles','depots','lines','shift_types']);
+assert.equal(dataApi.TABLES.join(','),'shifts,shift_parts,shift_part_lines,vehicles,depots,lines,shift_types');
 const raw={
   shifts:[{date:'2026-01-01',shift_type:'N',depot:'KO',split_seq:'',note:''}],
   shift_parts:[{shift_date:'2026-01-01',part_no:1,course:'109',order_no:'7',vehicle_type:'T3',front_vehicle:'8151',rear_vehicle:'8185',start_time:'23:00',end_time:'01:00',start_day_offset:0,km:'30',note:'Test'}],
@@ -33,15 +33,15 @@ const part=(partNo,start,end,line,{course=null,order=null,offset=0}={})=>({partN
 assert.equal(domain.durationMinutes({actualShift:'R',parts:[part(1,'08:00','10:00','10'),part(2,'10:30','12:00','10')]}),240);
 assert.equal(domain.durationMinutes({actualShift:'N',parts:[part(1,'23:00','01:00','10')]}),120);
 const split={actualShift:'Š',splitSeq:2,parts:[part(1,'05:00','07:00','30',{course:'223'}),part(2,'07:20','09:00','30',{course:'223'}),part(3,'14:00','16:00','24',{course:'17'}),part(4,'16:30','18:00','24',{course:'17'})]};
-assert.deepEqual(domain.blocks(split).map(x=>x.key),['morning','afternoon']);
+assert.equal(domain.blocks(split).map(x=>x.key).join(','),'morning,afternoon');
 assert.equal(domain.durationMinutes(split),480);
 assert.equal(domain.durationMinutes({actualShift:'R',parts:[part(1,'08:00',null,'10'),part(2,'10:00','12:00','10')]}),120);
 const reserve={actualShift:'R',parts:[part(1,'06:00','07:00','Z'),part(2,'07:00','09:00','10',{order:'7'}),part(3,'09:00','10:00','Z')]};
-assert.deepEqual(domain.performanceRows(reserve)[0].badges.map(x=>x.label),['Záloha','10/7']);
+assert.equal(domain.performanceRows(reserve)[0].badges.map(x=>x.label).join(','),'Záloha,10/7');
 const hidden={actualShift:'R',parts:[part(1,'05:00','06:00','MJ'),part(2,'06:00','10:00','16',{order:'12'}),part(3,'10:00','11:00','JP')]};
-assert.deepEqual(domain.performanceRows(hidden)[0].badges.map(x=>x.label),['16/12']);
+assert.equal(domain.performanceRows(hidden)[0].badges.map(x=>x.label).join(','),'16/12');
 const multiLineCourse={actualShift:'R',parts:[part(1,'08:00','09:00','6',{course:'223'}),part(2,'09:00','10:00','34',{course:'223'})]};
-assert.deepEqual(domain.performanceRows(multiLineCourse)[0].badges.map(x=>x.label),['6+34/223']);
+assert.equal(domain.performanceRows(multiLineCourse)[0].badges.map(x=>x.label).join(','),'6+34/223');
 
 let appCode=read('assets/app.js');
 appCode+='\nglobalThis.api={groups,worked,sumKm,state};';
@@ -52,7 +52,7 @@ const grouped=api.groups(db.shifts);
 assert.equal(grouped.lines['6'].km,10);
 assert.equal(grouped.lines['34'].km,20);
 assert.equal(grouped.types['T3R.P'],30);
-assert.deepEqual(Object.keys(grouped.vehicles).sort(),['8151','8185']);
+assert.equal(Object.keys(grouped.vehicles).sort().join(','),'8151,8185');
 assert.equal(api.sumKm(db.shifts[0].parts),30);
 assert.equal(api.worked({actualShift:'V',parts:[]}),false);
 
