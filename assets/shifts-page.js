@@ -15,13 +15,29 @@ const iconKm='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true
 const iconClock='<svg class="shift-list-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>';
 const iconInterval='<svg class="shift-list-interval-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M8 9l-3 3 3 3M16 9l3 3-3 3"/></svg>';
 const SEARCH_CACHE=new WeakMap();
+const RETURN_KEY='tramstats-shifts-return-state';
+
+function readReturnState(){
+  if(history.state?.tramstatsShiftList!==true)return null;
+  let saved=null;
+  try{saved=JSON.parse(sessionStorage.getItem(RETURN_KEY)||'null');}catch{}
+  sessionStorage.removeItem(RETURN_KEY);
+  const next={...(history.state||{})};
+  delete next.tramstatsShiftList;
+  history.replaceState(next,'');
+  return saved&&typeof saved==='object'?saved:null;
+}
+const restored=readReturnState();
 
 state.year='all';
-state.dateFrom=state.dateFrom||'';
-state.dateTo=state.dateTo||'';
-state.workOnly=state.workOnly||false;
-state.pageSize=state.pageSize||25;
-state.visibleCount=Number(sessionStorage.getItem('tramstats-shifts-visible'))||state.pageSize;
+state.query=restored?.query??state.query??'';
+state.type=restored?.type??state.type??'';
+state.depot=restored?.depot??state.depot??'';
+state.dateFrom=restored?.dateFrom??'';
+state.dateTo=restored?.dateTo??'';
+state.workOnly=restored?.workOnly??false;
+state.pageSize=Number(restored?.pageSize)||state.pageSize||25;
+state.visibleCount=Number(restored?.visibleCount)||state.pageSize;
 
 const norm=value=>String(value??'').toLocaleLowerCase('cs').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
 const fullDay=iso=>DAY_NAMES[new Date(iso+'T12:00:00').getDay()]||'';
@@ -285,6 +301,21 @@ function setFilter(target){
   if(id==='work-only-filter'||id==='mobile-work-only-filter'){state.workOnly=target.checked;rerender(true,mobile);return true;}
   return false;
 }
+function saveReturnState(){
+  const snapshot={
+    query:state.query||'',
+    type:state.type||'',
+    depot:state.depot||'',
+    dateFrom:state.dateFrom||'',
+    dateTo:state.dateTo||'',
+    workOnly:!!state.workOnly,
+    pageSize:state.pageSize||25,
+    visibleCount:state.visibleCount||state.pageSize||25,
+    scrollY:window.scrollY||0
+  };
+  sessionStorage.setItem(RETURN_KEY,JSON.stringify(snapshot));
+  history.replaceState({...history.state,tramstatsShiftList:true},'');
+}
 document.addEventListener('input',e=>{if(e.target.id==='shift-search')setFilter(e.target);});
 document.addEventListener('change',e=>setFilter(e.target));
 document.addEventListener('click',e=>{
@@ -294,13 +325,12 @@ document.addEventListener('click',e=>{
   if(e.target.closest('.shift-sheet-close,.shift-sheet-backdrop,.shift-sheet-done')){document.body.classList.remove('shift-filters-open');return;}
   if(e.target.closest('.shift-clear-filters')){state.query='';state.type='';state.depot='';state.dateFrom='';state.dateTo='';state.workOnly=false;rerender(true,false);return;}
   const more=e.target.closest('#shift-load-more');
-  if(more){state.visibleCount+=state.pageSize;sessionStorage.setItem('tramstats-shifts-visible',String(state.visibleCount));render();return;}
+  if(more){state.visibleCount+=state.pageSize;render();return;}
   const card=e.target.closest('.shift-list-card');
-  if(card){sessionStorage.setItem('tramstats-shifts-scroll',String(window.scrollY));sessionStorage.setItem('tramstats-shifts-visible',String(state.visibleCount));}
+  if(card)saveReturnState();
 });
 window.addEventListener('load',()=>{
-  const y=Number(sessionStorage.getItem('tramstats-shifts-scroll'));
-  if(y>0){requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'instant'}));sessionStorage.removeItem('tramstats-shifts-scroll');}
+  if(Number(restored?.scrollY)>0)requestAnimationFrame(()=>window.scrollTo({top:Number(restored.scrollY),behavior:'instant'}));
 });
 
 if(state.shifts?.length)render();
