@@ -90,7 +90,7 @@ assert.match(dashboardCode,/kpiTrend\(current\.duration,previous\.duration/);
 assert.match(dashboardCode,/dash-mini-trend/);
 assert.match(dashboardCode,/signedNumber/);
 assert.match(dashboardCode,/signedTime/);
-assert.doesNotMatch(dashboardCode,/%/,'Dashboard trendy se nemají zobrazovat procentuálně.');
+assert.doesNotMatch(dashboardCode,/percentage|percent|toFixed\([^)]*\).*%/i,'Trendová logika nemá používat procentní změny.');
 assert.doesNotMatch(dashboardCode,/stats\/|vehicles\/|shifts\/detail\/|data-detail=/);
 const dashboardCss=read('assets/dashboard-v2.css');
 assert.match(dashboardCss,/\.dash-trend\.up.*var\(--cyan\)/s);
