@@ -1,82 +1,182 @@
 'use strict';
-const $=s=>document.querySelector(s), esc=x=>String(x??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=(n,d=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:d}).format(n), mins=t=>t==null?null:Number(t.split(':')[0])*60+Number(t.split(':')[1]), hm=m=>`${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,'0')}`, date=d=>new Date(d+'T12:00:00').toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
+
+const $=selector=>document.querySelector(selector);
+const esc=value=>String(value??'—').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const fmt=(value,digits=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits:digits}).format(value);
+const mins=value=>value==null?null:Number(value.split(':')[0])*60+Number(value.split(':')[1]);
+const hm=minutes=>`${Math.floor(minutes/60)}:${String(Math.round(minutes%60)).padStart(2,'0')}`;
+const date=value=>new Date(value+'T12:00:00').toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'});
+
 const state={db:null,shifts:[],breaks:[],year:'all',dataMinDate:null,dataMaxDate:null,view:'overview',query:'',type:'',depot:'',page:0,sort:'count',errors:[]};
-const icons={overview:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',shifts:'<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>',stats:'<path d="M3 3v18h18M7 16l4-5 4 2 6-8"/>',vehicles:'<rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M10 3v8M8 19l-2 3M16 19l2 3M9 15h.01M15 15h.01"/>',plus:'<path d="M12 5v14M5 12h14"/>'};
-const icon=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[k]}</svg>`, labels={overview:'Přehled',shifts:'Směny',stats:'Statistiky',vehicles:'Vozy'}, pageUrls={overview:'./',shifts:'shifts/',stats:'stats/',vehicles:'vehicles/'};
-function nav(){const links=Object.keys(labels).map(k=>`<a href="${pageUrls[k]}" aria-label="${labels[k]}" title="${labels[k]}" ${state.view===k?'aria-current="page"':''} class="${state.view===k?'active':''}">${icon(k)}<span>${labels[k]}</span></a>`);$('#desktop-nav').innerHTML=links.join('');$('#mobile-nav').innerHTML=links.map((l,i)=>(i===2?`<button class="quick" aria-label="Rychlé akce" title="Rychlé akce">${icon('plus')}</button>`:'')+l.replace(/<span>.*?<\/span>/,'')).join('');$('.quick').onclick=()=>modal('<h2>Rychlé akce</h2><p class="hint">Tento sandbox je pouze pro čtení. Přidávání směn a fotografií přijde v další fázi.</p>');}
-const parts=ss=>ss.flatMap(s=>(s.parts||[]).map(p=>({...p,date:s.date}))), sumKm=ps=>ps.reduce((a,p)=>a+(p.km??0),0), worked=s=>(s.parts||[]).length>0&&!['V','VVS','KS','D','PN','P16','MD'].includes(s.actualShift);
-function timeline(s){let prev=null,day=0;return (s.parts||[]).map(p=>{let a=mins(p.start),b=mins(p.end);if(a==null||b==null)return {...p,a:null,b:null};day=Math.max(day,Number(p.startDayOffset||0));a+=day*1440;b+=day*1440;if(prev!=null&&a<prev){day++;a+=1440;b+=1440;}if(b<a)b+=1440;prev=b;return {...p,a,b};});}
-function range(s){const p=timeline(s).filter(p=>p.a!=null);return p.length?p.at(-1).b-p[0].a:0;}
-function groups(ss){
-  const lines={},types={},codes={},vehicles={},years={};let unresolved=0;
-  for(const s of ss){
+const icons={
+  overview:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  shifts:'<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>',
+  stats:'<path d="M3 3v18h18M7 16l4-5 4 2 6-8"/>',
+  vehicles:'<rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M10 3v8M8 19l-2 3M16 19l2 3M9 15h.01M15 15h.01"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>'
+};
+const icon=key=>`<svg viewBox="0 0 24 24" aria-hidden="true">${icons[key]}</svg>`;
+const labels={overview:'Přehled',shifts:'Směny',stats:'Statistiky',vehicles:'Vozy'};
+const pageUrls={overview:'./',shifts:'shifts/',stats:'stats/',vehicles:'vehicles/'};
+
+function nav(){
+  const links=Object.keys(labels).map(key=>`<a href="${pageUrls[key]}" aria-label="${labels[key]}" title="${labels[key]}" ${state.view===key?'aria-current="page"':''} class="${state.view===key?'active':''}">${icon(key)}<span>${labels[key]}</span></a>`);
+  $('#desktop-nav').innerHTML=links.join('');
+  $('#mobile-nav').innerHTML=links.map((link,index)=>(index===2?`<button class="quick" aria-label="Rychlé akce" title="Rychlé akce">${icon('plus')}</button>`:'')+link.replace(/<span>.*?<\/span>/,'')).join('');
+  const quick=$('.quick');
+  if(quick)quick.onclick=()=>modal('<h2>Rychlé akce</h2><p class="hint">Tento sandbox je pouze pro čtení. Přidávání směn a fotografií přijde v další fázi.</p>');
+}
+
+const parts=shifts=>shifts.flatMap(shift=>(shift.parts||[]).map(part=>({...part,date:shift.date})));
+const sumKm=partRows=>partRows.reduce((sum,part)=>sum+(part.km??0),0);
+const worked=shift=>(shift.parts||[]).length>0&&!['V','VVS','KS','D','PN','P16','MD'].includes(shift.actualShift);
+
+function groups(shifts){
+  const lines={},types={},codes={},vehicles={},years={};
+  let unresolved=0;
+  for(const shift of shifts){
     const seenLines=new Set(),seenVehicles=new Set();
-    if(worked(s))codes[s.actualShift??'Neznámé']=(codes[s.actualShift??'Neznámé']||0)+1;
-    for(const p of s.parts||[]){
-      const km=p.km??0;years[s.date.slice(0,4)]=(years[s.date.slice(0,4)]||0)+km;
-      if(p.vehicleType)types[p.vehicleType]=(types[p.vehicleType]||0)+km;
-      const lineParts=Array.isArray(p.lineParts)?p.lineParts:[];
+    if(worked(shift))codes[shift.actualShift??'Neznámé']=(codes[shift.actualShift??'Neznámé']||0)+1;
+    for(const part of shift.parts||[]){
+      const km=part.km??0;
+      years[shift.date.slice(0,4)]=(years[shift.date.slice(0,4)]||0)+km;
+      if(part.vehicleType)types[part.vehicleType]=(types[part.vehicleType]||0)+km;
+      const lineParts=Array.isArray(part.lineParts)?part.lineParts:[];
       if(lineParts.length){
-        for(const lp of lineParts){
-          if(!lp.line) continue;
-          lines[lp.line]??={km:0,count:0,unknownKmParts:0};
-          seenLines.add(lp.line);
-          if(lp.km==null) lines[lp.line].unknownKmParts++;
-          else lines[lp.line].km+=lp.km;
+        for(const linePart of lineParts){
+          if(!linePart.line)continue;
+          lines[linePart.line]??={km:0,count:0,unknownKmParts:0};
+          seenLines.add(linePart.line);
+          if(linePart.km==null)lines[linePart.line].unknownKmParts++;
+          else lines[linePart.line].km+=linePart.km;
         }
-        if(lineParts.some(lp=>lp.km==null)) unresolved+=km;
+        if(lineParts.some(linePart=>linePart.km==null))unresolved+=km;
       }
-      for(const [position,vehicle] of [['front',p.frontVehicleMeta],['rear',p.rearVehicleMeta]].filter(([,v])=>v?.id)){
+      for(const [position,vehicle] of [['front',part.frontVehicleMeta],['rear',part.rearVehicleMeta]].filter(([,vehicle])=>vehicle?.id)){
         const id=vehicle.id;
         vehicles[id]??={km:0,count:0,time:0,type:new Set(),family:new Set(),front:0,rear:0,solo:0};
-        const x=vehicles[id];x.km+=km;
-        x.time+=p.start&&p.end?(mins(p.end)-mins(p.start)+1440)%1440:0;
-        if(vehicle.type)x.type.add(vehicle.type);if(vehicle.family)x.family.add(vehicle.family);
-        x[p.rearVehicle?(position==='front'?'front':'rear'):'solo']+=km;seenVehicles.add(id);
+        const item=vehicles[id];
+        item.km+=km;
+        item.time+=part.start&&part.end?(mins(part.end)-mins(part.start)+1440)%1440:0;
+        if(vehicle.type)item.type.add(vehicle.type);
+        if(vehicle.family)item.family.add(vehicle.family);
+        item[part.rearVehicle?(position==='front'?'front':'rear'):'solo']+=km;
+        seenVehicles.add(id);
       }
     }
-    for(const l of seenLines)lines[l].count++;
-    for(const v of seenVehicles)vehicles[v].count++;
+    for(const line of seenLines)lines[line].count++;
+    for(const vehicle of seenVehicles)vehicles[vehicle].count++;
   }
   return {lines,types,codes,vehicles,years,unresolved};
 }
-function selected(){return state.shifts.filter(s=>state.year==='all'||s.date.startsWith(state.year));}
-function bars(obj,unit='km',limit=10){const a=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,limit),max=Math.max(1,...a.map(x=>x[1]));return a.length?`<div class="bars">${a.map(([k,v])=>`<div class="bar-row"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${v/max*100}%"></div></div><b>${fmt(v)} ${unit}</b></div>`).join('')}</div>`:'<p class="hint">Pro tento výběr nejsou data.</p>';}
+
+function selected(){return state.shifts.filter(shift=>state.year==='all'||shift.date.startsWith(state.year));}
+function bars(object,unit='km',limit=10){
+  const entries=Object.entries(object).sort((a,b)=>b[1]-a[1]).slice(0,limit),max=Math.max(1,...entries.map(x=>x[1]));
+  return entries.length?`<div class="bars">${entries.map(([key,value])=>`<div class="bar-row"><span>${esc(key)}</span><div class="track"><div class="fill" style="width:${value/max*100}%"></div></div><b>${fmt(value)} ${unit}</b></div>`).join('')}</div>`:'<p class="hint">Pro tento výběr nejsou data.</p>';
+}
 function panel(title,body,cls=''){return `<section class="panel ${cls}"><h2>${title}</h2>${body}</section>`;}
-function recent(s){return `<a class="recent" href="shifts/" data-detail="${s.date}"><span><b>${date(s.date)}</b><small>${esc(s.actualShift)} · ${esc(s.depot)}</small></span><span class="line">${esc([...new Set((s.parts||[]).map(p=>p.line).filter(Boolean))].join(' / ')||'—')}</span><b>${s.parts.some(p=>p.km!=null)?fmt(sumKm(s.parts))+' km':'—'}</b></a>`;}
-function dashboard(ss){const p=parts(ss),g=groups(ss),w=ss.filter(worked),known=ss.map(s=>s.date).sort();return `<div class="kpis"><div class="kpi"><span>OSOBNÍ KILOMETRY</span><strong>${fmt(sumKm(p))} <small>km</small></strong></div><div class="kpi"><span>PRACOVNÍ SMĚNY</span><strong>${fmt(w.length,0)} <small>/ ${ss.length} evidovaných dnů</small></strong></div><div class="kpi"><span>ROZSAH SMĚN</span><strong>${hm(w.reduce((a,s)=>a+range(s),0))} <small>h</small></strong></div><div class="kpi"><span>RŮZNÉ VOZY</span><strong>${Object.keys(g.vehicles).length}</strong></div></div><div class="grid">${panel('Kilometry podle linky',bars(Object.fromEntries(Object.entries(g.lines).map(([k,v])=>[k,v.km])))+`<p class="hint">${fmt(g.unresolved)} km částí má v relačním rozpadu alespoň jednu linku bez známých km. Neznámý rozpad se nedopočítává.</p>`)}<section class="panel"><div class="panel-head"><h2>Poslední směny</h2><a href="shifts/">Všechny směny →</a></div>${w.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6).map(recent).join('')}</section>${panel('Kilometry podle typu vozu',bars(g.types))}${panel('Evidence v tomto období',`<p>${known.length?date(known[0])+' — '+date(known.at(-1)):'Bez dat'}</p><p class="hint">${p.length} částí výkonu · ${state.breaks.filter(b=>state.year==='all'||b.date.startsWith(state.year)).length} BP<br>Rozsah je interval mezi první a poslední částí, včetně BP a přerušení šejdru. Nejde o čistou dobu řízení ani odpracovaný čas.</p><p class="hint">Neznámé km: ${p.filter(p=>p.km==null).length} částí. Součty zahrnují pouze známé hodnoty.</p>`)}</div>`;}
-function tagHTML(tags){return tags?.length?`<div class="part-meta">${tags.map(t=>`#${esc(t.name||t.code)}`).join(' · ')}</div>`:'';}
-function lineBreakdownHTML(p){if(!p.lineParts?.length)return'';if(p.lineParts.length===1)return p.lineParts[0].km==null?'<div class="part-meta">Km linky nejsou známé.</div>':'';return `<div class="part-meta">Linkové km: ${p.lineParts.map(lp=>`${esc(lp.line)} ${lp.km==null?'—':fmt(lp.km,3)+' km'}`).join(' · ')}</div>`;}
-function partHTML(p){const vehicleIds=[p.frontVehicle,p.rearVehicle].filter(Boolean).join(' + ')||null;const vehicleMeta=[p.frontVehicleMeta,p.rearVehicleMeta].filter(Boolean).map(v=>v.type&&v.family&&v.type!==v.family?`${v.type} (${v.family})`:v.type||v.family).filter(Boolean);return `<div class="part"><span class="muted">${esc(p.partNo)}</span><div><span class="line">${esc(p.line)}</span><div class="part-meta">P ${esc(p.order)}</div>${lineBreakdownHTML(p)}</div><div>${esc(p.start)}–${esc(p.end)}<div class="part-meta">Délka ${esc(p.duration)}</div></div><div>${esc(vehicleIds)}<div class="part-meta">${esc(vehicleMeta.join(' + ')||p.vehicleType)} · ${esc(p.depot||'')} ${p.course?`· K ${esc(p.course)}${p.isSnack?' · Svačinář':''}`:''}</div>${tagHTML(p.tags)}</div><div>${p.km==null?'—':fmt(p.km,3)+' km'}</div>${p.note?`<div class="note">${esc(p.note)}</div>`:''}</div>`;}
-function detailHTML(s){const bp=state.breaks.filter(b=>b.date===s.date);return `<p class="hint">Směna ${esc(s.actualShift)} · ${esc(s.depot)}</p>${s.note?'<p class="hint">'+esc(s.note)+'</p>':''}${s.parts.length?s.parts.map(partHTML).join(''):'<p class="hint">Den bez evidované pracovní části.</p>'}${bp.length?'<h3>Bezpečnostní přestávky</h3>'+bp.map(b=>`<div class="bp"><b>${esc(b.start)}–${esc(b.end)}</b> · ${esc(b.duration)}${b.startDayOffset?` · +${b.startDayOffset} den`:''}<br>${esc(b.fromPlace)} → ${esc(b.toPlace)}${b.note?'<br>'+esc(b.note):''}</div>`).join(''):''}`;}
-function shiftHTML(s){const p=s.parts;return `<details class="shift"><summary><strong>${date(s.date)}<small>${esc(s.day)} · ${esc(s.depot)}</small></strong><span class="badge">${esc(s.actualShift)}</span><span class="summary-lines">${[...new Set(p.map(p=>p.line?(p.line+(p.order?'/'+p.order:'')):null).filter(Boolean))].map(l=>`<span class="line">${esc(l)}</span>`).join(' ')||'<span class="muted">Bez výkonu</span>'}</span><span class="summary-vehicles">${esc([...new Set(p.map(p=>[p.frontVehicle,p.rearVehicle].filter(Boolean).join('+')).filter(Boolean))].join(' / ')||null)}</span><span class="summary-time">${esc(p[0]?.start)}–${esc(p.at(-1)?.end)}<small>${p.length} ${p.length===1?'část':'částí'}</small></span><strong class="km">${p.some(p=>p.km!=null)?fmt(sumKm(p))+' km':'—'}</strong></summary><div class="parts">${detailHTML(s)}</div></details>`;}
-function options(a,sel){return a.map(x=>`<option value="${esc(x)}" ${sel===x?'selected':''}>${esc(x)}</option>`).join('');}
-function filtered(ss){const q=state.query.toLocaleLowerCase('cs');return ss.filter(s=>(!state.type||s.actualShift===state.type)&&(!state.depot||s.depot===state.depot)&&(!q||JSON.stringify(s).toLocaleLowerCase('cs').includes(q))).sort((a,b)=>b.date.localeCompare(a.date));}
-function shiftList(ss){const list=filtered(ss),pages=Math.ceil(list.length/30);state.page=Math.min(state.page,Math.max(0,pages-1));return `<div class="filters"><input id="search" type="search" placeholder="Datum, linka, vůz, poznámka…" aria-label="Hledat ve směnách" value="${esc(state.query)}"><select id="shift-type" aria-label="Skutečná směna"><option value="">Všechny směny</option>${options([...new Set(ss.map(s=>s.actualShift).filter(Boolean))].sort(),state.type)}</select><select id="depot" aria-label="Vozovna"><option value="">Všechny vozovny</option>${options([...new Set(ss.map(s=>s.depot).filter(Boolean))].sort(),state.depot)}</select></div><div class="count">${list.length} evidovaných dnů · včetně volna a nepřítomností · rozklikni pro části a BP</div><div id="shift-results">${list.slice(state.page*30,state.page*30+30).map(shiftHTML).join('')||'<div class="empty">Žádný odpovídající záznam.</div>'}</div><div class="pager"><button id="prev" ${state.page===0?'disabled':''} aria-label="Předchozí stránka">←</button><span>${state.page+1} / ${Math.max(1,pages)}</span><button id="next" ${state.page+1>=pages?'disabled':''} aria-label="Další stránka">→</button></div>`;}
-function stats(ss){const g=groups(ss),all=groups(state.shifts);const max=Math.max(1,...Object.values(all.years));return `<div class="grid">${panel('Osobní kilometry podle roku · všechna data',`<div class="chart-columns">${Object.entries(all.years).sort().map(([y,k])=>`<div class="column" style="height:${k/max*100}%"><b>${fmt(k,0)}</b><span>${y}</span></div>`).join('')}</div><p class="hint">Rozsah každého roku vychází ze skutečně dostupných záznamů v databázi.</p>`,'full')}${panel('Kilometry podle linek',bars(Object.fromEntries(Object.entries(g.lines).map(([k,v])=>[k,v.km])),'km',30)+`<p class="hint">Části s neznámými linkovými km se do konkrétní linky nedopočítávají.</p>`)}${panel('Kolikrát jsem jel linku',bars(Object.fromEntries(Object.entries(g.lines).map(([k,v])=>[k,v.count])),'směn',30))}${panel('Kilometry podle typu vozu',bars(g.types))}${panel('Pracovní směny podle typu',bars(g.codes,'směn'))}</div>`;}
-function vehicleList(ss){const g=groups(ss),q=state.query.toLowerCase();const vv=Object.entries(g.vehicles).filter(([id,x])=>(id+' '+[...x.type,...x.family].join(' ')).toLowerCase().includes(q)).sort((a,b)=>b[1][state.sort]-a[1][state.sort]||a[0].localeCompare(b[0]));return `<div class="filters"><input id="vehicle-search" type="search" aria-label="Hledat vůz" placeholder="Evidenční číslo nebo typ…" value="${esc(state.query)}"><select id="vehicle-sort" aria-label="Řazení vozů">${options(['count','km','time'],state.sort).replace('>count<','>Počet směn<').replace('>km<','>Kilometry<').replace('>time<','>Čas částí<')}</select></div><p class="hint">${vv.length} vozů. Typ a family jsou převzaté z master tabulky vehicles. Každý fyzický vůz dostává km své části; osobní km se tím nenásobí.</p><div class="vehicle-grid">${vv.map(([id,x])=>`<button class="vehicle" data-vehicle="${esc(id)}"><span class="type">${esc([...x.type].join(' / ')||[...x.family].join(' / '))}</span><strong>${esc(id)}</strong><span class="metrics"><span>${x.count} směn</span><span>${fmt(x.km)} km</span></span></button>`).join('')}</div>`;}
+
+function tagHTML(tags){return tags?.length?`<div class="part-meta">${tags.map(tag=>`#${esc(tag.name||tag.code)}`).join(' · ')}</div>`:'';}
+function lineBreakdownHTML(part){
+  if(!part.lineParts?.length)return'';
+  if(part.lineParts.length===1)return part.lineParts[0].km==null?'<div class="part-meta">Km linky nejsou známé.</div>':'';
+  return `<div class="part-meta">Linkové km: ${part.lineParts.map(linePart=>`${esc(linePart.line)} ${linePart.km==null?'—':fmt(linePart.km,3)+' km'}`).join(' · ')}</div>`;
+}
+function partHTML(part){
+  const vehicleIds=[part.frontVehicle,part.rearVehicle].filter(Boolean).join(' + ')||null;
+  const vehicleMeta=[part.frontVehicleMeta,part.rearVehicleMeta].filter(Boolean).map(vehicle=>vehicle.type&&vehicle.family&&vehicle.type!==vehicle.family?`${vehicle.type} (${vehicle.family})`:vehicle.type||vehicle.family).filter(Boolean);
+  return `<div class="part"><span class="muted">${esc(part.partNo)}</span><div><span class="line">${esc(part.line)}</span><div class="part-meta">P ${esc(part.order)}</div>${lineBreakdownHTML(part)}</div><div>${esc(part.start)}–${esc(part.end)}<div class="part-meta">Délka ${esc(part.duration)}</div></div><div>${esc(vehicleIds)}<div class="part-meta">${esc(vehicleMeta.join(' + ')||part.vehicleType)} · ${esc(part.depot||'')} ${part.course?`· K ${esc(part.course)}${part.isSnack?' · Svačinář':''}`:''}</div>${tagHTML(part.tags)}</div><div>${part.km==null?'—':fmt(part.km,3)+' km'}</div>${part.note?`<div class="note">${esc(part.note)}</div>`:''}</div>`;
+}
+function detailHTML(shift){
+  const bp=state.breaks.filter(item=>item.date===shift.date);
+  return `<p class="hint">Směna ${esc(shift.actualShift)} · ${esc(shift.depot)}</p>${shift.note?'<p class="hint">'+esc(shift.note)+'</p>':''}${shift.parts.length?shift.parts.map(partHTML).join(''):'<p class="hint">Den bez evidované pracovní části.</p>'}${bp.length?'<h3>Bezpečnostní přestávky</h3>'+bp.map(item=>`<div class="bp"><b>${esc(item.start)}–${esc(item.end)}</b> · ${esc(item.duration)}${item.startDayOffset?` · +${item.startDayOffset} den`:''}<br>${esc(item.fromPlace)} → ${esc(item.toPlace)}${item.note?'<br>'+esc(item.note):''}</div>`).join(''):''}`;
+}
+
+function options(values,selectedValue){return values.map(value=>`<option value="${esc(value)}" ${selectedValue===value?'selected':''}>${esc(value)}</option>`).join('');}
+function stats(shifts){
+  const grouped=groups(shifts),all=groups(state.shifts),max=Math.max(1,...Object.values(all.years));
+  return `<div class="grid">${panel('Osobní kilometry podle roku · všechna data',`<div class="chart-columns">${Object.entries(all.years).sort().map(([year,km])=>`<div class="column" style="height:${km/max*100}%"><b>${fmt(km,0)}</b><span>${year}</span></div>`).join('')}</div><p class="hint">Rozsah každého roku vychází ze skutečně dostupných záznamů v databázi.</p>`,'full')}${panel('Kilometry podle linek',bars(Object.fromEntries(Object.entries(grouped.lines).map(([key,value])=>[key,value.km])),'km',30)+`<p class="hint">Části s neznámými linkovými km se do konkrétní linky nedopočítávají.</p>`)}${panel('Kolikrát jsem jel linku',bars(Object.fromEntries(Object.entries(grouped.lines).map(([key,value])=>[key,value.count])),'směn',30))}${panel('Kilometry podle typu vozu',bars(grouped.types))}${panel('Pracovní směny podle typu',bars(grouped.codes,'směn'))}</div>`;
+}
+function vehicleList(shifts){
+  const grouped=groups(shifts),query=state.query.toLowerCase();
+  const vehicles=Object.entries(grouped.vehicles).filter(([id,item])=>(id+' '+[...item.type,...item.family].join(' ')).toLowerCase().includes(query)).sort((a,b)=>b[1][state.sort]-a[1][state.sort]||a[0].localeCompare(b[0]));
+  return `<div class="filters"><input id="vehicle-search" type="search" aria-label="Hledat vůz" placeholder="Evidenční číslo nebo typ…" value="${esc(state.query)}"><select id="vehicle-sort" aria-label="Řazení vozů">${options(['count','km','time'],state.sort).replace('>count<','>Počet směn<').replace('>km<','>Kilometry<').replace('>time<','>Čas částí<')}</select></div><p class="hint">${vehicles.length} vozů. Typ a family jsou převzaté z master tabulky vehicles. Každý fyzický vůz dostává km své části; osobní km se tím nenásobí.</p><div class="vehicle-grid">${vehicles.map(([id,item])=>`<button class="vehicle" data-vehicle="${esc(id)}"><span class="type">${esc([...item.type].join(' / ')||[...item.family].join(' / '))}</span><strong>${esc(id)}</strong><span class="metrics"><span>${item.count} směn</span><span>${fmt(item.km)} km</span></span></button>`).join('')}</div>`;
+}
+
+let filtered=shifts=>shifts;
+let shiftHTML=()=>'';
+let shiftList=()=>'<div class="empty">Načítám seznam směn…</div>';
+function dashboardFallback(){return '<div class="empty">Načítám přehled…</div>';}
 function modal(html){$('#detail-content').innerHTML=html;$('#detail').showModal();}
-function render(){const ss=selected();nav();$('#title').textContent=labels[state.view].toLocaleUpperCase('cs');$('#app').innerHTML=state.view==='overview'?dashboard(ss):state.view==='shifts'?shiftList(ss):state.view==='stats'?stats(ss):vehicleList(ss);for(const [id,key] of [['search','query'],['shift-type','type'],['depot','depot'],['vehicle-search','query'],['vehicle-sort','sort']]){const el=$('#'+id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',()=>{const pos=el.selectionStart;state[key]=el.value;state.page=0;render();const next=$('#'+id);next.focus();if(pos!=null)next.setSelectionRange(pos,pos);});}if($('#prev')){$('#prev').onclick=()=>{state.page--;render();window.scrollTo(0,0);};$('#next').onclick=()=>{state.page++;render();window.scrollTo(0,0);};}document.querySelectorAll('[data-detail]').forEach(el=>el.onclick=e=>{e.preventDefault();const s=state.shifts.find(s=>s.date===el.dataset.detail);if(s)modal(`<h2>${date(s.date)}</h2>${detailHTML(s)}`);});document.querySelectorAll('[data-vehicle]').forEach(el=>el.onclick=()=>{const id=el.dataset.vehicle,x=groups(ss).vehicles[id];if(!x)return;modal(`<h2>Vůz ${esc(id)}</h2><p>${x.count} směn · ${fmt(x.km,3)} km · ${hm(x.time)} h v částech</p>${[...x.type].some(t=>t.startsWith('T3'))?`<p class="hint">Přední: ${fmt(x.front,3)} km · zadní: ${fmt(x.rear,3)} km · sólo: ${fmt(x.solo,3)} km</p>`:''}${ss.filter(s=>s.parts.some(p=>p.frontVehicle===id||p.rearVehicle===id)).sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`<details class="shift"><summary><strong>${date(s.date)}</strong><span class="badge">${esc(s.actualShift)}</span></summary><div class="parts">${detailHTML(s)}</div></details>`).join('')}`);});}
+
+function render(){
+  const shifts=selected();
+  nav();
+  $('#title').textContent=labels[state.view].toLocaleUpperCase('cs');
+  if(state.view==='overview')$('#app').innerHTML=typeof window.dashboard==='function'?window.dashboard(shifts):dashboardFallback();
+  else if(state.view==='shifts')$('#app').innerHTML=shiftList(shifts);
+  else if(state.view==='stats')$('#app').innerHTML=stats(shifts);
+  else $('#app').innerHTML=vehicleList(shifts);
+
+  for(const [id,key] of [['vehicle-search','query'],['vehicle-sort','sort']]){
+    const element=$('#'+id);
+    if(!element)continue;
+    element.addEventListener(element.tagName==='INPUT'?'input':'change',()=>{
+      const position=element.selectionStart;
+      state[key]=element.value;
+      render();
+      const next=$('#'+id);
+      next?.focus();
+      if(position!=null)next?.setSelectionRange(position,position);
+    });
+  }
+  document.querySelectorAll('[data-vehicle]').forEach(element=>element.onclick=()=>{
+    const id=element.dataset.vehicle,item=groups(shifts).vehicles[id];
+    if(!item)return;
+    modal(`<h2>Vůz ${esc(id)}</h2><p>${item.count} směn · ${fmt(item.km,3)} km · ${hm(item.time)} h v částech</p>${[...item.type].some(type=>type.startsWith('T3'))?`<p class="hint">Přední: ${fmt(item.front,3)} km · zadní: ${fmt(item.rear,3)} km · sólo: ${fmt(item.solo,3)} km</p>`:''}${shifts.filter(shift=>shift.parts.some(part=>part.frontVehicle===id||part.rearVehicle===id)).sort((a,b)=>b.date.localeCompare(a.date)).map(shift=>`<details class="shift"><summary><strong>${date(shift.date)}</strong><span class="badge">${esc(shift.actualShift)}</span></summary><div class="parts">${detailHTML(shift)}</div></details>`).join('')}`);
+  });
+}
+
+function currentView(){
+  const path=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean).at(-1)||'';
+  return {shifts:'shifts',stats:'stats',vehicles:'vehicles'}[path]||'overview';
+}
+function route(){
+  state.view=currentView();
+  if(state.view==='shifts')state.year='all';
+  if(state.shifts.length)render();
+  window.scrollTo(0,0);
+}
 async function boot(){
-  if(!window.TramStatsData?.load) throw new Error('Datová vrstva TramStats není dostupná.');
+  if(!window.TramStatsData?.load)throw new Error('Datová vrstva TramStats není dostupná.');
   try{
     const db=await window.TramStatsData.load();
     state.db=db;state.shifts=db.shifts;state.breaks=db.breaks;state.dataMinDate=db.minDate;state.dataMaxDate=db.maxDate;
-    const yearSelect=$('#year');
-    const years=db.years.slice().reverse();
+    state.view=currentView();
+    const yearSelect=$('#year'),years=db.years.slice().reverse();
     if(yearSelect){
-      yearSelect.innerHTML=`<option value="all">${db.years.length?db.years[0]+'–'+db.years.at(-1):'Všechna data'}</option>`+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+      yearSelect.innerHTML=`<option value="all">${db.years.length?db.years[0]+'–'+db.years.at(-1):'Všechna data'}</option>`+years.map(year=>`<option value="${year}">${year}</option>`).join('');
       if(state.view!=='shifts'&&state.year==='all'&&years.length)state.year=years[0];
+      if(state.view==='shifts')state.year='all';
       yearSelect.value=state.year;
-      yearSelect.onchange=()=>{state.year=yearSelect.value;state.page=0;render();};
+      yearSelect.onchange=()=>{state.year=yearSelect.value;render();};
     }
-    $('#status').textContent='';route();
-  }catch(e){
-    state.errors=[String(e?.message||e)];
+    $('#status').textContent='';
+    render();
+  }catch(error){
+    state.errors=[String(error?.message||error)];
     $('#status').textContent='Databáze TramStats není dostupná. Zobrazení zastaralých snapshotů je vypnuté. '+state.errors[0];
     $('#app').innerHTML='<div class="empty">Data se nepodařilo načíst z read-only API.</div>';
     nav();
   }
 }
-function route(){const path=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean).at(-1)||'';const pathView={shifts:'shifts',stats:'stats',vehicles:'vehicles'}[path];const legacy=location.hash.slice(1);state.view=pathView||(Object.hasOwn(labels,legacy)?legacy:'overview');if(state.view==='shifts')state.year='all';state.query='';state.type='';state.depot='';state.page=0;if(state.shifts.length)render();window.scrollTo(0,0);}window.addEventListener('hashchange',route);$('.close')?.addEventListener('click',()=>$('#detail').close());$('#detail')?.addEventListener('click',e=>{if(e.target===$('#detail')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});if($('#app'))boot();
+
+window.addEventListener('hashchange',route);
+$('.close')?.addEventListener('click',()=>$('#detail').close());
+$('#detail')?.addEventListener('click',event=>{
+  if(event.target!==$('#detail'))return;
+  const rect=event.target.getBoundingClientRect();
+  if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)event.target.close();
+});
+if($('#app'))boot();
