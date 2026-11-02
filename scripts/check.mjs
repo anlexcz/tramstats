@@ -82,7 +82,21 @@ assert.doesNotMatch(coreCode,/\bstats\b|vehicleList|detailHTML|partHTML|modal\(|
 const dashboardCode=read('assets/dashboard-v2.js');
 assert.match(dashboardCode,/TramStatsShiftDomain/);
 assert.match(dashboardCode,/durationMinutes/);
+assert.match(dashboardCode,/currentFrom=dayShift\(currentTo,-29\)/,'Aktuální dashboard okno musí mít 30 kalendářních dní.');
+assert.match(dashboardCode,/previousTo=dayShift\(currentFrom,-1\)/,'Srovnávací období musí bez mezery předcházet aktuálnímu oknu.');
+assert.match(dashboardCode,/previousFrom=dayShift\(previousTo,-29\)/,'Srovnávací dashboard okno musí mít také 30 dní.');
+assert.match(dashboardCode,/kpiTrend\(current\.km,previous\.km/);
+assert.match(dashboardCode,/kpiTrend\(current\.duration,previous\.duration/);
+assert.match(dashboardCode,/dash-mini-trend/);
+assert.match(dashboardCode,/signedNumber/);
+assert.match(dashboardCode,/signedTime/);
+assert.doesNotMatch(dashboardCode,/%/,'Dashboard trendy se nemají zobrazovat procentuálně.');
 assert.doesNotMatch(dashboardCode,/stats\/|vehicles\/|shifts\/detail\/|data-detail=/);
+const dashboardCss=read('assets/dashboard-v2.css');
+assert.match(dashboardCss,/\.dash-trend\.up.*var\(--cyan\)/s);
+assert.match(dashboardCss,/\.dash-trend\.down.*var\(--red\)/s);
+assert.match(dashboardCss,/\.dash-mini-trend/);
+assert.match(dashboardCss,/@media\(max-width:650px\)/);
 const shiftsCode=read('assets/shifts-page.js');
 assert.match(shiftsCode,/TramStatsShiftDomain/);
 assert.doesNotMatch(shiftsCode,/shifts\/detail\/|RETURN_KEY|saveReturnState|tramstats-shifts-return-state|function shiftBlocks\(/);
@@ -95,4 +109,4 @@ for(const file of ['index.html','shifts/index.html']){
   assert.doesNotMatch(html,/vehicle-icons|<dialog|stats\/|vehicles\/|shifts\/detail\//);
 }
 
-console.log('PASS: clean TramStats baseline — dashboard + shifts only');
+console.log('PASS: clean TramStats baseline — dashboard trends + shifts');
