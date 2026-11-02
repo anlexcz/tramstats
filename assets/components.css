@@ -26,7 +26,7 @@
   font-size:var(--text-xs);
   letter-spacing:.5px;
 }
-.footer-meta a{color:var(--cyan)}
+.footer-meta a{color:var(--link-accent)}
 .footer-note{
   grid-column:1/-1;
   padding-top:11px;
