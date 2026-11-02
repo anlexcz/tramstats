@@ -71,7 +71,7 @@ function workMetrics(s){
 }
 function performancesHTML(rows){
   if(!rows.length)return '<span class="shift-list-empty">Bez výkonu</span>';
-  return rows.map(r=>`<span class="shift-list-performance"><b>${esc(r.label||'—')}</b>${r.interval?`${iconInterval}<span>${esc(r.interval)}</span>`:''}</span>`).join('');
+  return rows.map(r=>`<span class="shift-list-performance"><b>${esc(r.label||'—')}</b>${r.interval?`<span class="shift-list-range">${iconInterval}<span>${esc(r.interval)}</span></span>`:''}</span>`).join('');
 }
 function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta ${cls}">${icon}<span>${esc(label)}</span></span>`:'';}
 
