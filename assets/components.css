@@ -17,13 +17,13 @@
   letter-spacing:1px;
   color:#f4f4f6;
 }
-.footer-brand span{font-size:10px;color:var(--muted)}
+.footer-brand span{font-size:var(--text-xs);color:var(--muted)}
 .footer-meta{
   display:flex;
   gap:18px;
   align-items:center;
   justify-content:flex-end;
-  font-size:9px;
+  font-size:var(--text-xs);
   letter-spacing:.5px;
 }
 .footer-meta a{color:var(--cyan)}
@@ -31,7 +31,7 @@
   grid-column:1/-1;
   padding-top:11px;
   border-top:1px solid #30333a;
-  font-size:9px;
+  font-size:var(--text-xs);
   color:#777d87;
 }
 
@@ -48,18 +48,18 @@
     font-size:26px;
   }
   .footer-brand span{
-    font-size:11px;
+    font-size:var(--text-sm);
     line-height:1.5;
   }
   .footer-meta{
     justify-content:flex-start;
     flex-wrap:wrap;
     gap:8px 14px;
-    font-size:10px;
+    font-size:var(--text-xs);
   }
   .footer-note{
     grid-column:1;
-    font-size:9px;
+    font-size:var(--text-xs);
     line-height:1.6;
   }
 }
