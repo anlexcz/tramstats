@@ -13,10 +13,15 @@ const dashIcon=kind=>({
 function isoDay(value){return new Date(value+'T12:00:00');}
 function dayShift(value,days){const out=new Date(value);out.setDate(out.getDate()+days);return out;}
 function shiftsBetween(shifts,from,to){return shifts.filter(s=>/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&isoDay(s.date)>=from&&isoDay(s.date)<=to);}
+function lastClosedDay(){
+  const today=new Date();
+  today.setHours(12,0,0,0);
+  return dayShift(today,-1);
+}
 function dashWindows(){
   const dated=state.shifts.filter(s=>/^\d{4}-\d{2}-\d{2}$/.test(s.date)).slice().sort((a,b)=>a.date.localeCompare(b.date));
   if(!dated.length)return {current:{from:null,to:null,shifts:[]},previous:{from:null,to:null,shifts:[]}};
-  const currentTo=isoDay(dated.at(-1).date),currentFrom=dayShift(currentTo,-29);
+  const currentTo=lastClosedDay(),currentFrom=dayShift(currentTo,-29);
   const previousTo=dayShift(currentFrom,-1),previousFrom=dayShift(previousTo,-29);
   return {
     current:{from:currentFrom,to:currentTo,shifts:shiftsBetween(dated,currentFrom,currentTo)},
