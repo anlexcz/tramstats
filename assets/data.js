@@ -162,12 +162,14 @@
       }
       const db=normalize(raw);
       status.mode='live';status.loadedAt=new Date().toISOString();
+      window.dispatchEvent(new CustomEvent('tramstats:data',{detail:db}));
       return db;
     })().catch(error=>{
-      status.mode='error';status.error=String(error?.message||error);loadPromise=null;throw error;
+      status.mode='error';status.error=String(error?.message||error);loadPromise=null;window.TramStatsShared?.footer();throw error;
     });
     return loadPromise;
   }
 
   window.TramStatsData={API_URL,TABLES,status,load,normalize,duration,num};
 })();
+

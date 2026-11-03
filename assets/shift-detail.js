@@ -26,23 +26,10 @@ function dateParts(iso){
   return {day:dayNames[d.getDay()],date:d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'numeric'})};
 }
 function dateLong(iso){const parts=dateParts(iso);return `${parts.day} ${parts.date}`;}
-function minutes(value){
-  if(!value)return null;
-  const [h,m]=String(value).split(':').map(Number);
-  return Number.isFinite(h)&&Number.isFinite(m)?h*60+m:null;
-}
-function partDuration(part){
-  let start=minutes(part.start),end=minutes(part.end);
-  if(start==null||end==null)return null;
-  start+=(Number(part.startDayOffset)||0)*1440;
-  end+=(Number(part.startDayOffset)||0)*1440;
-  if(end<start)end+=1440;
-  return end-start;
-}
-function sumKm(parts){
-  const known=(parts||[]).filter(part=>part.km!=null);
-  return known.length?known.reduce((sum,part)=>sum+part.km,0):null;
-}
+const Shared=window.TramStatsShared;
+const partDuration=part=>Domain.blockRange([part])?.duration??null;
+const kmHTML=parts=>Shared.metricHTML(Shared.measure((parts||[]).map(part=>part.km)));
+const timeHTML=parts=>Shared.metricHTML(Domain.durationMetric({parts}),'time');
 function blockRange(block){
   const complete=(block?.parts||[]).filter(part=>part.start&&part.end);
   if(!complete.length)return {start:'—',end:'—',duration:null};
@@ -107,32 +94,32 @@ function summaryWideRow(label,value){
 function summaryTable(shift,blocks){
   const split=blocks.length>1;
   const all={parts:shift.parts};
-  const allRange=blockRange(all),allKm=sumKm(shift.parts),allDuration=Domain.durationMinutes(shift);
+  const allRange=blockRange(all);
   const typeName=shift.shiftType?.name||shift.actualShift||'Směna';
   const depotName=shift.depotMeta?.name||shift.depot||'—';
   if(!split){
     const block=blocks[0]||{parts:shift.parts};
-    const r=blockRange(block),km=sumKm(block.parts);
+    const r=blockRange(block);
     return `<section class="detail-summary-card detail-summary-normal">
-      ${summaryRow('Vozovna',[`<a href="#" class="detail-future-link">${esc(depotName)}</a>`])}
+      ${summaryRow('Vozovna',[esc(depotName)])}
       ${summaryRow('Typ',[esc(typeName)])}
       ${summaryRow('Výkon',[esc(blockPerformance(block))])}
       ${summaryRow('Začátek',[esc(r.start)])}
       ${summaryRow('Konec',[esc(r.end)])}
-      ${summaryRow('Délka',[r.duration!=null?hm(r.duration):'—'])}
-      ${summaryRow('Kilometry',[km!=null?`${fmt(km)} km`:'—'])}
+      ${summaryRow('Délka',[timeHTML(block.parts)])}
+      ${summaryRow('Kilometry',[kmHTML(block.parts)])}
     </section>`;
   }
   const morning=blocks[0],afternoon=blocks[1];
-  const mr=blockRange(morning),ar=blockRange(afternoon),mKm=sumKm(morning.parts),aKm=sumKm(afternoon.parts);
+  const mr=blockRange(morning),ar=blockRange(afternoon);
   return `<section class="detail-summary-card detail-summary-split">
-    ${summaryWideRow('Vozovna',`<a href="#" class="detail-future-link">${esc(depotName)}</a>`)}
+    ${summaryWideRow('Vozovna',esc(depotName))}
     ${summaryWideRow('Typ',esc(typeName))}
     ${summaryRow('Výkon',['',esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
     ${summaryRow('Začátek',[esc(allRange.start),esc(mr.start),esc(ar.start)])}
     ${summaryRow('Konec',[esc(allRange.end),esc(mr.end),esc(ar.end)])}
-    ${summaryRow('Délka',[allDuration!=null?hm(allDuration):'—',mr.duration!=null?hm(mr.duration):'—',ar.duration!=null?hm(ar.duration):'—'])}
-    ${summaryRow('Kilometry',[allKm!=null?`${fmt(allKm)} km`:'—',mKm!=null?`${fmt(mKm)} km`:'—',aKm!=null?`${fmt(aKm)} km`:'—'])}
+    ${summaryRow('Délka',[Shared.metricHTML(Domain.durationMetric(shift),'time'),timeHTML(morning.parts),timeHTML(afternoon.parts)])}
+    ${summaryRow('Kilometry',[kmHTML(shift.parts),kmHTML(morning.parts),kmHTML(afternoon.parts)])}
   </section>`;
 }
 function partsCard(shift,blocks){

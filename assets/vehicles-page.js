@@ -42,8 +42,8 @@ function vehicleRow(record,metrics){
   return `<a class="vehicles-row" href="vozy/${encodeURIComponent(vehicle.id)}/">
     <span class="vehicles-id"><small>${esc(vehicle.family||vehicle.type||'Vůz')}</small><strong>${esc(vehicle.id)}</strong></span>
     <span class="vehicles-metric">${icon('rides')}<b>${metrics.count}</b></span>
-    <span class="vehicles-metric">${icon('km')}<b>${metrics.km!=null?`${fmt(metrics.km)} km`:'—'}</b></span>
-    <span class="vehicles-metric">${icon('time')}<b>${hm(metrics.duration||0)}</b></span>
+    <span class="vehicles-metric">${icon('km')}<b>${window.TramStatsShared.metricHTML(metrics.kmMetric)}</b></span>
+    <span class="vehicles-metric">${icon('time')}<b>${window.TramStatsShared.metricHTML(metrics.durationMetric,'time')}</b></span>
   </a>`;
 }
 function renderVehicles(db){
@@ -56,7 +56,7 @@ function renderVehicles(db){
       <div class="vehicles-count">${rows.length} vozů</div>
     </section>
     <section class="vehicles-table" aria-label="Seznam vozů">
-      <div class="vehicles-head"><span>Vůz</span><span>${icon('rides')}</span><span>${icon('km')}</span><span>${icon('time')}</span></div>
+      <div class="vehicles-head"><span>Vůz</span><span title="Počet částí výkonu" aria-label="Počet částí výkonu">${icon('rides')}</span><span>${icon('km')}</span><span>${icon('time')}</span></div>
       ${rows.map(({record,metrics})=>vehicleRow(record,metrics)).join('')||'<div class="empty">Žádný odpovídající vůz.</div>'}
     </section>`;
 }

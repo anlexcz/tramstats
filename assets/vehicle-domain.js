@@ -41,11 +41,11 @@ function occurrences(db,vehicleId){
   return out.sort((a,b)=>b.date.localeCompare(a.date)||Number(b.part.partNo)-Number(a.part.partNo));
 }
 function summary(rows){
-  const kmKnown=rows.some(row=>row.km!=null);
+  const kmMetric=window.TramStatsShared.measure(rows.map(row=>row.km));
+  const durationMetric=window.TramStatsShared.measure(rows.map(row=>row.duration));
   return {
     count:rows.length,
-    km:kmKnown?rows.reduce((sum,row)=>sum+(row.km??0),0):null,
-    duration:rows.reduce((sum,row)=>sum+(row.duration??0),0)
+    km:kmMetric.value,duration:durationMetric.value,kmMetric,durationMetric
   };
 }
 function yearly(rows){

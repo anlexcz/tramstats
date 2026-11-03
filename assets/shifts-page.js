@@ -32,7 +32,7 @@ const fullDay=iso=>DAY_NAMES[new Date(iso+'T12:00:00').getDay()]||'';
 const typeLabel=s=>s.shiftType?.name||s.actualShift||'';
 const depotLabel=s=>s.depotMeta?.name||s.depot||'';
 const hasTimedPart=s=>(s.parts||[]).some(p=>p.start&&p.end);
-const durationLabel=s=>{const minutes=Domain.durationMinutes(s);return minutes!=null?hm(minutes):'';};
+const durationLabel=s=>window.TramStatsShared.metricText(Domain.durationMetric(s),'time');
 const performanceRows=s=>Domain.performanceRows(s);
 
 function workMetrics(s){
@@ -40,7 +40,7 @@ function workMetrics(s){
   return {
     type:typeLabel(s),
     depot:depotLabel(s),
-    km:ps.some(p=>p.km!=null)?`${fmt(sumKm(ps))} km`:'',
+    km:window.TramStatsShared.metricText(window.TramStatsShared.measure(ps.map(p=>p.km))),
     duration:durationLabel(s),
     performances:performanceRows(s)
   };

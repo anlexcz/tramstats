@@ -33,11 +33,11 @@ function galleryHTML(rows){
 }
 function summaryTable(rows){
   const total=Domain.summary(rows),years=Domain.yearly(rows);
-  const metric=(value,type)=>type==='km'?(value!=null?`${fmt(value)} km`:'—'):type==='time'?hm(value):String(value);
+  const metric=(record,type)=>window.TramStatsShared.metricHTML(type==='km'?record.kmMetric:record.durationMetric,type==='km'?'km':'time');
   return `<section class="vehicle-summary" aria-label="Souhrn vozu">
-    <div class="vehicle-summary-head"><span>Rok</span><span>${icon('rides')}</span><span>${icon('km')}</span><span>${icon('time')}</span></div>
-    <div class="vehicle-summary-row total"><strong>Celkem</strong><b>${total.count}</b><b>${metric(total.km,'km')}</b><b>${metric(total.duration,'time')}</b></div>
-    ${years.map(item=>`<div class="vehicle-summary-row"><strong>${esc(item.year)}</strong><span>${item.count}</span><span>${metric(item.km,'km')}</span><span>${metric(item.duration,'time')}</span></div>`).join('')}
+    <div class="vehicle-summary-head"><span>Rok</span><span title="Počet částí výkonu" aria-label="Počet částí výkonu">${icon('rides')}</span><span>${icon('km')}</span><span>${icon('time')}</span></div>
+    <div class="vehicle-summary-row total"><strong>Celkem</strong><b>${total.count}</b><b>${metric(total,'km')}</b><b>${metric(total,'time')}</b></div>
+    ${years.map(item=>`<div class="vehicle-summary-row"><strong>${esc(item.year)}</strong><span>${item.count}</span><span>${metric(item,'km')}</span><span>${metric(item,'time')}</span></div>`).join('')}
   </section>`;
 }
 function occurrenceMeta(rows){
@@ -81,6 +81,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('keydown',event=>{
   if(event.key!=='Enter'&&event.key!==' ')return;
+  if(event.target.closest('a,button'))return;
   const row=event.target.closest?.('.vehicle-history-row');
   if(!row)return;
   event.preventDefault();openRow(row);

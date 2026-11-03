@@ -116,5 +116,10 @@ function performanceRows(shift){
   }).filter(row=>row.badges.length||row.interval);
 }
 
-window.TramStatsShiftDomain={blocks,blockRange,durationMinutes,performanceRows};
+function durationMetric(shift){
+  const value=durationMinutes(shift),parts=shift?.parts||[];
+  return {value,complete:parts.length>0&&parts.every(p=>minutes(p.start)!=null&&minutes(p.end)!=null)};
+}
+window.TramStatsShiftDomain={blocks,blockRange,durationMinutes,durationMetric,performanceRows};
 })();
+

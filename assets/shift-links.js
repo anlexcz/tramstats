@@ -1,16 +1,9 @@
 (()=>{
 'use strict';
 
-function compactDateFromText(value){
-  const match=String(value||'').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-  if(!match)return null;
-  return `${match[3]}${String(match[2]).padStart(2,'0')}${String(match[1]).padStart(2,'0')}`;
-}
 function detailHref(card){
   const iso=card.dataset.shiftDate;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(iso||''))return `smeny/${iso.replaceAll('-','')}/`;
-  const compact=compactDateFromText(card.querySelector('.dash-date')?.textContent);
-  return compact?`smeny/${compact}/`:null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso||'')?`smeny/${iso.replaceAll('-','')}/`:null;
 }
 function markCards(){
   document.querySelectorAll('.shift-list-work[data-shift-date], .dash-shift').forEach(card=>{
@@ -35,6 +28,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('keydown',event=>{
   if(event.key!=='Enter'&&event.key!==' ')return;
+  if(event.target.closest('a,button,input,select'))return;
   const card=event.target.closest?.('.shift-detail-link');
   if(!card)return;
   event.preventDefault();
@@ -45,3 +39,4 @@ const observer=new MutationObserver(markCards);
 observer.observe(document.documentElement,{subtree:true,childList:true});
 markCards();
 })();
+

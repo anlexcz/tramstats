@@ -84,7 +84,7 @@ Fotografie jsou navázané na konkrétní `ShiftPart`.
 - `assets/shifts-date-range.js/.css` — datumový filtr Směn
 - `assets/app.js/.css` — společný shell a runtime
 - `assets/components.css` — sdílené komponenty, aktuálně hlavně footer
-- `assets/footer-v2.js` — footer
+- `assets/shared.js` — společná navigace, patička a značení neúplných souhrnů
 
 Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
 
@@ -95,3 +95,10 @@ Základní regresní kontrola:
 `node scripts/check.mjs`
 
 Test hlídá relační normalizaci, doménovou logiku směn a vozů a přítomnost aktuálních runtime modulů.
+
+
+## Navigace a úplnost souhrnů
+
+Seznamy uchovávají filtry, hledání, počet načtených řádků a pozici v rámci relace prohlížeče. Zablokované sessionStorage nebrání používání webu.
+
+Neznámé km a časy se zobrazují jako `—`; částečně známé součty jako `≥ hodnota`. Skutečná nula zůstává nulou. Dashboard u neúplných souhrnů neukazuje číselný trend a extrémy vybírá jen z úplných hodnot. Počet výskytů vozu znamená počet částí výkonu, nikoli počet směn.
