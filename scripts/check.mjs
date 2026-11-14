@@ -198,3 +198,12 @@ const vehicleHTML=await detailHTML('assets/vehicle-detail.js','/tramstats/vozy/8
 assert.ok(vehicleHTML.includes('30 km'));
 assert.ok(vehicleHTML.includes('6+34/7'));
 console.log('PASS: shift and vehicle detail rendering');
+
+// Statistics smoke checks: page entry point, module dependencies and navigation.
+assert.ok(exists('statistiky/index.html'));
+assert.ok(exists('assets/statistics.js'));
+assert.ok(exists('assets/statistics.css'));
+assert.match(read('statistiky/index.html'), /assets\/statistics\.js/);
+assert.match(read('assets/shared.js'), /\['statistics','Statistiky','statistiky\/'\]/);
+assert.match(read('assets/statistics.js'), /const nonLines=new Set/);
+assert.match(read('assets/statistics.js'), /timeOf\(s\)\.complete\?timeOf\(s\)\.value:null/);
