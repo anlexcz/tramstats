@@ -48,7 +48,7 @@ function performanceLabel(part){
 function courseLabel(part){return part.course?`K ${part.course}`:'';}
 function lineLinks(part){
   const codes=[...new Set((part.lineParts||[]).map(x=>x.line).filter(Boolean).concat(String(part.line||'').split('+')).filter(x=>x&&!['Z','MJ','JP','73'].includes(x)))];
-  return codes.map(code=>'<a class="detail-related-link" href="statistiky/?tab=lines&line='+encodeURIComponent(code)+'">Linka '+esc(code)+'</a>').join('');
+  return codes.map(code=>'<a class="detail-related-link" href="statistiky/?tab=lines&period=all&line='+encodeURIComponent(code)+'">Linka '+esc(code)+'</a>').join('');
 }
 function blockPerformance(block){
   const fakeShift={actualShift:'',splitSeq:null,parts:block?.parts||[]};
