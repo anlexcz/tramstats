@@ -160,7 +160,7 @@ function timeline(a,field='km'){
  return '<div class="stats-bars">'+selected.map(x=>{
    const label=daily?dateLabel(x.name):(x.name.slice(5)+'. '+x.name.slice(0,4));
    const value=x.metric.value;
-   return '<div class="stats-bar">'+(daily?(x.metric.value==null&&field!=='shifts'?'<span class="stats-bar-label">'+esc(label)+'</span>':'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>'):'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
+   return '<div class="stats-bar">'+(daily?((field==='shifts'?x.metric.value===0:x.metric.value==null)?'<span class="stats-bar-label">'+esc(label)+'</span>':'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>'):'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
  }).join('')+'</div>';
 }
 function record(label,s,value,formatter){return '<div class="stats-record"><span>'+esc(label)+'</span><strong>'+formatter(value)+'</strong><a href="smeny/'+s.date.replaceAll('-','')+'/">'+esc(dateLabel(s.date))+'</a></div>'}
