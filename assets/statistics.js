@@ -127,7 +127,7 @@ function bars(map,value,label,limit=12,drill=false){
  const rows=[...map.values()].map(x=>({x,v:value(x)})).filter(({v})=>v!=null&&Number.isFinite(v)).sort((a,b)=>b.v-a.v).slice(0,limit);
  if(!rows.length)return '<div class="stats-empty">Pro zvolené období nejsou dostupné hodnoty.</div>';
  const max=Math.max(1,...rows.map(r=>r.v));
- return '<div class="stats-bars">'+rows.map(({x,v})=>'<div class="stats-bar">'+(drill?'<button class="stats-bar-label" data-line="'+esc(x.name)+'">'+esc(label(x))+'</button>':'<span class="stats-bar-label" title="'+esc(label(x))+'">'+esc(label(x))+'</span>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+Math.max(0,v/max*100)+'%"></div></div><span class="stats-bar-value">'+format(v,1)+'</span></div>').join('')+'</div>';
+ return '<div class="stats-bars">'+rows.map(({x,v})=>'<div class="stats-bar">'+(drill==='vehicle'?'<a class="stats-bar-label" href="vozy/'+encodeURIComponent(x.name)+'/">'+esc(label(x))+'</a>':drill?'<button class="stats-bar-label" data-line="'+esc(x.name)+'">'+esc(label(x))+'</button>':'<span class="stats-bar-label" title="'+esc(label(x))+'">'+esc(label(x))+'</span>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+Math.max(0,v/max*100)+'%"></div></div><span class="stats-bar-value">'+format(v,1)+'</span></div>').join('')+'</div>';
 }
 function monthly(a,field='km'){
  const out=new Map();
@@ -221,7 +221,7 @@ function lineStats(a){
 function vehicleStats(a){
  const vehicleList=new Map([...a.vehicleMap].map(([k,v])=>[k,{...v,name:k}]));
  return panel('Typy tramvají',bars(a.familyMap,x=>x.shifts.size,x=>x.name,30),'Počet směn s výskytem typu, nikoliv součet vozokilometrů.')+
- panel('Nejčastější jednotlivé vozy',bars(vehicleList,x=>x.days.size,x=>x.name,20),'Počet různých pracovních dnů s vozem.')+
+ panel('Nejčastější jednotlivé vozy',bars(vehicleList,x=>x.days.size,x=>x.name,20,'vehicle'),'Počet různých pracovních dnů s vozem.')+
  panel('Souhrn podle typů', '<div class="stats-table-wrap"><table class="stats-table"><thead><tr><th>Typ</th><th>Vozů</th><th>Směn</th></tr></thead><tbody>'+
  [...a.familyMap.values()].sort((x,y)=>y.shifts.size-x.shifts.size).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+x.vehicles.size+'</td><td>'+x.shifts.size+'</td></tr>').join('')+'</tbody></table></div>',
  'U souprav nesčítáme stejné osobní kilometry dvakrát do celkového nájezdu.',true);
