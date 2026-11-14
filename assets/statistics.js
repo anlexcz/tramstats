@@ -279,7 +279,7 @@ function render(){
  :state.tab==='time'?timeStats(a)
  :state.tab==='depots'?depotStats(a)
  :recordStats(a)
- )+'</div><p class="stats-note">Zdroj: živá databáze TramStats (Google Sheets). „≥“ znamená neúplný součet, „—“ chybějící údaj. Statistiky evidují osobní kilometry; při soupravách nedochází k jejich násobení počtem vozů. Zobrazené období vždy končí nejpozději včerejškem.</p>';
+ )+'</div><nav class="stats-crossnav" aria-label="Související přehledy"><a href="shifts/">Evidence směn</a><a href="vozy/">Katalog vozů</a><a href="'+statHref('lines')+'">Statistiky linek</a><a href="'+statHref('depots')+'">Statistiky vozoven</a></nav><p class="stats-note">Zdroj: živá databáze TramStats (Google Sheets). „≥“ znamená neúplný součet, „—“ chybějící údaj. Statistiky evidují osobní kilometry; při soupravách nedochází k jejich násobení počtem vozů. Zobrazené období vždy končí nejpozději včerejškem.</p>';
  root.querySelector('#stats-period').value=state.period;
  if(root.querySelector('#stats-year'))root.querySelector('#stats-year').value=state.year;
  if(root.querySelector('#stats-month'))root.querySelector('#stats-month').value=state.month;
