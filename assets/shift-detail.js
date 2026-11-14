@@ -46,6 +46,10 @@ function performanceLabel(part){
   return line||'—';
 }
 function courseLabel(part){return part.course?`K ${part.course}`:'';}
+function lineLinks(part){
+  const codes=[...new Set((part.lineParts||[]).map(x=>x.line).filter(Boolean).concat(String(part.line||'').split('+')).filter(x=>x&&!['Z','MJ','JP','73'].includes(x)))];
+  return codes.map(code=>'<a class="detail-related-link" href="statistiky/?tab=lines&line='+encodeURIComponent(code)+'">Linka '+esc(code)+'</a>').join('');
+}
 function blockPerformance(block){
   const fakeShift={actualShift:'',splitSeq:null,parts:block?.parts||[]};
   const badges=Domain.performanceRows(fakeShift).flatMap(row=>row.badges||[]);
@@ -82,6 +86,7 @@ function partRow(part,{splitStart=false}={}){
         ${hasPhoto?`<button class="detail-photo-mark" type="button" aria-label="Fotografie této části směny">${detailIcon('camera')}</button>`:''}
       </div>
     </div>
+    ${lineLinks(part)?`<div class="detail-related-links">${lineLinks(part)}</div>`:''}
     ${part.note?`<div class="detail-part-note">${esc(part.note)}</div>`:''}
   </article>`;
 }
@@ -137,6 +142,11 @@ function renderShift(shift){
       <div class="detail-heading-date"><span>${esc(parts.day)}</span><strong>${esc(parts.date)}</strong></div>
       <a class="detail-back" href="shifts/">← Zpět</a>
     </div>
+    <nav class="detail-context-links" aria-label="Související statistiky">
+      <a href="statistiky/?tab=shifts&year=${encodeURIComponent(shift.date.slice(0,4))}">Statistiky směn</a>
+      <a href="statistiky/?tab=depots&year=${encodeURIComponent(shift.date.slice(0,4))}">Vozovny</a>
+      <a href="statistiky/?tab=distance&year=${encodeURIComponent(shift.date.slice(0,4))}">Kilometry</a>
+    </nav>
     ${summaryTable(shift,blocks)}
     ${galleryHTML(shift)}
     ${partsCard(shift,blocks)}
