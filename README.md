@@ -11,8 +11,9 @@ Read-only frontend osobní tramvajové evidence. Živý web: https://anlexcz.git
 - **Detail směny** (`/smeny/{yyyymmdd}/`)
 - **Vozy** (`/vozy/`)
 - **Detail vozu** (`/vozy/{evc}/`)
+- **Statistiky** (`/statistiky/`) – sedm tematických sekcí a úvodní přehled; období rok, měsíc, celá historie a vlastní rozsah; srovnávání období, měsíční přiblížení, přehledy linek a vozů
 
-Statistiky a další entity se budou doplňovat nad současnou datovou a doménovou vrstvou.
+Další entity a detailnější analytika se budou rozšiřovat nad současnou datovou a doménovou vrstvou. Statistiky vycházejí ze stejných read-only dat jako ostatní stránky; chybějící rozpad kilometrů po linkách se neodhaduje.
 
 ## Spuštění
 
@@ -85,6 +86,7 @@ Fotografie jsou navázané na konkrétní `ShiftPart`.
 - `assets/app.js/.css` — společný shell a runtime
 - `assets/components.css` — sdílené komponenty, aktuálně hlavně footer
 - `assets/shared.js` — společná navigace, patička a značení neúplných souhrnů
+- `statistiky/index.html` + `assets/statistics.js/.css` — statistický dashboard a sedm tematických pohledů
 
 Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
 
