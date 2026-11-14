@@ -68,6 +68,11 @@ function history(rows){
 function render(vehicle,rows){
   root.innerHTML=`
     <div class="vehicle-detail-heading"><div class="vehicle-detail-title"><span>${esc(vehicle.family||vehicle.type||'Vůz')}</span><strong>${esc(vehicle.id)}</strong></div><a class="vehicle-detail-back" href="vozy/">← Zpět</a></div>
+    <nav class="detail-context-links" aria-label="Související statistiky">
+      <a href="statistiky/?tab=vehicles">Statistiky vozů</a>
+      <a href="statistiky/?tab=vehicles&period=all">Všechny roky</a>
+      <a href="statistiky/?tab=records">Rekordy</a>
+    </nav>
     ${summaryTable(rows)}
     ${occurrenceMeta(rows)}
     ${galleryHTML(rows)}
