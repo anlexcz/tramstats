@@ -89,3 +89,12 @@
  .detail-context-links a,.detail-related-links a,.stats-crossnav a{font-size:var(--font-meta)}
  .dash-stats-entry{display:inline-flex;margin-left:0}
 }
+
+.page-head .page-shortcut{
+ display:inline-flex;align-items:center;margin-top:7px;min-height:35px;
+ padding:7px 11px;border:1px solid var(--control-border);
+ border-radius:7px;background:var(--control-bg);color:var(--link-accent);
+ font-size:var(--font-control);font-weight:600;
+}
+.page-head .page-shortcut:hover{border-color:var(--accent-secondary)}
+@media(max-width:650px){.page-head .page-shortcut{font-size:var(--font-meta)}}
