@@ -37,14 +37,15 @@ function previousInterval(from,to){
   if(state.manual)return {from:state.compareFrom||from,to:state.compareTo||to};
   const year=Number(from.slice(0,4)),start=from.slice(5),end=to.slice(5);
   // Calendar periods compare to the same calendar days one year earlier.
-  if(state.period==='year'||state.period==='month'||state.period==='all'||state.drill)return {from:(year-1)+'-'+start,to:(Number(to.slice(0,4))-1)+'-'+end};
+  if(state.period==='all')return {from:dayAdd(from,-(Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000)+1)),to:dayAdd(from,-1)};
+  if(state.period==='year'||state.period==='month'||state.drill)return {from:(year-1)+'-'+start,to:(Number(to.slice(0,4))-1)+'-'+end};
   const days=Math.round((new Date(to+'T12:00:00')-new Date(from+'T12:00:00'))/86400000)+1;
   return {from:dayAdd(from,-days),to:dayAdd(from,-1)};
 }
 function aggregate(rows){
   const w=workShifts(rows),p=parts(w),lineMap=new Map(),vehicleMap=new Map(),familyMap=new Map(),depotMap=new Map(),typeMap=new Map(),daily=new Map();
   const kmMetric=metric(p.map(x=>x.km));
-  const timeMetric=metric(w.map(s=>timeOf(s).value));
+  const timeMetric=metric(w.map(s=>timeOf(s).complete?timeOf(s).value:null));
   timeMetric.complete=timeMetric.complete&&w.every(s=>timeOf(s).complete);
   for(const s of w){
     const d=daily.get(s.date)||{date:s.date,shifts:0,kmItems:[],timeItems:[]};
@@ -240,7 +241,7 @@ function recordStats(a){return panel('Rekordní směny',records(a),'Do extrémů
 function render(){
  const {from,to}=interval(),valid=from<=to;
  const a=aggregate(valid?range(from,to):[]);
- const prev=previousInterval(from,to),b=aggregate(state.compare&&valid?range(prev.from,prev.to):[]);
+ const prev=previousInterval(from,to),b=aggregate(state.compare&&valid&&prev.from<=prev.to?range(prev.from,prev.to):[]);
  const years=[...new Set(state.db.shifts.map(s=>s.date.slice(0,4)))].sort().reverse();
  if(!years.includes(state.year))years.unshift(state.year);
  root.innerHTML='<div class="stats-tabs" role="tablist" aria-label="Oblasti statistik">'+tabs.map(([id,label])=>'<button type="button" role="tab" aria-selected="'+(state.tab===id)+'" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+
