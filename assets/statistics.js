@@ -31,7 +31,7 @@ const workShifts=rows=>rows.filter(work);
 const parts=rows=>rows.flatMap(s=>(s.parts||[]).map(p=>({...p,shift:s})));
 const kmOf=s=>metric((s.parts||[]).map(p=>p.km));
 const timeOf=s=>Domain.durationMetric(s);
-const range=(a,b)=>state.db.shifts.filter(s=>s.date>=a&&s.date<=b);
+const range=(a,b)=>state.db.shifts.filter(s=>s.date>=a&&s.date<=b&&s.date<today);
 function interval(){
   let from,to;
   if(state.period==='all'){from=state.db.minDate||today;to=state.db.maxDate||today}
@@ -115,6 +115,12 @@ function kpi(name,value,change=''){
  return '<div class="stats-kpi"><span>'+esc(name)+'</span><strong>'+value+'</strong>'+(change?'<small>'+change+'</small>':'')+'</div>';
 }
 function shown(m,kind='km'){return esc(Shared.metricText(m,kind))}
+function deltaTime(current,prior){
+ if(current==null||prior==null)return 'Srovnání není úplné';
+ const diff=current-prior,sign=diff>0?'+':diff<0?'−':'';
+ const pct=prior===0?'':(' · '+(diff>0?'+':'')+format(diff/prior*100,1)+' %');
+ return '<span class="'+(diff>0?'stats-up':diff<0?'stats-down':'')+'">'+sign+duration(Math.abs(diff))+pct+'</span>';
+}
 function delta(current,prior,unit='',prec=1){
  if(current==null||prior==null)return 'Srovnání není úplné';
  const diff=current-prior,sign=diff>0?'+':'',percent=prior===0?'':(' · '+(diff>0?'+':'')+format(diff/prior*100,1)+' %');
@@ -154,7 +160,7 @@ function timeline(a,field='km'){
  return '<div class="stats-bars">'+selected.map(x=>{
    const label=daily?dateLabel(x.name):(x.name.slice(5)+'. '+x.name.slice(0,4));
    const value=x.metric.value;
-   return '<div class="stats-bar">'+(daily?'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>':'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
+   return '<div class="stats-bar">'+(daily?(x.metric.value==null&&field!=='shifts'?'<span class="stats-bar-label">'+esc(label)+'</span>':'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>'):'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
  }).join('')+'</div>';
 }
 function record(label,s,value,formatter){return '<div class="stats-record"><span>'+esc(label)+'</span><strong>'+formatter(value)+'</strong><a href="smeny/'+s.date.replaceAll('-','')+'/">'+esc(dateLabel(s.date))+'</a></div>'}
@@ -177,7 +183,7 @@ function summary(a,b){
  const kpis=[
    ['Odjeté směny',format(a.shifts,0),state.compare?delta(a.shifts,b.shifts,'',0):''],
    ['Osobní kilometry',shown(a.km),state.compare?(a.km.complete&&b.km.complete?delta(a.km.value,b.km.value,'km'):'Srovnání není úplné'):''],
-   ['Odpracovaný čas',shown(a.time,'time'),state.compare?(a.time.complete&&b.time.complete?delta(a.time.value,b.time.value,'min',0):'Srovnání není úplné'):''],
+   ['Odpracovaný čas',shown(a.time,'time'),state.compare?(a.time.complete&&b.time.complete?deltaTime(a.time.value,b.time.value):'Srovnání není úplné'):''],
    ['Různé linky',format(a.lines,0),state.compare?delta(a.lines,b.lines,'',0):''],
    ['Různé vozy',format(a.vehicles,0),state.compare?delta(a.vehicles,b.vehicles,'',0):'']
  ];
