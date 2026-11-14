@@ -15,6 +15,16 @@ const duration=v=>v==null?'—':Math.floor(v/60)+':'+String(Math.round(v%60)).pa
 const yearEnd=y=>y+'-12-31';
 const monthEnd=m=>dayAdd(m+'-01',new Date(Number(m.slice(0,4)),Number(m.slice(5,7)),0).getDate()-1);
 const state={db:null,tab:'overview',period:'year',year:String(now.getFullYear()),month:String(now.getMonth()+1).padStart(2,'0'),from:'',to:'',compare:false,manual:false,compareFrom:'',compareTo:'',drill:null,selectedLine:null};
+const params=new URLSearchParams(location.search);
+if(new Set(tabs.map(x=>x[0])).has(params.get('tab')))state.tab=params.get('tab');
+if(/^\d{4}$/.test(params.get('year')||''))state.year=params.get('year');
+if(/^\d{2}$/.test(params.get('month')||''))state.month=params.get('month');
+if(['year','month','all','custom'].includes(params.get('period')))state.period=params.get('period');
+if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('from')||''))state.from=params.get('from');
+if(/^\d{4}-\d{2}-\d{2}$/.test(params.get('to')||''))state.to=params.get('to');
+if(params.get('line')){state.tab='lines';state.selectedLine=params.get('line')}
+const statHref=(tab,extra={})=>'statistiky/?'+new URLSearchParams({tab,...extra});
+const shiftHref=date=>'smeny/'+date.replaceAll('-','')+'/';
 const metric=values=>Shared.measure(values);
 const work=s=>(s.parts||[]).length>0&&!absences.has(s.actualShift);
 const workShifts=rows=>rows.filter(work);
@@ -128,21 +138,23 @@ function monthly(a,field='km'){
  return [...out.values()].sort((x,y)=>x.name.localeCompare(y.name));
 }
 function timeline(a,field='km'){
- const items=monthly(a);
+ const daily=Boolean(state.drill);
+ const items=daily?[...a.daily.values()].sort((x,y)=>x.date.localeCompare(y.date)).map(row=>({name:row.date,shifts:row.shifts,kmItems:row.kmItems,timeItems:row.timeItems})):monthly(a);
  if(!items.length)return '<div class="stats-empty">Žádné pracovní směny v období.</div>';
  const all=new Map(items.map(x=>[x.name,x]));
- let start=interval().from.slice(0,7),end=interval().to.slice(0,7);
+ let start=interval().from.slice(0,daily?10:7),end=interval().to.slice(0,daily?10:7);
  if(start>end)return '<div class="stats-empty">Neplatný rozsah.</div>';
- let months=[],d=new Date(start+'-01T12:00:00');
- while(isoDate(d).slice(0,7)<=end&&months.length<240){
-   const key=isoDate(d).slice(0,7);months.push(all.get(key)||{name:key,shifts:0,kmItems:[],timeItems:[]});d.setMonth(d.getMonth()+1);
+ let months=[],d=new Date((daily?start:start+'-01')+'T12:00:00');
+ while(isoDate(d).slice(0,daily?10:7)<=end&&months.length<240){
+   const key=isoDate(d).slice(0,daily?10:7);months.push(all.get(key)||{name:key,shifts:0,kmItems:[],timeItems:[]});
+   if(daily)d.setDate(d.getDate()+1);else d.setMonth(d.getMonth()+1);
  }
  const selected=months.map(x=>({name:x.name,metric:field==='shifts'?{value:x.shifts,complete:true}:metric(field==='time'?x.timeItems:x.kmItems)}));
  const known=selected.filter(x=>x.metric.value!=null),max=Math.max(1,...known.map(x=>x.metric.value));
  return '<div class="stats-bars">'+selected.map(x=>{
-   const label=x.name.slice(5)+'. '+x.name.slice(0,4);
+   const label=daily?dateLabel(x.name):(x.name.slice(5)+'. '+x.name.slice(0,4));
    const value=x.metric.value;
-   return '<div class="stats-bar"><button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button><div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
+   return '<div class="stats-bar">'+(daily?'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>':'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
  }).join('')+'</div>';
 }
 function record(label,s,value,formatter){return '<div class="stats-record"><span>'+esc(label)+'</span><strong>'+formatter(value)+'</strong><a href="smeny/'+s.date.replaceAll('-','')+'/">'+esc(dateLabel(s.date))+'</a></div>'}
@@ -191,15 +203,18 @@ function lineStats(a){
  let details='';
  if(selection){
    const m=metric(selection.kmItems);
+   const days=[...selection.shifts].sort().reverse().slice(0,25);
    details=panel('Linka '+selection.name,
-    '<div class="stats-records">'+
+    '<div class="stats-actions"><a class="stats-detail-link" href="'+statHref('lines',{line:selection.name})+'">Odkaz na detail</a><a class="stats-detail-link" href="shifts/">Všechny směny</a></div><div class="stats-records">'+
     '<div class="stats-record"><span>Směny</span><strong>'+selection.shifts.size+'</strong></div>'+
     '<div class="stats-record"><span>Části výkonu</span><strong>'+selection.parts.size+'</strong></div>'+
     '<div class="stats-record"><span>Kilometry</span><strong>'+shown(m)+'</strong></div>'+
     '<div class="stats-record"><span>Různé vozy</span><strong>'+selection.vehicles.size+'</strong></div>'+
     '<div class="stats-record"><span>Vozovny</span><strong>'+esc([...selection.depots].sort().join(', ')||'—')+'</strong></div>'+
     '<div class="stats-record"><span>První / poslední výskyt</span><strong>'+dateLabel(selection.first)+' / '+dateLabel(selection.last)+'</strong></div></div>',
-   'Kilometry jsou osobní, pouze podle doloženého rozdělení po linkách.',true);
+   'Kilometry jsou osobní, pouze podle doloženého rozdělení po linkách.',true)+panel('Poslední směny na lince '+selection.name,
+    '<div class="stats-history">'+days.map(d=>'<a href="'+shiftHref(d)+'">'+esc(dateLabel(d))+'</a>').join('')+'</div>',
+    'Maximálně 25 posledních doložených směn.',true);
  }
  return details+list;
 }
