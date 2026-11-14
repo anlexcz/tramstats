@@ -207,3 +207,14 @@ assert.match(read('statistiky/index.html'), /assets\/statistics\.js/);
 assert.match(read('assets/shared.js'), /\['statistics','Statistiky','statistiky\/'\]/);
 assert.match(read('assets/statistics.js'), /const nonLines=new Set/);
 assert.match(read('assets/statistics.js'), /timeOf\(s\)\.complete\?timeOf\(s\)\.value:null/);
+
+assert.match(read('assets/shared.js'), /\['statistics','Statistiky','statistiky\/'\]/);
+assert.match(read('assets/shift-detail.js'), /tab=lines&period=all/);
+assert.match(read('assets/vehicle-detail.js'), /tab=vehicles/);
+assert.match(read('assets/dashboard-v2.js'), /tab=depots/);
+assert.match(read('assets/statistics.js'), /data-month/);
+assert.match(read('assets/statistics.js'), /stats-history/);
+assert.match(read('assets/statistics.js'), /s\.date<today/);
+assert.match(read('shifts/index.html'), /Statistiky směn/);
+assert.match(read('vozy/index.html'), /Statistiky vozů/);
+console.log('PASS: statistics navigation and cross-link integrity');
