@@ -104,3 +104,30 @@ Test hlídá relační normalizaci, doménovou logiku směn a vozů a přítomno
 Seznamy uchovávají filtry, hledání, počet načtených řádků a pozici v rámci relace prohlížeče. Zablokované sessionStorage nebrání používání webu.
 
 Neznámé km a časy se zobrazují jako `—`; částečně známé součty jako `≥ hodnota`. Skutečná nula zůstává nulou. Dashboard u neúplných souhrnů neukazuje číselný trend a extrémy vybírá jen z úplných hodnot. Počet výskytů vozu znamená počet částí výkonu, nikoli počet směn.
+
+## Mapa aplikace (2026-11-14)
+
+Hlavní menu (desktop i mobil):
+
+1. **Přehled** – posledních 30 uzavřených dnů, agregace a poslední směny.
+2. **Směny** – filtry, seznam a detail jednotlivé směny (`/smeny/YYYYMMDD/`).
+3. **Vozy** – katalog evidovaných tramvají a detail každého vozu (`/vozy/EVČ/`).
+4. **Statistiky** – výchozí aktuální rok, souhrn a tematické podsekce.
+
+Statistiky (`/statistiky/`) mají přehled, směny, linky, vozy, kilometry, čas, vozovny a rekordy. Časové filtry: rok, měsíc, celá historie nebo vlastní interval. Detail linky je zatím součástí statistik, například `/statistiky/?tab=lines&period=all&line=3`; nejde o oddělenou entitní stránku. Samostatné stránky pro katalog linek a katalog vozoven zatím neexistují. Statistiky nepředpokládají chybějící km, nesčítají soupravy dvakrát do osobních kilometrů a nezahrnují aktuální neuzavřený den ani budoucí směny.
+
+### Propojení
+
+- Přehled → související statistiky linek, vozů, vozoven, rekordů; poslední směny → detail směny.
+- Směny → statistiky směn; detail směny → statistiky příslušného roku a linky; evidenční číslo → detail vozu.
+- Vozy → statistiky vozů; detail vozu → jeho historie směn, statistiky vozů a rekordy.
+- Statistiky → seznam směn, katalog vozů; linky → detail linky a jeho doložené směny; žebříček vozů → detail vozu.
+- Všechny stránky používají jednu sdílenou hlavičku, menu a patičku.
+
+### Známá omezení
+
+- Web je záměrně **read-only**. Není zde tvorba, úprava ani mazání záznamů.
+- Doložené BP nejsou v současných sedmi tabulkách načítaných frontendem; část detailu BP zůstává nedostupná.
+- Galerie fotografií obsahují pouze připravené prázdné kontejnery; bez datového napojení nejsou aktivní.
+- Rozsáhlejší analytika (např. porovnání více linek vedle sebe či samostatné nehodové statistiky) není implementována.
+- Před vydáním je nutné ověřit produkční vykreslení na skutečných datech a spustit `node scripts/check.mjs` v běžném Node prostředí.
