@@ -74,7 +74,7 @@
       const v=p.variants.find(v=>v.kind==='web')||p.variants.find(v=>v.kind==='thumb');
       // Private Google Drive originals are links, never assumed to be public image sources.
       const url=v?.file||null;
-      if(url&&(/^(https:\/\/|\/)/).test(url)&&!url.includes('drive.google.com'))return url;
+      if(url&&(/^(https:\/\/|\/)/).test(url))return url;
       return null;
     };
     const linkedPhotos=rows=>{
