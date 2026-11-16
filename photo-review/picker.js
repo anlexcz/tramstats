@@ -51,6 +51,7 @@
   const date=selectedShift();
   if(!date){msg('Nejdříve vyber směnu.');return;}
   busy=true;$('open-picker').disabled=true;
+  const win=window.open('about:blank','tramstats-google-photos-picker');
   try{
    msg('Přihlašování ke Google Fotkám…');
    await authorize();
@@ -58,7 +59,7 @@
    session=await api('/sessions',{method:'POST',body:'{}'});
    const uri=session.pickerUri;
    if(!uri)throw Error('Google nevrátil odkaz pro výběr fotografií.');
-   const win=window.open(uri+'/autoclose','tramstats-google-photos-picker');
+   if(win)win.location.href=uri+'/autoclose';
    if(!win){$('picker-link').href=uri;$('picker-link').hidden=false;msg('Prohlížeč zablokoval nové okno. Otevři odkaz ručně.');}
    else{msg('Vyber fotografie v otevřeném okně Google Fotek.');}
    const expires=Date.parse(session.expireTime||'')||Date.now()+15*60*1000;
@@ -77,7 +78,7 @@
    localStorage.setItem(photoKey(date),JSON.stringify([...map.values()]));
    msg('Vybráno '+photos.length+' fotografií. Vazby jsou zatím uloženy pouze v prohlížeči, nikoli na Disku. Pro přenos originálů je potřeba doplnit ukládací službu.');
    showSelection();
-  }catch(error){msg(error.message||String(error))}
+  }catch(error){if(win&&!win.closed)win.close();msg(error.message||String(error))}
   finally{
    if(session?.id&&token){try{await api('/sessions/'+encodeURIComponent(session.id),{method:'DELETE'})}catch{}}
    session=null;busy=false;$('open-picker').disabled=false;
