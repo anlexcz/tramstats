@@ -2,7 +2,8 @@
 (function(){
   const API_URL='https://script.google.com/macros/s/AKfycbwVDu4SCysr91opTkdaluTYvoOXXdvFHz26ZfzlaYwn8VJ1GWZzeCg_-PDtYZi23gBiQw/exec';
   const TABLES=['shifts','shift_parts','shift_part_lines','vehicles','depots','lines','shift_types'];
-  const CACHE_KEY='tramstats-db-v4';
+  const PHOTO_TABLES=['photos','photo_variants','shift_photos','shift_part_photos','vehicle_photos'];
+  const CACHE_KEY='tramstats-db-v5-photos';
   const CACHE_TTL=5*60*1000;
   let loadPromise=null;
   const status={mode:'idle',error:null,apiUrl:API_URL,loadedAt:null,source:'TramStats – databáze'};
@@ -61,6 +62,49 @@
   }
 
   function normalize(raw){
+    const photoById=new Map((raw.photos||[]).filter(p=>p.id).map(p=>[String(p.id),{
+      id:String(p.id),originalFile:text(p.original_file),takenAt:text(p.taken_at),
+      description:text(p.description),variants:[],shiftDates:[],partKeys:[],vehicleIds:[]
+    }]));
+    for(const v of raw.photo_variants||[]){
+      const p=photoById.get(String(v.photo_id));
+      if(p&&v.file)p.variants.push({kind:text(v.variant),file:String(v.file),width:num(v.width),height:num(v.height)});
+    }
+    const photoUrl=p=>{
+      const v=p.variants.find(v=>v.kind==='web')||p.variants.find(v=>v.kind==='thumb');
+      // Private Google Drive originals are links, never assumed to be public image sources.
+      const url=v?.file||null;
+      if(url&&(/^(https:\/\/|\/)/).test(url)&&!url.includes('drive.google.com'))return url;
+      return null;
+    };
+    const linkedPhotos=rows=>{
+      const seen=new Set();
+      return (rows||[]).map(row=>photoById.get(String(row.photo_id))).filter(p=>{
+        if(!p||seen.has(p.id))return false;
+        seen.add(p.id);return true;
+      }).map(p=>({...p,imageUrl:photoUrl(p)}));
+    };
+    const shiftPhotoRows=new Map(),partPhotoRows=new Map(),vehiclePhotoRows=new Map();
+    for(const r of raw.shift_photos||[]){
+      if(!r.shift_date||!photoById.has(String(r.photo_id)))continue;
+      const date=String(r.shift_date);
+      if(!shiftPhotoRows.has(date))shiftPhotoRows.set(date,[]);
+      shiftPhotoRows.get(date).push(r);photoById.get(String(r.photo_id)).shiftDates.push(date);
+    }
+    for(const rows of shiftPhotoRows.values())rows.sort((a,b)=>(num(a.sort_order)??0)-(num(b.sort_order)??0));
+    for(const r of raw.shift_part_photos||[]){
+      if(!r.shift_date||r.part_no==null||!photoById.has(String(r.photo_id)))continue;
+      const k=key(r.shift_date,String(r.part_no));
+      if(!partPhotoRows.has(k))partPhotoRows.set(k,[]);
+      partPhotoRows.get(k).push(r);photoById.get(String(r.photo_id)).partKeys.push(k);
+    }
+    for(const r of raw.vehicle_photos||[]){
+      if(!r.vehicle_id||!photoById.has(String(r.photo_id)))continue;
+      const id=String(r.vehicle_id);
+      if(!vehiclePhotoRows.has(id))vehiclePhotoRows.set(id,[]);
+      vehiclePhotoRows.get(id).push(r);photoById.get(String(r.photo_id)).vehicleIds.push(id);
+    }
+
     const vehicleById=new Map(raw.vehicles.map(v=>[String(v.id),{
       id:String(v.id),
       type:text(v.type),
@@ -110,7 +154,8 @@
         km:num(row.km),
         note:text(row.note),
         lineParts,
-        line:lineParts.map(x=>x.line).filter(Boolean).join('+')||null
+        line:lineParts.map(x=>x.line).filter(Boolean).join('+')||null,
+        photos:linkedPhotos(partPhotoRows.get(key(row.shift_date,partNo)))
       };
     });
     for(const part of partRows){
@@ -128,7 +173,8 @@
       depotMeta:row.depot?depotByCode.get(String(row.depot))||null:null,
       splitSeq:num(row.split_seq),
       note:text(row.note),
-      parts:partsByDate.get(row.date)||[]
+      parts:partsByDate.get(row.date)||[],
+      photos:linkedPhotos(shiftPhotoRows.get(row.date))
     })).sort((a,b)=>a.date.localeCompare(b.date));
 
     for(const shift of shifts)for(const part of shift.parts)part.depot=shift.depot;
@@ -141,9 +187,13 @@
         vehicles:[...vehicleById.values()],
         depots:[...depotByCode.values()],
         lines:[...lineByCode.values()],
-        shiftTypes:[...shiftTypeByCode.values()]
+        shiftTypes:[...shiftTypeByCode.values()],
+        photos:[...photoById.values()],
+        photoVariants:raw.photo_variants||[],shiftPhotos:raw.shift_photos||[],
+        shiftPartPhotos:raw.shift_part_photos||[],vehiclePhotos:raw.vehicle_photos||[]
       },
-      indexes:{vehicleById,depotByCode,lineByCode,shiftTypeByCode,linesByPart},
+      indexes:{vehicleById,depotByCode,lineByCode,shiftTypeByCode,linesByPart,photoById,vehiclePhotoRows},
+      photosForVehicle(id){return linkedPhotos(vehiclePhotoRows.get(String(id)));},
       shifts,
       minDate:shifts[0]?.date||null,
       maxDate:shifts.at(-1)?.date||null
@@ -158,6 +208,12 @@
       if(!raw){
         const rows=await Promise.all(TABLES.map(fetchTable));
         raw=Object.fromEntries(TABLES.map((name,i)=>[name,rows[i]]));
+        // A missing photo endpoint must not break the core shift and vehicle views.
+        const photoResults=await Promise.allSettled(PHOTO_TABLES.map(fetchTable));
+        for(let i=0;i<PHOTO_TABLES.length;i++){
+          raw[PHOTO_TABLES[i]]=photoResults[i].status==='fulfilled'?photoResults[i].value:[];
+          if(photoResults[i].status==='rejected')console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
+        }
         writeCache(raw);
       }
       const db=normalize(raw);
