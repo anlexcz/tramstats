@@ -135,6 +135,7 @@ function partsCard(shift,blocks){
   </section>`;
 }
 function renderShift(shift){
+  const photoErrors=window.TramStatsData?.status?.photoErrors||[];
   const blocks=Domain.blocks(shift),parts=dateParts(shift.date);
   root.innerHTML=`
     <div class="detail-heading">
@@ -148,6 +149,7 @@ function renderShift(shift){
     </nav>
     ${summaryTable(shift,blocks)}
     ${galleryHTML(shift)}
+    ${photoErrors.length?'<p class="ts-photo-api-error">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
     ${partsCard(shift,blocks)}
     ${shift.note?`<section class="detail-note-card"><strong>Poznámka</strong><p>${esc(shift.note)}</p></section>`:''}
     <section class="detail-breaks" hidden></section>`;
