@@ -27,15 +27,7 @@ Tok dat:
 
 `Google Sheets → read-only API → assets/data.js → doménové vrstvy → UI`
 
-Frontend aktuálně načítá:
-
-- `shifts`
-- `shift_parts`
-- `shift_part_lines`
-- `vehicles`
-- `depots`
-- `lines`
-- `shift_types`
+Frontend načítá základní tabulky `shifts`, `shift_parts`, `shift_part_lines`, `vehicles`, `depots`, `lines`, `shift_types` a navíc fotografické tabulky `photos`, `photo_variants`, `shift_photos`, `shift_part_photos`, `vehicle_photos` přes stejné read-only API. Případná nedostupnost fotografických endpointů neblokuje zobrazení směn.
 
 `assets/data.js` normalizuje relační data do lehkého view modelu. Odpovědi se krátce cachují v `sessionStorage`; při nedostupnosti API se nepoužívá starý statický snapshot.
 
@@ -66,7 +58,7 @@ Společná pravidla jsou v `assets/shift-domain.js`. Dashboard, Směny a detail 
 
 ### Fotografie
 
-Fotografie jsou navázané na konkrétní `ShiftPart`.
+Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`shift_part_photos`) i viditelný vůz (`vehicle_photos`). `assets/data.js` relace normalizuje, `assets/photo-gallery.js/.css` vykreslují společnou galerii.
 
 - pokud pro směnu/vůz není fotografie, galerie ani placeholder se nezobrazuje,
 - pokud fotografie existují, detail může zobrazit galerii,
@@ -128,6 +120,6 @@ Statistiky (`/statistiky/`) mají přehled, směny, linky, vozy, kilometry, čas
 
 - Web je záměrně **read-only**. Není zde tvorba, úprava ani mazání záznamů.
 - Doložené BP nejsou v současných sedmi tabulkách načítaných frontendem; část detailu BP zůstává nedostupná.
-- Galerie fotografií obsahují pouze připravené prázdné kontejnery; bez datového napojení nejsou aktivní.
+- Fotografické galerie mají datové napojení, ale ověřené originály jsou zatím uloženy na soukromém Google Disku. Bez veřejně dostupné webové varianty (`photo_variants`) nelze garantovat zobrazení obrázku pro nepřihlášené návštěvníky; karta vždy odkazuje na originál s jeho přístupovými právy. Nutné také ověřit, že nasazené Apps Script API poskytuje všech pět foto tabulek.
 - Rozsáhlejší analytika (např. porovnání více linek vedle sebe či samostatné nehodové statistiky) není implementována.
 - Před vydáním je nutné ověřit produkční vykreslení na skutečných datech a spustit `node scripts/check.mjs` v běžném Node prostředí.
