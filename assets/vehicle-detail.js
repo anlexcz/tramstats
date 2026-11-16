@@ -26,10 +26,8 @@ function dayText(days){
   return `před ${days} dny`;
 }
 function shiftHref(iso){return `smeny/${String(iso).replaceAll('-','')}/`;}
-function galleryHTML(rows){
-  const photos=rows.flatMap(row=>row.photos||[]);
-  if(!photos.length)return'';
-  return `<section class="vehicle-gallery" aria-label="Fotografie vozu"></section>`;
+function galleryHTML(rows,photos){
+  return window.TramStatsPhotos?.markup(photos,{label:'Fotografie vozu',scope:'vehicle-photo'})||'';
 }
 function summaryTable(rows){
   const total=Domain.summary(rows),years=Domain.yearly(rows);
@@ -56,7 +54,7 @@ function historyRow(row,{yearStart=false,year=null}={}){
     <strong class="vehicle-history-performance">${esc(row.performance)}</strong>
     <span class="vehicle-history-metric">${icon('time')}<b>${row.duration!=null?hm(row.duration):'—'}</b></span>
     <span class="vehicle-history-metric">${icon('km')}<b>${row.km!=null?`${fmt(row.km)} km`:'—'}</b></span>
-    ${hasPhoto?`<button class="vehicle-history-photo" type="button" aria-label="Zobrazit fotografii z ${date(row.date)}">${icon('camera')}</button>`:'<span class="vehicle-history-photo-space"></span>'}
+    ${hasPhoto?`<button class="vehicle-history-photo" type="button" data-photo-id="${esc(row.photos[0].id)}" aria-label="Zobrazit fotografii z ${date(row.date)}">${icon('camera')}</button>`:'<span class="vehicle-history-photo-space"></span>'}
   </article>`;
 }
 function history(rows){
@@ -65,7 +63,7 @@ function history(rows){
     group.rows.map((row,index)=>historyRow(row,{yearStart:index===0,year:group.year})).join('')
   ).join('')}</section>`;
 }
-function render(vehicle,rows){
+function render(vehicle,rows,photos){
   root.innerHTML=`
     <div class="vehicle-detail-heading"><div class="vehicle-detail-title"><span>${esc(vehicle.family||vehicle.type||'Vůz')}</span><strong>${esc(vehicle.id)}</strong></div><a class="vehicle-detail-back" href="vozy/">← Zpět</a></div>
     <nav class="detail-context-links" aria-label="Související statistiky">
@@ -75,11 +73,18 @@ function render(vehicle,rows){
     </nav>
     ${summaryTable(rows)}
     ${occurrenceMeta(rows)}
-    ${galleryHTML(rows)}
+    ${galleryHTML(rows,photos)}
     ${history(rows)}`;
 }
 function openRow(row){const href=row?.dataset?.href;if(href)location.href=href;}
 document.addEventListener('click',event=>{
+  const photoButton=event.target.closest('[data-photo-id]');
+  if(photoButton){
+    const id=photoButton.dataset.photoId;
+    const node=document.getElementById('vehicle-photo-'+id.replace(/[^a-zA-Z0-9_-]/g,'_'));
+    if(node){node.scrollIntoView({behavior:'smooth',block:'center'});node.querySelector('a')?.focus();}
+    return;
+  }
   if(event.target.closest('button,a'))return;
   const row=event.target.closest('.vehicle-history-row');
   if(row)openRow(row);
@@ -102,7 +107,7 @@ async function boot(){
     if(!rows.length){status.textContent='Pro tento vůz nejsou evidované žádné jízdy.';return;}
     status.textContent='';
     document.title=`${vehicle.family||vehicle.type||'Vůz'} ${vehicle.id} — TramStats`;
-    render(vehicle,rows);
+    render(vehicle,rows,db.photosForVehicle?.(id)||[]);
   }catch(error){status.textContent='Data vozu se nepodařilo načíst. '+String(error?.message||error);}
 }
 boot();
