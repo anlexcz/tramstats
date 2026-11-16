@@ -57,6 +57,10 @@ Společná pravidla jsou v `assets/shift-domain.js`. Dashboard, Směny a detail 
 - family (`T3`, `14T`, `15T`, `KT`, `52T`…) je primární zobrazovaný typ; konkrétní subtype zůstává v databázi.
 
 ### Fotografie
+Aktuální pilot (2020): 187 originálů katalogizováno v Google Sheets `photos`, 5 potvrzených vazeb na směny/vozy, 3 na části. Čtyři ověřené snímky jsou pro test veřejného zobrazení přímo v `assets/photos/2020/` a jejich adresy jsou v `photo_variants`. Jde zatím o **původní velké JPEG soubory**, nikoli optimalizované webové verze. Před hromadnou publikací připravit menší varianty a zvážit zveřejňování původních metadat.
+
+Pro případ nedostupného/nezaktualizovaného Google Apps Script API se při čtení fotografií připojuje `assets/photo-snapshot.js` obsahující **pouze pět ověřených fotografií**, nikoli automatické kandidáty z názvů souborů. Pro nové záznamy je primární databáze; snapshot je pouze dočasný fallback. Jakmile API poskytuje všechny fototabulky, lze snapshot zrušit.
+
 
 Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`shift_part_photos`) i viditelný vůz (`vehicle_photos`). `assets/data.js` relace normalizuje, `assets/photo-gallery.js/.css` vykreslují společnou galerii.
 
