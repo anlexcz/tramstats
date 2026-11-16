@@ -15,3 +15,5 @@
 .ts-photo-card figcaption small{font-size:11px;color:#aeb4bd}
 .ts-photos:target{outline:1px solid #6bc6c4}
 @media(max-width:650px){.ts-photos{padding:10px}.ts-photos-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
+
+.ts-photo-api-error{color:#e0bb8b;font-size:12px;margin:8px 0 16px;padding:8px 10px;border:1px solid #705838;background:#29241f}
