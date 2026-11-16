@@ -63,7 +63,7 @@ function vehicleText(part){
   return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${ids.length?`<span class="detail-vehicle-ids">${linked}</span>`:''}`;
 }
 function galleryHTML(shift){
-  const photos=shift.photos||[];
+  const photos=[...(shift.photos||[]),...(shift.parts||[]).flatMap(p=>p.photos||[])];
   return window.TramStatsPhotos?.markup(photos,{label:'Fotografie směny',scope:'shift-photo'})||'';
 }
 function partRow(part,{splitStart=false}={}){
