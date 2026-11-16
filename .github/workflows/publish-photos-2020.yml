@@ -1,0 +1,67 @@
+name: Publish TramStats 2020 photos
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag containing tramstats-2020-webp.zip'
+        required: true
+        default: 'photos-2020'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-photos-2020
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download ZIP from GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.release_tag }}
+        run: gh release download "$TAG" --pattern 'tramstats-2020-webp.zip' --output /tmp/tramstats-2020-webp.zip
+      - name: Verify and extract photographs
+        run: |
+          python3 - <<'PY'
+          import json,zipfile,pathlib
+          archive=pathlib.Path('/tmp/tramstats-2020-webp.zip')
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None, 'Corrupted archive'
+              manifest=json.loads(z.read('photo-variants-generated.json'))
+              rows=manifest['variants']
+              assert len(rows)==187, f'Expected 187 variants, got {len(rows)}'
+              assert not manifest.get('errors'), 'Conversion errors found'
+              paths=[r['web_file'] for r in rows]
+              assert len(set(paths))==len(paths), 'Duplicate paths'
+              for r in rows:
+                  name=r['web_file']
+                  p=pathlib.PurePosixPath(name)
+                  assert len(p.parts)==4 and p.parts[:3]==('assets','photos','2020')
+                  assert p.suffix=='.webp' and '..' not in p.parts
+                  info=z.getinfo(name)
+                  assert info.file_size==r['size_bytes'], name
+                  target=pathlib.Path(name)
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  with z.open(name) as src, target.open('wb') as dst:
+                      import shutil
+                      shutil.copyfileobj(src,dst)
+              pathlib.Path('assets/photo-variants-generated.json').write_text(
+                  json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('Verified and extracted 187 WebP files')
+          PY
+      - name: Commit web photos
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/photos/2020/*.webp assets/photo-variants-generated.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish 187 optimized 2020 photo assets'
+            git push
+          fi
