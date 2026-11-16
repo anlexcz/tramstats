@@ -13,7 +13,7 @@ function selected(date){try{const a=JSON.parse(localStorage.getItem(photoKey(dat
 function showSelected(){const date=selectedDate();$('picker-selected').textContent=date?selected(date).length+' položek přiřazených ke směně':'Nejdříve vyber směnu v tabulce.';updateButtons()}
 function connected(){return Boolean(token&&Date.now()<expiresAt-60000)}
 function updateButtons(){
- $('open-picker').disabled=busy||!selectedDate()||!connected();
+ document.querySelectorAll('[data-pick]').forEach(button=>{button.disabled=busy});
  $('connect-google').disabled=busy;
  $('disconnect-google').hidden=!connected();
  $('connect-google').textContent=connected()?'Obnovit připojení':'Připojit Google Fotky';
@@ -74,11 +74,18 @@ async function listItems(id){
  }while(next);
  return items;
 }
-async function run(){
+async function run(date){
  if(busy)return;
- const date=selectedDate();
+ date=date||selectedDate();
  if(!date){message('Nejdříve vyber směnu.');return}
- if(!connected()){message('Nejdříve připoj Google Fotky.');return}
+ if(!connected()){message('Nejdříve klikni nahoře na Připojit Google Fotky.');return}
+ const shift=window.TramStatsPhotoReview?.getShift(date);
+ const range=shift?window.TramStatsPhotoReview.searchRange(shift):null;
+ // Vyhledávací výraz zůstává na stránce a je dostupný ke kopírování.
+ if(range){
+  message('Pro datum '+date+(range.extra?' a následující den':'')+' vyhledej v Google Pickeru: '+range.query+'. Dotaz se pokusím zkopírovat do schránky.');
+  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(range.query).catch(()=>{});
+ }
  busy=true;updateButtons();let popup=null;
  // Opening the window in the direct click handler avoids popup blockers.
  popup=window.open('about:blank','tramstats-photos-picker');
@@ -88,7 +95,7 @@ async function run(){
   if(!session.pickerUri)throw Error('Google nevrátil odkaz výběru.');
   if(popup)popup.location.href=session.pickerUri.replace(/\/$/,'')+'/autoclose';
   else{$('picker-link').href=session.pickerUri;$('picker-link').hidden=false}
-  message('Vyber fotografie ve Google Fotkách a potvrď výběr.');
+  message('V Google Pickeru vyhledej '+(range?.query||date)+', vyber fotografie a potvrď. Datum nelze přednastavit automaticky.');
   const expires=Date.parse(session.expireTime)||Date.now()+15*60*1000;
   const timeoutSeconds=Number.parseFloat(session.pollingConfig?.timeoutIn)||0;
   let deadline=Math.min(expires,timeoutSeconds>0?Date.now()+timeoutSeconds*1000:expires);
@@ -127,7 +134,7 @@ $('disconnect-google').addEventListener('click',()=>{
  // Disconnection drops the short-lived token locally; does not revoke other project permissions.
  token='';expiresAt=0;message('Google Fotky odpojeny v této záložce.');updateButtons();
 });
-$('open-picker').addEventListener('click',run);
+window.TramStatsPhotoPicker={open:run};
 $('toggle-settings').addEventListener('click',()=>{});
 $('save-settings').addEventListener('click',()=>{
  const id=$('google-client-id').value.trim();
