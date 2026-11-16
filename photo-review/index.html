@@ -23,7 +23,7 @@ button{cursor:pointer}button:disabled{opacity:.55;cursor:default}button:focus-vi
 table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;border-bottom:1px solid #324049;padding:7px}
 th{color:#b0bfc6;font-size:12px}td select{width:150px;font-size:12px;padding:6px}
 tr.active{background:#26353d}tr:hover{background:#25323a}tr.active:hover{background:#294049}
-.row-pick{font-size:12px;padding:6px 8px}.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+.row-pick{font-size:12px;padding:6px 8px}.row-tools{display:flex;align-items:center;gap:6px;white-space:nowrap}.date-link{font-size:12px}.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 #rows:empty:after{content:'Žádné směny pro aktuální filtr';color:#9fadb5}
 #pagination{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:9px;font-size:12px}
 .hide-mobile{display:table-cell}
@@ -41,7 +41,7 @@ tr.active{background:#26353d}tr:hover{background:#25323a}tr.active:hover{backgro
 <label style="display:flex;align-items:center;gap:7px;font-size:13px;padding-bottom:8px"><input id="hide-done" type="checkbox" checked> Skrýt vyřízené</label>
 </div><div class="stats" id="stats" style="margin-top:11px"></div><p id="message">Načítání směn…</p>
 </div>
-<div class="panel"><div class="controls spread"><div><strong id="selected-heading">Vyber směnu v tabulce</strong><div id="picker-selected"></div></div><div class="controls"><button id="open-picker" class="primary" disabled>Vybrat fotky</button><button id="export-picked" class="small" disabled>Export výběru</button></div></div><div id="picker-message" role="status"></div><a id="picker-link" target="_blank" rel="noopener" hidden>Otevřít Google Fotky ručně</a></div>
+<div class="panel"><div class="controls spread"><div><strong id="selected-heading">Výběr fotografií podle směny</strong><div id="picker-selected"></div></div><button id="export-picked" class="small" disabled>Export výběru</button></div><div id="picker-message" role="status">Google Picker neumí automaticky nastavit datum. Tlačítko na řádku připraví dotaz pro vyhledávání podle data.</div><a id="picker-link" target="_blank" rel="noopener" hidden>Otevřít Google Fotky ručně</a></div>
 <div class="panel" style="overflow-x:auto"><table><thead><tr><th>Datum</th><th>Výkon</th><th>Stav</th><th>Fotografie</th><th class="hide-mobile">Detail</th></tr></thead><tbody id="rows"></tbody></table><div id="pagination"><button id="prev" class="small">Předchozí</button><span id="page-info"></span><button id="next" class="small">Další</button></div></div>
 <script src="../assets/data.js"></script><script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
@@ -64,6 +64,18 @@ function filtered(){
  return shifts.filter(s=>s.date.startsWith(year+'-')&&(month==='all'||s.date.slice(5,7)===month)&&(filter==='all'||current(s)===filter)&&(!$('hide-done').checked||!['found','none'].includes(current(s)))&&matches(s,q))
  .sort((a,b)=>$('sort').value==='desc'?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
 }
+function nextDay(date){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+function searchRange(s){
+ const type=String(s.shiftType?.name||s.actualShift||'').toLowerCase();
+ const partTimes=(s.parts||[]).filter(p=>p.start&&p.end);
+ const spansMidnight=partTimes.some(p=>(Number(p.startDayOffset)||0)>0||p.end<p.start)
+  ||(partTimes.length>1&&partTimes.at(-1).end<partTimes[0].start);
+ const lateStart=partTimes.length&&Number(partTimes[0].start.slice(0,2))>=12;
+ const extra=spansMidnight||/odpoled|noční|nocni/.test(type)||lateStart;
+ const from=s.date.replace(/-/g,''),to=(extra?nextDay(s.date):s.date).replace(/-/g,'');
+ return {from,to,query:'#date_range:'+from+'-'+to,extra};
+}
+function photosSearchUrl(s){return 'https://photos.google.com/search/'+encodeURIComponent(searchRange(s).query)}
 function selectShift(date){
  selectedDate=date;$('selected-heading').textContent=date?'Směna '+date:'Vyber směnu v tabulce';
  $('export-picked').disabled=!date;
@@ -79,12 +91,12 @@ function render(){
  $('rows').innerHTML=visible.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE).map(s=>{
  const route=s.parts.map(p=>p.line+(p.order?'/'+p.order:'')).filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i).join(', ')||'—';
  const opts=Object.entries(STATES).map(([k,v])=>'<option value="'+k+'"'+(current(s)===k?' selected':'')+'>'+v+'</option>').join('');
- return '<tr class="'+(s.date===selectedDate?'active':'')+'"><td class="date">'+esc(s.date)+'</td><td>'+esc(route)+'</td><td><select data-date="'+esc(s.date)+'" aria-label="Stav '+esc(s.date)+'">'+opts+'</select></td><td><button type="button" class="row-pick" data-pick="'+esc(s.date)+'">'+(s.date===selectedDate?'Vybráno':'Vybrat')+'</button></td><td class="hide-mobile"><a href="../smeny/'+s.date.replace(/-/g,'')+'/" target="_blank" rel="noopener">Detail</a></td></tr>';
+ return '<tr class="'+(s.date===selectedDate?'active':'')+'"><td class="date">'+esc(s.date)+'</td><td>'+esc(route)+'</td><td><select data-date="'+esc(s.date)+'" aria-label="Stav '+esc(s.date)+'">'+opts+'</select></td><td><div class="row-tools"><button type="button" class="row-pick primary" data-pick="'+esc(s.date)+'">Vybrat fotky</button><a class="date-link" href="'+esc(photosSearchUrl(s))+'" target="_blank" rel="noopener" title="Otevřít vyhledávání Google Fotek pro '+esc(searchRange(s).query)+'">Najít datum</a></div></td><td class="hide-mobile"><a href="../smeny/'+s.date.replace(/-/g,'')+'/" target="_blank" rel="noopener">Detail</a></td></tr>';
  }).join('');
  $('page-info').textContent=(total?1+page*PAGE_SIZE:0)+'–'+Math.min(total,(page+1)*PAGE_SIZE)+' / '+total;
  $('prev').disabled=page===0;$('next').disabled=(page+1)*PAGE_SIZE>=total;
 }
-$('rows').addEventListener('click',e=>{const pick=e.target.closest('[data-pick]');if(pick)selectShift(pick.dataset.pick)});
+$('rows').addEventListener('click',e=>{const pick=e.target.closest('[data-pick]');if(!pick)return;const date=pick.dataset.pick;selectShift(date);window.TramStatsPhotoPicker?.open(date);});
 $('rows').addEventListener('change',e=>{
  const node=e.target.closest('select[data-date]');if(!node)return;
  if(node.value==='unchecked')delete records[node.dataset.date];
@@ -103,7 +115,7 @@ $('import').addEventListener('change',async e=>{
  if(confirm('Načíst '+valid.length+' záznamů? Shodná data budou přepsána.')){records={...records,...Object.fromEntries(valid)};save();render()}}
  catch(err){$('message').textContent='Import selhal: '+err.message}finally{e.target.value=''}
 });
-window.TramStatsPhotoReview={get shifts(){return shifts},get selectedDate(){return selectedDate},setStatus(date,status){if(!Object.hasOwn(STATES,status))return;records[date]={status,updated_at:new Date().toISOString()};save();render()},download};
+window.TramStatsPhotoReview={get shifts(){return shifts},get selectedDate(){return selectedDate},getShift(date){return shifts.find(s=>s.date===date)||null},searchRange,setStatus(date,status){if(!Object.hasOwn(STATES,status))return;records[date]={status,updated_at:new Date().toISOString()};save();render()},download};
 async function start(){
  try{const db=await window.TramStatsData.load();shifts=db.shifts.filter(s=>s.parts?.length);
  const years=[...new Set(shifts.map(s=>s.date.slice(0,4)))].sort();
