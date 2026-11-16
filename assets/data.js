@@ -3,7 +3,7 @@
   const API_URL='https://script.google.com/macros/s/AKfycbwVDu4SCysr91opTkdaluTYvoOXXdvFHz26ZfzlaYwn8VJ1GWZzeCg_-PDtYZi23gBiQw/exec';
   const TABLES=['shifts','shift_parts','shift_part_lines','vehicles','depots','lines','shift_types'];
   const PHOTO_TABLES=['photos','photo_variants','shift_photos','shift_part_photos','vehicle_photos'];
-  const CACHE_KEY='tramstats-db-v5-photos';
+  const CACHE_KEY='tramstats-db-v6-photo-manifest';
   const CACHE_TTL=5*60*1000;
   let loadPromise=null;
   const status={mode:'idle',error:null,photoErrors:[],apiUrl:API_URL,loadedAt:null,source:'TramStats – databáze'};
@@ -74,7 +74,7 @@
       const v=p.variants.find(v=>v.kind==='web')||p.variants.find(v=>v.kind==='thumb');
       // Private Google Drive originals are links, never assumed to be public image sources.
       const url=v?.file||null;
-      if(url&&(/^(https:\/\/|\/)/).test(url))return url;
+      if(url&&(/^(https:\/\/|\/|assets\/)/).test(url))return url;
       return null;
     };
     const linkedPhotos=rows=>{
@@ -216,6 +216,20 @@
             status.photoErrors.push(PHOTO_TABLES[i]);
             console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
           }
+        }
+        const fallback=window.TramStatsPhotoManifest||{};
+        for(const name of PHOTO_TABLES){
+          const manifestRows=Array.isArray(fallback[name])?fallback[name]:[];
+          const liveRows=raw[name]||[];
+          const rowKey=r=>name==='photos'?String(r.id):name==='photo_variants'?String(r.photo_id)+'|'+String(r.variant):
+            name==='shift_photos'?String(r.shift_date)+'|'+String(r.photo_id):
+            name==='shift_part_photos'?String(r.shift_date)+'|'+String(r.part_no)+'|'+String(r.photo_id):
+            String(r.vehicle_id)+'|'+String(r.photo_id);
+          const known=new Set(liveRows.map(rowKey));
+          for(const r of manifestRows){
+            if(!known.has(rowKey(r))){liveRows.push(r);known.add(rowKey(r));}
+          }
+          raw[name]=liveRows;
         }
         writeCache(raw);
       }
