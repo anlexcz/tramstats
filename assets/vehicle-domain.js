@@ -34,7 +34,7 @@ function occurrences(db,vehicleId){
         performance:performanceLabel(part),
         duration:partDuration(part),
         km:part.km,
-        photos:Array.isArray(part.photos)?part.photos:[]
+        photos:Array.isArray(part.photos)?part.photos.filter(p=>(p.vehicleIds||[]).includes(id)):[]
       });
     }
   }
