@@ -124,6 +124,6 @@ Statistiky (`/statistiky/`) mají přehled, směny, linky, vozy, kilometry, čas
 
 - Web je záměrně **read-only**. Není zde tvorba, úprava ani mazání záznamů.
 - Doložené BP nejsou v současných sedmi tabulkách načítaných frontendem; část detailu BP zůstává nedostupná.
-- Fotografické galerie mají datové napojení, ale ověřené originály jsou zatím uloženy na soukromém Google Disku. Bez veřejně dostupné webové varianty (`photo_variants`) nelze garantovat zobrazení obrázku pro nepřihlášené návštěvníky; karta vždy odkazuje na originál s jeho přístupovými právy. Nutné také ověřit, že nasazené Apps Script API poskytuje všech pět foto tabulek.
+- Fotografické galerie mají datové napojení. Čtyři ověřené fotografie jsou dočasně veřejně dostupné ve složce `assets/photos/2020/` jako neoptimalizované originály; jejich varianty jsou vedeny v `photo_variants`. Pátá ověřená fotografie nemá veřejnou kopii, takže se může zobrazit jen odkaz na Google Disk. `assets/photo-manifest.js` je dočasná přesná kopie pěti potvrzených záznamů pro případ, že starší nasazení Apps Script ještě neposkytuje fototabulky; live databáze zůstává autoritativním zdrojem. Před ostrým spuštěním je potřeba ověřit reálnou odezvu Apps Script a nahradit originály optimalizovanými webovými kopiemi.
 - Rozsáhlejší analytika (např. porovnání více linek vedle sebe či samostatné nehodové statistiky) není implementována.
 - Před vydáním je nutné ověřit produkční vykreslení na skutečných datech a spustit `node scripts/check.mjs` v běžném Node prostředí.
