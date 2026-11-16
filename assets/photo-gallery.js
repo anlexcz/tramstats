@@ -1,7 +1,7 @@
 'use strict';
 (function(){
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const safeUrl=url=>{try{const p=new URL(url,location.href);return ['https:','http:'].includes(p.protocol)?p.href:null;}catch{return null;}};
+  const safeUrl=url=>{try{const p=new URL(url,document.baseURI||location.href);return ['https:','http:'].includes(p.protocol)?p.href:null;}catch{return null;}};
   const imageUrl=photo=>{
     const variant=(photo.variants||[]).find(v=>v.kind==='web')||(photo.variants||[]).find(v=>v.kind==='thumb');
     if(variant?.file){
