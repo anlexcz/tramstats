@@ -849,14 +849,14 @@ window.TramStatsPhotoSnapshot={
       "sort_order": "1"
     },
     {
-      "shift_date": "2020-02-18",
+      "shift_date": "2020-02-17",
       "photo_id": "ph-gdrive-1CLFV2N-QrJIw7zFdE9WnDVxHBZ_YcfaA",
       "sort_order": "1"
     },
     {
       "shift_date": "2020-02-18",
       "photo_id": "ph-gdrive-1QXitSroYci36CasyxEnWOKhjAhErzOUl",
-      "sort_order": "2"
+      "sort_order": "1"
     },
     {
       "shift_date": "2020-02-19",
@@ -2644,6 +2644,11 @@ window.TramStatsPhotoSnapshot={
       "shift_date": "2020-11-20",
       "part_no": "2",
       "photo_id": "ph-gdrive-1MeKSYmGgDkdnptDNCVl1eKSkQQKPK0jr"
+    },
+    {
+      "shift_date": "2020-02-17",
+      "part_no": "1",
+      "photo_id": "ph-gdrive-1CLFV2N-QrJIw7zFdE9WnDVxHBZ_YcfaA"
     }
   ],
   "vehicle_photos": [
