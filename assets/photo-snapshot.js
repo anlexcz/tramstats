@@ -2649,6 +2649,16 @@ window.TramStatsPhotoSnapshot={
       "shift_date": "2020-02-17",
       "part_no": "1",
       "photo_id": "ph-gdrive-1CLFV2N-QrJIw7zFdE9WnDVxHBZ_YcfaA"
+    },
+    {
+      "shift_date": "2020-02-05",
+      "part_no": "1",
+      "photo_id": "ph-gdrive-161-ZneNNzd4ZvCrgX-di6SC9Y5xZ97m0"
+    },
+    {
+      "shift_date": "2020-09-02",
+      "part_no": "1",
+      "photo_id": "ph-gdrive-1DhnOEgVr-jfQCDa2L0SlCWSZ0i_hZ-Ql"
     }
   ],
   "vehicle_photos": [
