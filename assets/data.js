@@ -34,9 +34,9 @@
   };
   const key=(date,partNo)=>`${date}|${partNo}`;
 
-  async function fetchTable(name){
+  async function fetchTable(name,{timeoutMs=30000}={}){
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),30000);
+    const timeout=setTimeout(()=>controller.abort(),timeoutMs);
     try{
       const response=await fetch(`${API_URL}?table=${encodeURIComponent(name)}`,{cache:'no-store',signal:controller.signal});
       if(!response.ok)throw new Error(`${name}: HTTP ${response.status}`);
@@ -209,7 +209,7 @@
         const rows=await Promise.all(TABLES.map(fetchTable));
         raw=Object.fromEntries(TABLES.map((name,i)=>[name,rows[i]]));
         // A missing photo endpoint must not break the core shift and vehicle views.
-        const photoResults=await Promise.allSettled(PHOTO_TABLES.map(fetchTable));
+        const photoResults=await Promise.allSettled(PHOTO_TABLES.map(name=>fetchTable(name,{timeoutMs:7000})));
         for(let i=0;i<PHOTO_TABLES.length;i++){
           raw[PHOTO_TABLES[i]]=photoResults[i].status==='fulfilled'?photoResults[i].value:[];
           if(photoResults[i].status==='rejected')console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
