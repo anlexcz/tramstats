@@ -44,7 +44,6 @@ small{color:#a5b1ba}#message{min-height:22px}#rows:empty:after{content:'Žádné
 <div class="panel" style="overflow-x:auto"><table><thead><tr><th>Datum</th><th>Výkon</th><th>Stav fotografií</th><th>Detail</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script src="../assets/data.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="picker.js" defer></script>
 <script>
 'use strict';
 const KEY='tramstats-photo-review-v1';
@@ -113,4 +112,5 @@ async function start(){
  }catch(err){$('message').textContent='Nepodařilo se načíst směny: '+err.message;}
 }
 start();
-</script></body></html>
+</script>
+<script src="picker.js"></script></body></html>
