@@ -28,8 +28,23 @@ small{color:#a5b1ba}#message{min-height:22px}#rows:empty:after{content:'Žádné
 <label>Načíst zálohu JSON<input id="import" type="file" accept="application/json,.json"></label>
 </div>
 <div class="panel"><div class="stats" id="stats"></div><p id="message">Načítání dat směn…</p></div>
+<div class="panel">
+<h2>Výběr z Google Fotek</h2>
+<p>Vyber směnu a otevři oficiální Google Photos Picker. Fotografie se zatím pouze označí a jejich metadata uloží v prohlížeči; přenos souborů na Google Disk dosud není implementovaný.</p>
+<div class="controls">
+<label>OAuth Client ID (Google Cloud)<input id="google-client-id" style="min-width:320px" placeholder="12345-abc.apps.googleusercontent.com"></label>
+<label>Směna<select id="photo-shift"></select></label>
+<button class="primary" id="open-picker" type="button">Vybrat z Google Fotek</button>
+<button id="export-picked" type="button">Exportovat výběr JSON</button>
+</div>
+<p id="picker-message" role="status">Pro první přihlášení je nutné nastavit OAuth klienta pro doménu https://anlexcz.github.io a zapnout Google Photos Picker API v Google Cloud.</p>
+<a id="picker-link" hidden target="_blank" rel="noopener">Otevřít výběr fotografií</a>
+<p id="picker-selected"></p>
+</div>
 <div class="panel" style="overflow-x:auto"><table><thead><tr><th>Datum</th><th>Výkon</th><th>Stav fotografií</th><th>Detail</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script src="../assets/data.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="picker.js" defer></script>
 <script>
 'use strict';
 const KEY='tramstats-photo-review-v1';
@@ -92,6 +107,8 @@ async function start(){
   $('year').innerHTML=years.map(y=>'<option>'+esc(y)+'</option>').join('');
   $('year').value=years.includes('2026')?'2026':years.at(-1);
   $('message').textContent='Data směn načtena. V tomto kroku se eviduje pouze stav kontroly; nahrávání fotografií bude další etapa.';
+  window.TramStatsPhotoReview={shifts};
+  document.dispatchEvent(new Event('tramstats:photo-shifts-ready'));
   render();
  }catch(err){$('message').textContent='Nepodařilo se načíst směny: '+err.message;}
 }
