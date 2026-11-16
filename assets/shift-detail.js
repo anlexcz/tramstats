@@ -64,8 +64,7 @@ function vehicleText(part){
 }
 function galleryHTML(shift){
   const photos=shift.photos||[];
-  if(!photos.length)return'';
-  return `<section class="detail-gallery" aria-label="Fotografie směny"></section>`;
+  return window.TramStatsPhotos?.markup(photos,{label:'Fotografie směny',scope:'shift-photo'})||'';
 }
 function partRow(part,{splitStart=false}={}){
   const duration=partDuration(part);
@@ -83,7 +82,7 @@ function partRow(part,{splitStart=false}={}){
       <div class="detail-part-vehicle">${detailIcon('vehicle')}${vehicleText(part)||'<span class="detail-muted">—</span>'}</div>
       <div class="detail-part-bottom-right">
         ${duration!=null?`<span class="detail-part-duration">${detailIcon('time')}${hm(duration)}</span>`:''}
-        ${hasPhoto?`<button class="detail-photo-mark" type="button" aria-label="Fotografie této části směny">${detailIcon('camera')}</button>`:''}
+        ${hasPhoto?`<button class="detail-photo-mark" type="button" data-part-photo="${esc(part.partNo)}" aria-label="Fotografie části ${esc(part.partNo)}">${detailIcon('camera')}</button>`:''}
       </div>
     </div>
     ${lineLinks(part)?`<div class="detail-related-links">${lineLinks(part)}</div>`:''}
@@ -153,6 +152,18 @@ function renderShift(shift){
     ${shift.note?`<section class="detail-note-card"><strong>Poznámka</strong><p>${esc(shift.note)}</p></section>`:''}
     <section class="detail-breaks" hidden></section>`;
 }
+document.addEventListener('click',event=>{
+  const btn=event.target.closest('[data-part-photo]');
+  if(!btn)return;
+  const partNo=btn.dataset.partPhoto;
+  const detail=document.querySelector('#shift-detail');
+  const shift=detail?._shift;
+  const part=shift?.parts.find(p=>String(p.partNo)===partNo);
+  const first=part?.photos?.[0];
+  if(!first)return;
+  const node=document.getElementById('shift-photo-'+first.id.replace(/[^a-zA-Z0-9_-]/g,'_'));
+  if(node){node.scrollIntoView({behavior:'smooth',block:'center'});node.querySelector('a')?.focus();}
+});
 async function boot(){
   const wanted=routeDate();
   if(!wanted){status.textContent='Neplatná adresa směny.';return;}
@@ -162,6 +173,7 @@ async function boot(){
     if(!shift){status.textContent='Směna pro toto datum nebyla v databázi nalezena.';return;}
     status.textContent='';
     document.title=`${dateLong(shift.date)} — TramStats`;
+    root._shift=shift;
     renderShift(shift);
   }catch(error){
     status.textContent='Data směny se nepodařilo načíst. '+String(error?.message||error);
