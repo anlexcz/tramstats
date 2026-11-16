@@ -6,7 +6,7 @@
   const CACHE_KEY='tramstats-db-v5-photos';
   const CACHE_TTL=5*60*1000;
   let loadPromise=null;
-  const status={mode:'idle',error:null,apiUrl:API_URL,loadedAt:null,source:'TramStats – databáze'};
+  const status={mode:'idle',error:null,photoErrors:[],apiUrl:API_URL,loadedAt:null,source:'TramStats – databáze'};
 
   const num=value=>{
     if(value==null||value==='')return null;
@@ -203,7 +203,7 @@
   async function load(options={}){
     if(loadPromise&&!options.force)return loadPromise;
     loadPromise=(async()=>{
-      status.mode='loading';status.error=null;
+      status.mode='loading';status.error=null;status.photoErrors=[];
       let raw=!options.force?readCache():null;
       if(!raw){
         const rows=await Promise.all(TABLES.map(fetchTable));
@@ -212,7 +212,10 @@
         const photoResults=await Promise.allSettled(PHOTO_TABLES.map(name=>fetchTable(name,{timeoutMs:7000})));
         for(let i=0;i<PHOTO_TABLES.length;i++){
           raw[PHOTO_TABLES[i]]=photoResults[i].status==='fulfilled'?photoResults[i].value:[];
-          if(photoResults[i].status==='rejected')console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
+          if(photoResults[i].status==='rejected'){
+            status.photoErrors.push(PHOTO_TABLES[i]);
+            console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
+          }
         }
         writeCache(raw);
       }
