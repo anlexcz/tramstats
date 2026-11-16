@@ -64,6 +64,7 @@ function history(rows){
   ).join('')}</section>`;
 }
 function render(vehicle,rows,photos){
+  const photoErrors=window.TramStatsData?.status?.photoErrors||[];
   root.innerHTML=`
     <div class="vehicle-detail-heading"><div class="vehicle-detail-title"><span>${esc(vehicle.family||vehicle.type||'Vůz')}</span><strong>${esc(vehicle.id)}</strong></div><a class="vehicle-detail-back" href="vozy/">← Zpět</a></div>
     <nav class="detail-context-links" aria-label="Související statistiky">
@@ -74,6 +75,7 @@ function render(vehicle,rows,photos){
     ${summaryTable(rows)}
     ${occurrenceMeta(rows)}
     ${galleryHTML(rows,photos)}
+    ${photoErrors.length?'<p class="ts-photo-api-error">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
     ${history(rows)}`;
 }
 function openRow(row){const href=row?.dataset?.href;if(href)location.href=href;}
