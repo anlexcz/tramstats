@@ -217,23 +217,23 @@
             console.warn('TramStats: photo table unavailable',PHOTO_TABLES[i],photoResults[i].reason);
           }
         }
-        // Verified public snapshot fills holes in an unavailable or stale photo API.
-        const snapshot=window.TramStatsPhotoSnapshot||{};
-        const relationKeys={
-          photos:r=>String(r.id),photo_variants:r=>String(r.photo_id)+'|'+r.variant,
-          shift_photos:r=>String(r.shift_date)+'|'+r.photo_id,
-          shift_part_photos:r=>String(r.shift_date)+'|'+r.part_no+'|'+r.photo_id,
-          vehicle_photos:r=>String(r.vehicle_id)+'|'+r.photo_id
-        };
-        for(const name of PHOTO_TABLES){
-          const rows=Array.isArray(raw[name])?raw[name]:[];
-          const present=new Set(rows.map(relationKeys[name]));
-          for(const item of snapshot[name]||[]){
-            if(!present.has(relationKeys[name](item))){rows.push(item);present.add(relationKeys[name](item));}
-          }
-          raw[name]=rows;
-        }
         writeCache(raw);
+      }
+      // Verified public snapshot fills holes in an unavailable or stale photo API.
+      const snapshot=window.TramStatsPhotoSnapshot||{};
+      const relationKeys={
+        photos:r=>String(r.id),photo_variants:r=>String(r.photo_id)+'|'+r.variant,
+        shift_photos:r=>String(r.shift_date)+'|'+r.photo_id,
+        shift_part_photos:r=>String(r.shift_date)+'|'+r.part_no+'|'+r.photo_id,
+        vehicle_photos:r=>String(r.vehicle_id)+'|'+r.photo_id
+      };
+      for(const name of PHOTO_TABLES){
+        const rows=Array.isArray(raw[name])?raw[name]:[];
+        const present=new Set(rows.map(relationKeys[name]));
+        for(const item of snapshot[name]||[]){
+          if(!present.has(relationKeys[name](item))){rows.push(item);present.add(relationKeys[name](item));}
+        }
+        raw[name]=rows;
       }
       const db=normalize(raw);
       status.mode='live';status.loadedAt=new Date().toISOString();
