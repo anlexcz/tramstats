@@ -15,20 +15,22 @@
     const seen=new Set();
     return (photos||[]).filter(p=>p?.id&&!seen.has(p.id)&&seen.add(p.id));
   };
-  function markup(photos,{label='Fotografie',scope='photo'}={}){
+  function markup(photos,{label='Fotografie',scope='photo',showEmpty=false}={}){
     const items=normalize(photos);
-    if(!items.length)return '';
+    if(!items.length&&!showEmpty)return '';
+    if(!items.length)return '<section class="ts-photos ts-photos-empty" aria-label="'+esc(label)+'"><header class="ts-photos-head"><strong>'+esc(label)+'</strong></header><div class="ts-photo-placeholder" role="status"><span class="ts-photo-placeholder-icon" aria-hidden="true">▧</span><span>Žádná fotografie není přiřazena</span></div></section>';
     return '<section class="ts-photos" aria-label="'+esc(label)+'">'+
       '<header class="ts-photos-head"><strong>'+esc(label)+'</strong><span>'+items.length+' '+(items.length===1?'fotografie':'fotografií')+'</span></header>'+
       '<div class="ts-photos-grid">'+items.map((p,i)=>{
         const src=imageUrl(p),original=safeUrl(p.originalFile);
         const caption=p.takenAt?esc(p.takenAt.replace('T',' ')):'Čas neuveden';
         const title=esc(p.description||'Fotografie '+(i+1));
+        const position=/^(?:\d{1,3}(?:\.\d+)?%\s+){1,2}\d{1,3}(?:\.\d+)?%?$/.test(String(p.objectPosition||'').trim())?String(p.objectPosition).trim():'50% 50%';
         return '<figure class="ts-photo-card" id="'+esc(scope+'-'+p.id.replace(/[^a-zA-Z0-9_-]/g,'_'))+'">'+
           (src?'<a href="'+esc(original||src)+'" target="_blank" rel="noopener noreferrer" class="ts-photo-frame" aria-label="Otevřít fotografii na Disku">'+
-            '<img loading="lazy" decoding="async" src="'+esc(src)+'" alt="'+title+'" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+
+            '<img loading="lazy" decoding="async" style="object-position:'+esc(position)+'" src="'+esc(src)+'" alt="'+title+'" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+
             '<span class="ts-photo-unavailable" hidden>Náhled není dostupný<br>Otevřít na Disku</span></a>':
-            '<a href="'+esc(original||'#')+'" target="_blank" rel="noopener noreferrer" class="ts-photo-frame ts-photo-unavailable">Otevřít na Disku</a>')+
+            (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" class="ts-photo-frame ts-photo-unavailable">Náhled není dostupný · Otevřít na Disku</a>':'<div class="ts-photo-frame ts-photo-unavailable" role="status">Náhled není dostupný</div>'))+
           '<figcaption><span>'+caption+'</span>'+(p.description?'<small>'+title+'</small>':'')+'</figcaption></figure>';
       }).join('')+'</div></section>';
   }
