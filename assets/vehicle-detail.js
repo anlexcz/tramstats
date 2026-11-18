@@ -49,7 +49,7 @@ function occurrenceMeta(rows){
 }
 function historyRow(row,{yearStart=false,year=null}={}){
   const hasPhoto=(row.photos||[]).length>0;
-  return `<article class="vehicle-history-row data-row row-link${yearStart?' vehicle-history-year-start':''}" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
+  return `<article class="vehicle-history-row entity-history-row data-row row-link${yearStart?' vehicle-history-year-start':''}" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
     ${yearStart?`<span class="vehicle-history-year-label">${esc(year)}</span>`:''}
     <strong class="vehicle-history-date">${date(row.date)}</strong>
     <strong class="vehicle-history-performance">${esc(row.performance)}</strong>
@@ -60,7 +60,7 @@ function historyRow(row,{yearStart=false,year=null}={}){
 }
 function history(rows){
   const years=Domain.yearly(rows);
-  return `<section class="vehicle-history data-panel" aria-label="Historie jízd">${years.map(group=>
+  return `<section class="vehicle-history entity-history data-panel" aria-label="Historie jízd">${years.map(group=>
     group.rows.map((row,index)=>historyRow(row,{yearStart:index===0,year:group.year})).join('')
   ).join('')}</section>`;
 }
@@ -86,7 +86,7 @@ document.addEventListener('click',event=>{
   if(photoButton){
     const id=photoButton.dataset.photoId;
     const node=document.getElementById('vehicle-photo-'+id.replace(/[^a-zA-Z0-9_-]/g,'_'));
-    if(node){node.scrollIntoView({behavior:'smooth',block:'center'});node.querySelector('a')?.focus();}
+    if(node)window.TramStatsPhotos?.showPhoto(node.id);
     return;
   }
   if(event.target.closest('button,a'))return;
