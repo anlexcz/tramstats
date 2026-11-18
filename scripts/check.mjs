@@ -87,7 +87,7 @@ const runtimeFiles=[
   'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js',
   'assets/app.css','assets/components.css','assets/dashboard-v2.css','assets/shifts-page.css','assets/shifts-date-range.css',
   'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/vehicle-links.css',
-  'index.html','shifts/index.html','vozy/index.html','404.html'
+  'index.html','smeny/index.html','shifts/index.html','vozy/index.html','404.html'
 ];
 for(const file of runtimeFiles){
   assert.equal(exists(file),true,`Missing runtime file: ${file}`);
@@ -137,7 +137,7 @@ assert.ok(dynamicRouter.includes('vozy'));
 
 // The dedicated static detail must use the same shell/router as dynamic dates.
 assert.equal(read('smeny/20261023/index.html'),read('404.html'));
-for(const file of ['index.html','shifts/index.html','vozy/index.html','404.html']){
+for(const file of ['index.html','smeny/index.html','vozy/index.html','404.html']){
   assert.match(read(file),/assets\/shared.js/);
   assert.doesNotMatch(read(file),/footer-v2.js/);
 }
@@ -215,6 +215,10 @@ assert.match(read('assets/dashboard-v2.js'), /tab=depots/);
 assert.match(read('assets/statistics.js'), /data-month/);
 assert.match(read('assets/statistics.js'), /stats-history/);
 assert.match(read('assets/statistics.js'), /s\.date<today/);
-assert.match(read('shifts/index.html'), /Statistiky směn/);
+assert.match(read('smeny/index.html'), /Statistiky směn/);
+assert.match(read('shifts/index.html'), /location\.replace/);
+assert.match(read('assets/shared.js'), /'shifts','Směny','smeny\//);
+assert.match(read('assets/app.js'), /path==='shifts'\|\|path==='smeny'/);
+for(const path of ['assets/dashboard-v2.js','assets/statistics.js','assets/shift-detail.js'])assert.doesNotMatch(read(path), /href="shifts\//);
 assert.match(read('vozy/index.html'), /Statistiky vozů/);
 console.log('PASS: statistics navigation and cross-link integrity');
