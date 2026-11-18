@@ -1,5 +1,4 @@
 .page-shift-detail .page-head{display:none}
-.page-shift-detail main{max-width:900px}
 .detail-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 14px}
 .detail-heading-date{display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:wrap}
 .detail-heading-date span{font-size:21px;font-weight:400;color:#f5f6f7}
@@ -56,7 +55,6 @@
 .detail-note-card{padding:12px 13px;border:1px solid #3f434a;background:var(--surface);border-radius:0;color:#e1e4e8}
 .detail-note-card strong{display:block;margin-bottom:5px;font-size:var(--font-control)}.detail-note-card p{margin:0;font-size:var(--font-meta);line-height:1.5}
 @media(max-width:650px){
-  .page-shift-detail main{padding-top:14px}
   .detail-heading{margin:0 0 12px;gap:10px}
   .detail-heading-date{gap:6px}
   .detail-heading-date span{font-size:18.5px;color:#f5f6f7;font-weight:400}

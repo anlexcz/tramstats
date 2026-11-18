@@ -33,74 +33,110 @@
   --label-muted:#8f959f;
   --text-strong:#f1f2f4;
 
-  /* Typography scale. Keep readable UI text on this scale instead of ad-hoc px values. */
-  --text-xs:11px;
-  --text-sm:12px;
-  --text-ui:13px;
-  --text-base:14px;
-  --text-md:15px;
-  --text-lg:17px;
+  /* Typography roles shared by the shell and data components. */
+  --font-ui:Montserrat,Arial,sans-serif;
+  --font-display:"Bebas Neue","Arial Narrow",sans-serif;
+  --font-caption:.75rem;
+  --font-meta:.8125rem;
+  --font-control:.875rem;
+  --font-body:.875rem;
+  --font-emphasis:1rem;
+  --font-section:1.125rem;
+  --font-page-title:3.625rem;
+  --font-brand:2rem;
+  --font-kpi:1.9375rem;
+  --font-kpi-compact:clamp(1.375rem,2vw,1.6875rem);
+  --leading-body:1.45;
+  --leading-control:1.25;
+  --leading-heading:1.2;
+  --letter-spaced:.045em;
 
-  /* Semantic typography roles used across pages. */
-  --font-caption:var(--text-xs);
-  --font-meta:var(--text-sm);
-  --font-control:var(--text-ui);
-  --font-body:var(--text-base);
-  --font-emphasis:var(--text-md);
-  --font-section:var(--text-lg);
+  --space-1:.25rem;
+  --space-2:.5rem;
+  --space-3:.75rem;
+  --space-4:1rem;
+  --space-5:1.25rem;
+  --space-6:1.5rem;
+  --space-8:2rem;
+  --space-10:2.5rem;
+  --space-12:3rem;
+  --radius-control:6px;
+  --radius-panel:8px;
+  --control-height:40px;
+  --touch-height:44px;
+  --edge:1px solid var(--line);
+  --edge-card:1px solid var(--card-border);
+  --edge-control:1px solid var(--control-border);
+  --surface-heading:#1d1f23;
+  --surface-hover:#30333a;
+  --ink:#f4f4f6;
+  --text-secondary:#cbd0d6;
+  --text-error:#f0d7d7;
+  --icon-muted:#9da3ac;
+
+  --content-wide:1400px;
+  --content-list:992px;
+  --content-detail:852px;
+  --page-gutter:var(--space-6);
+  --page-inset:var(--space-8);
+  --header-height:64px;
+  --navigation-height:calc(var(--touch-height) + 11px + env(safe-area-inset-bottom));
+  --focus-style:2px solid var(--interactive-focus);
+  --focus-offset:2px;
 }
-*{box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
+/* Presentational display rules must preserve the HTML hidden state. */
 [hidden]:not([hidden="until-found"]){display:none!important}
 body{
   margin:0;
   background:var(--bg);
-  color:#f4f4f6;
-  font:var(--font-body) Montserrat,Arial,sans-serif;
+  color:var(--ink);
+  font:var(--font-body)/var(--leading-body) var(--font-ui);
   font-variant-numeric:tabular-nums;
 }
 button,input,select{
   font:inherit;
   color:inherit;
   background:var(--surface);
-  border:1px solid var(--line);
+  border:var(--edge);
   border-radius:0;
   padding:11px;
 }
 button,a,select{touch-action:manipulation}
 button,a{cursor:pointer}
-button:hover{background:#30333a}
+button:enabled:hover{background:var(--surface-hover)}
 a{color:var(--link-accent);text-decoration:none}
 :is(a,button,select,input,[tabindex]):focus-visible{
-  outline:2px solid var(--interactive-focus);
-  outline-offset:3px;
+  outline:var(--focus-style);
+  outline-offset:var(--focus-offset);
 }
-header{
-  height:64px;
+body > header{
+  min-height:var(--header-height);
   border-bottom:1px solid var(--line);
   display:flex;
   align-items:center;
-  padding:0 24px;
-  gap:48px;
+  padding:0 var(--page-gutter);
+  gap:var(--space-12);
   background:var(--surface);
 }
 .brand{
-  font:32px 'Bebas Neue','Arial Narrow',sans-serif;
+  font:var(--font-brand)/1 var(--font-display);
   letter-spacing:1px;
   color:white;
 }
-nav{display:flex}
-nav a{
+#desktop-nav{display:flex;align-self:stretch}
+:is(#desktop-nav,#mobile-nav) a{
   display:flex;
   align-items:center;
   gap:9px;
-  padding:22px 18px;
+  padding:0 var(--space-4);
   color:var(--muted);
   border-bottom:3px solid transparent;
   font-size:var(--font-control);
   font-weight:500;
 }
-nav a.active{color:white;border-color:var(--interactive-active)}
-svg{
+#desktop-nav a[aria-current="page"]{color:var(--ink);border-color:var(--interactive-active)}
+:where(main,#desktop-nav,#mobile-nav) svg{
   width:20px;
   height:20px;
   stroke:currentColor;
@@ -116,16 +152,24 @@ svg{
   color:var(--muted);
 }
 .sandbox b{color:#c2c6cd}
-main{
-  max-width:1448px;
-  margin:auto;
-  padding:35px 24px;
+body > main{
+  max-width:calc(var(--content-wide) + 2 * var(--page-gutter));
+  margin-inline:auto;
+  padding:var(--page-inset) var(--page-gutter);
 }
+.page-vehicles #app,
+:is(#shift-detail,#vehicle-detail){
+  width:100%;
+  max-width:var(--content-region);
+  margin-inline:auto;
+}
+.page-vehicles{--content-region:var(--content-list)}
+.page-shift-detail,.page-vehicle-detail{--content-region:var(--content-detail)}
 .page-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  margin-bottom:25px;
+  margin-bottom:var(--space-6);
 }
 .eyebrow{
   font-size:var(--font-caption);
@@ -134,11 +178,11 @@ main{
   margin-bottom:7px;
 }
 h1{
-  font:58px/1 'Bebas Neue','Arial Narrow',sans-serif;
+  font:var(--font-page-title)/1 var(--font-display);
   margin:0;
   letter-spacing:1px;
 }
-h2{font-size:var(--font-section);margin:0 0 24px;font-weight:600}
+h2{font-size:var(--font-section);line-height:var(--leading-heading);margin:0 0 var(--space-6);font-weight:600}
 .hint{
   font-size:var(--font-meta);
   line-height:1.8;
@@ -147,7 +191,7 @@ h2{font-size:var(--font-section);margin:0 0 24px;font-weight:600}
 }
 .empty{
   padding:30px;
-  border:1px solid var(--line);
+  border:var(--edge);
   color:var(--muted);
 }
 .empty.error{
@@ -155,9 +199,9 @@ h2{font-size:var(--font-section);margin:0 0 24px;font-weight:600}
   box-shadow:inset 3px 0 var(--semantic-error);
   color:#f0d7d7;
 }
-footer{
-  margin-top:30px;
-  padding-top:16px;
+#footer{
+  margin-top:var(--space-8);
+  padding-top:var(--space-4);
   border-top:1px solid var(--line);
   color:var(--muted);
   font-size:var(--font-caption);
@@ -178,21 +222,27 @@ footer{
 #mobile-nav{display:none}
 
 @media(max-width:1000px){
-  header{gap:20px}
+  body > header{gap:var(--space-5)}
   .sandbox{display:none}
 }
 
 @media(max-width:650px){
-  header{height:57px;padding:0 16px}
-  header nav{display:none}
-  .brand{font-size:29px}
-  .sandbox{display:block;font-size:var(--font-caption)}
+  :root{
+    --page-gutter:var(--space-3);
+    --page-inset:var(--space-4);
+    --header-height:57px;
+    --font-brand:1.8125rem;
+    --font-page-title:2.875rem;
+    --font-kpi:1.625rem;
+  }
+  html{scroll-padding-block-end:calc(var(--navigation-height) + var(--space-2))}
+  body > header{gap:var(--space-3)}
+  #desktop-nav{display:none}
+  .sandbox{display:block}
   .sandbox b{display:none}
-  main{padding:18px 12px 86px}
-  .page-head{margin-bottom:12px}
-  h1{font-size:46px}
-  .eyebrow{font-size:var(--font-caption)}
-  h2{font-size:var(--font-emphasis);margin-bottom:18px}
+  body > main{padding-bottom:calc(var(--navigation-height) + var(--space-6))}
+  .page-head{margin-bottom:var(--space-3)}
+  h2{margin-bottom:var(--space-4)}
   #mobile-nav{
     display:flex;
     position:fixed;
@@ -207,13 +257,17 @@ footer{
   }
   #mobile-nav a{
     border:0;
-    padding:12px 28px;
+    padding:0 var(--space-2);
+    min-height:var(--touch-height);
+    justify-content:center;
+    flex:1;
+    min-width:0;
     color:var(--muted);
     position:relative;
     background:none;
   }
-  #mobile-nav a.active{color:var(--interactive-active)}
-  #mobile-nav a.active:after{
+  #mobile-nav a[aria-current="page"]{color:var(--interactive-active)}
+  #mobile-nav a[aria-current="page"]:after{
     position:absolute;
     content:'';
     width:16px;

@@ -20,7 +20,7 @@
   background:#24272c;
   color:#e6e8eb;
   padding:0 11px;
-  font:600 var(--font-body) Montserrat,sans-serif;
+  font:600 var(--font-body) var(--font-ui);
   text-align:left;
   cursor:pointer;
 }
@@ -50,7 +50,7 @@
 }
 .cal-head strong {
   text-align:center;
-  font:800 var(--font-body) Montserrat,sans-serif;
+  font:800 var(--font-body) var(--font-ui);
   letter-spacing:.06em;
 }
 .cal-head button,.cal-day {
@@ -58,7 +58,7 @@
   background:transparent;
   color:#dfe2e6;
   cursor:pointer;
-  font-family:Montserrat,sans-serif;
+  font-family:var(--font-ui);
 }
 .cal-head button {
   height:32px;
@@ -115,7 +115,7 @@
   background:var(--control-bg);
   color:#d7dae0;
   padding:7px 9px;
-  font:800 var(--font-caption) Montserrat,sans-serif;
+  font:800 var(--font-caption) var(--font-ui);
   cursor:pointer;
 }
 .cal-actions button[data-cal-ok] {
