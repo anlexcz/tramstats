@@ -210,6 +210,8 @@ assert.match(singleHTML,/6\+34\/7/);
 assert.match(singleHTML,/href="vuz\/8151\/"/);
 assert.match(singleHTML,/>Test</);
 assert.match(singleHTML,/Průběh směny/);
+assert.match(singleHTML,/entity-history-row/);
+assert.match(singleHTML,/entity-history-metrics/);
 const splitDB={...db,shifts:[{...split,date:'2026-01-01'}]};
 const splitHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',splitDB);
 assert.ok(splitHTML.includes('8:00'));
@@ -218,6 +220,10 @@ assert.ok(splitHTML.includes('Údaj není známý'));
 const vehicleHTML=await detailHTML('assets/vehicle-detail.js','/tramstats/vuz/8151/',db);
 assert.ok(vehicleHTML.includes('30 km'));
 assert.ok(vehicleHTML.includes('6+34/7'));
+assert.match(vehicleHTML,/entity-history-row/);
+assert.match(read('assets/detail-layout.css'),/entity-history-row/);
+assert.match(read('assets/shift-detail.js'),/entity-summary-row/);
+assert.match(read('assets/photo-gallery.js'),/showPhoto/);
 console.log('PASS: shift and vehicle detail rendering');
 
 // Statistics smoke checks: page entry point, module dependencies and navigation.
