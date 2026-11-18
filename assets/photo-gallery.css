@@ -17,3 +17,13 @@
 @media(max-width:650px){.ts-photos{padding:10px}.ts-photos-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
 
 .ts-photo-api-error{color:#e0bb8b;font-size:12px;margin:8px 0 16px;padding:8px 10px;border:1px solid #705838;background:#29241f}
+
+/* Unified 4:3 photo media: stable layout for landscape and portrait originals. */
+.ts-photos{--ts-photo-ratio:4 / 3}
+.ts-photo-frame{aspect-ratio:var(--ts-photo-ratio);position:relative}
+.ts-photo-frame img{object-fit:cover;object-position:center}
+.ts-photo-frame:focus-visible{outline:2px solid var(--accent-secondary,#70d3ce);outline-offset:-2px}
+.ts-photo-placeholder{aspect-ratio:var(--ts-photo-ratio);max-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#171b20;border:1px dashed #454d57;color:#adb6bf;text-align:center;padding:16px;font-size:var(--font-caption,12px)}
+.ts-photo-placeholder-icon{font-size:32px;line-height:1;color:#778793}
+.ts-photos-empty .ts-photo-placeholder{width:100%}
+@media(max-width:650px){.ts-photos-empty .ts-photo-placeholder{max-height:210px}}
