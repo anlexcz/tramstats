@@ -13,3 +13,10 @@
 .ts-photo-card figcaption small{font-size:var(--font-caption);color:var(--muted)}
 .ts-photos:target{outline:1px solid var(--accent-secondary)}
 @media(max-width:650px){.ts-photos-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}}
+
+/* Gallery as a horizontal, keyboard-scrollable carousel within the common detail header. */
+.entity-detail-gallery .ts-photos-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-inline:contain;scrollbar-width:thin}
+.entity-detail-gallery .ts-photo-card{flex:0 0 100%;scroll-snap-align:start}
+.ts-photos-controls{display:flex;justify-content:center;align-items:center;gap:var(--space-3);margin-top:var(--space-2)}
+.ts-photos-controls .ui-control{min-width:var(--touch-height);padding:var(--space-2)}
+.ts-photos-counter{color:var(--muted);font-size:var(--font-meta)}
