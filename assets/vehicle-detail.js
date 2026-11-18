@@ -27,7 +27,7 @@ function dayText(days){
 }
 function shiftHref(iso){return `smeny/${String(iso).replaceAll('-','')}/`;}
 function galleryHTML(rows,photos){
-  return window.TramStatsPhotos?.markup(photos,{label:'Fotografie vozu',scope:'vehicle-photo'})||'';
+  return window.TramStatsPhotos?.markup(photos,{label:'Fotografie vozu',scope:'vehicle-photo',showEmpty:true})||'';
 }
 function summaryTable(rows){
   const total=Domain.summary(rows),years=Domain.yearly(rows);
