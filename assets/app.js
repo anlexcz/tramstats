@@ -62,7 +62,7 @@ const dashboardFallback=()=>'<div class="empty">Načítám přehled…</div>';
 
 function currentView(){
   const path=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean).at(-1)||'';
-  if(path==='shifts'||path==='smeny')return'shifts';
+  if(path==='smeny')return'shifts';
   if(path==='vozy')return'vehicles';
   return'overview';
 }
