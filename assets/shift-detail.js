@@ -61,7 +61,7 @@ function assignment(part){
   const course=courseLabel(part);
   const vehicle=vehicleText(part);
   const lines=lineLinks(part);
-  return `<div class="shift-assignment">
+  return `<div class="shift-assignment entity-history-primary">
     <div class="shift-assignment-main">
       <strong class="shift-performance">${esc(performanceLabel(part))}</strong>
       ${course?`<small>${esc(course)}</small>`:''}
@@ -77,14 +77,14 @@ function intervalHTML(start,end){
 }
 function partRow(part){
   const duration=partDuration(part);
-  return `<li class="shift-part">
+  return `<li class="shift-part entity-history-row">
     ${assignment(part)}
-    <div class="shift-part-metrics">
+    <div class="shift-part-metrics entity-history-metrics">
       <span>${intervalHTML(part.start,part.end)}</span>
       <span>${kmHTML([part])}</span>
       ${duration!=null?`<span aria-label="Délka ${hm(duration)}">${hm(duration)}</span>`:''}
     </div>
-    ${part.note?`<p class="shift-note">${esc(part.note)}</p>`:''}
+    ${part.note?`<p class="shift-note entity-history-note">${esc(part.note)}</p>`:''}
   </li>`;
 }
 function partsCard(blocks,parts){
@@ -93,7 +93,7 @@ function partsCard(blocks,parts){
     <h2>Průběh směny</h2>
     ${blocks.map((block,index)=>`
       ${index===1?'<p class="shift-block-divider">Šejdrpauza</p>':''}
-      <ol class="shift-part-list data-panel">${block.parts.map(partRow).join('')}</ol>
+      <ol class="shift-part-list entity-history data-panel">${block.parts.map(partRow).join('')}</ol>
     `).join('')}
   </section>`;
 }
@@ -110,7 +110,7 @@ function renderShift(shift){
   const single=parts.length===1?parts[0]:null;
   const blocks=Domain.blocks(shift);
   const date=dateParts(shift.date);
-  const range=single||blockRange({parts});
+  const range=blockRange({parts});
   const isSplit=shift.actualShift==='Š'&&blocks.length>1;
   const type=shift.shiftType?.name||shift.actualShift;
   const depot=shift.depotMeta?.name||shift.depot;
@@ -123,7 +123,7 @@ function renderShift(shift){
   const performanceOf=block=>Domain.performanceRows({...shift,actualShift:'R',parts:block.parts}).flatMap(row=>row.badges.map(b=>b.label)).join(', ')||'—';
   const summaryRows=isSplit?[
     ['Výkon','—',esc(performanceOf(blocks[0])),esc(performanceOf(blocks[1]))],
-    ['Čas', '—',intervalHTML(blockRange({parts:blocks[0].parts}).start,blockRange({parts:blocks[0].parts}).end),intervalHTML(blockRange({parts:blocks[1].parts}).start,blockRange({parts:blocks[1].parts}).end)],
+    ['Čas', '—',intervalHTML(blockRange(blocks[0]).start,blockRange(blocks[0]).end),intervalHTML(blockRange(blocks[1]).start,blockRange(blocks[1]).end)],
     ['Délka',Shared.metricHTML(Domain.durationMetric(shift),'time'),durationOf(blocks[0]),durationOf(blocks[1])],
     ['Kilometry',kmHTML(parts),metricOf(blocks[0]),metricOf(blocks[1])]
   ]:[
@@ -166,7 +166,7 @@ document.addEventListener('click',event=>{
   const first=part?.photos?.[0];
   if(!first)return;
   const node=document.getElementById('shift-photo-'+first.id.replace(/[^a-zA-Z0-9_-]/g,'_'));
-  if(node){node.scrollIntoView({behavior:'smooth',block:'center'});node.querySelector('a')?.focus();}
+  if(node)window.TramStatsPhotos?.showPhoto(node.id);
 });
 async function boot(){
   const wanted=routeDate();
