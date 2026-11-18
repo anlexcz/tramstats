@@ -12,7 +12,7 @@ function linkDashboardVehicles(){
     ids.forEach((id,index)=>{
       if(index)item.append(document.createTextNode(' + '));
       const a=document.createElement('a');
-      a.href=`vozy/${encodeURIComponent(id)}/`;
+      a.href=`vuz/${encodeURIComponent(id)}/`;
       a.textContent=id;
       a.className='dash-vehicle-link';
       item.append(a);
