@@ -140,7 +140,7 @@ function renderShift(shift){
   root.innerHTML=`
     <div class="detail-heading">
       <div class="detail-heading-date"><span>${esc(parts.day)}</span><strong>${esc(parts.date)}</strong></div>
-      <a class="detail-back" href="shifts/">← Zpět</a>
+      <a class="detail-back" href="smeny/">← Zpět</a>
     </div>
     <nav class="detail-context-links" aria-label="Související statistiky">
       <a href="statistiky/?tab=shifts&year=${encodeURIComponent(shift.date.slice(0,4))}">Statistiky směn</a>
