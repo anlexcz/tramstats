@@ -17,7 +17,7 @@ function metricHTML(metric,kind='km'){
 }
 function route(){
   const path=location.pathname;
-  return /\/shifts\/?$|\/smeny\/(?:\d{8})?\/?$/.test(path)?'shifts':/\/vozy(?:\/[^/]+)?\/?$/.test(path)?'vehicles':/\/statistiky\/?$/.test(path)?'statistics':'overview';
+  return /\/smeny\/?$|\/smena\/\d{8}\/?$/.test(path)?'shifts':/\/vozy\/?$|\/vuz\/[^/]+\/?$/.test(path)?'vehicles':/\/statistiky\/?$/.test(path)?'statistics':'overview';
 }
 const icons={overview:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',shifts:'<rect x="3" y="5" width="18" height="16"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>',vehicles:'<rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M9 19l-2 3M15 19l2 3M9 15h.01M15 15h.01"/>',statistics:'<path d="M4 20V11M10 20V4M16 20v-8M22 20V7"/>'};
 const pages=[['overview','Přehled','./'],['shifts','Směny','smeny/'],['vehicles','Vozy','vozy/'],['statistics','Statistiky','statistiky/']];
