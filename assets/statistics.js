@@ -112,7 +112,7 @@ function aggregate(rows){
     lines:lineMap.size,vehicles:vehicleMap.size};
 }
 function kpi(name,value,change=''){
- return '<div class="stats-kpi"><span>'+esc(name)+'</span><strong>'+value+'</strong>'+(change?'<small>'+change+'</small>':'')+'</div>';
+ return '<div class="stats-kpi data-card panel-padded"><span class="kpi-label">'+esc(name)+'</span><strong class="kpi-value">'+value+'</strong>'+(change?'<small>'+change+'</small>':'')+'</div>';
 }
 function shown(m,kind='km'){return esc(Shared.metricText(m,kind))}
 function deltaTime(current,prior){
@@ -127,13 +127,13 @@ function delta(current,prior,unit='',prec=1){
  return '<span class="'+(diff>0?'stats-up':diff<0?'stats-down':'')+'">'+sign+format(diff,prec)+' '+esc(unit)+percent+'</span>';
 }
 function panel(title,inner,note='',wide=false){
- return '<section class="stats-panel'+(wide?' wide':'')+'"><h2>'+esc(title)+'</h2>'+(note?'<p>'+esc(note)+'</p>':'')+inner+'</section>';
+ return '<section class="stats-panel data-panel panel-padded'+(wide?' wide':'')+'"><h2>'+esc(title)+'</h2>'+(note?'<p>'+esc(note)+'</p>':'')+inner+'</section>';
 }
 function bars(map,value,label,limit=12,drill=false){
  const rows=[...map.values()].map(x=>({x,v:value(x)})).filter(({v})=>v!=null&&Number.isFinite(v)).sort((a,b)=>b.v-a.v).slice(0,limit);
- if(!rows.length)return '<div class="stats-empty">Pro zvolené období nejsou dostupné hodnoty.</div>';
+ if(!rows.length)return '<div class="empty empty--inline">Pro zvolené období nejsou dostupné hodnoty.</div>';
  const max=Math.max(1,...rows.map(r=>r.v));
- return '<div class="stats-bars">'+rows.map(({x,v})=>'<div class="stats-bar">'+(drill==='vehicle'?'<a class="stats-bar-label" href="vuz/'+encodeURIComponent(x.name)+'/">'+esc(label(x))+'</a>':drill?'<button class="stats-bar-label" data-line="'+esc(x.name)+'">'+esc(label(x))+'</button>':'<span class="stats-bar-label" title="'+esc(label(x))+'">'+esc(label(x))+'</span>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+Math.max(0,v/max*100)+'%"></div></div><span class="stats-bar-value">'+format(v,1)+'</span></div>').join('')+'</div>';
+ return '<div class="stats-bars">'+rows.map(({x,v})=>'<div class="stats-bar">'+(drill==='vehicle'?'<a class="stats-bar-label" href="vuz/'+encodeURIComponent(x.name)+'/">'+esc(label(x))+'</a>':drill?'<button class="stats-bar-label" data-line="'+esc(x.name)+'">'+esc(label(x))+'</button>':'<span class="stats-bar-label" title="'+esc(label(x))+'">'+esc(label(x))+'</span>')+'<div class="stats-bar-track bar-track"><div class="bar-fill" style="width:'+Math.max(0,v/max*100)+'%"></div></div><span class="stats-bar-value">'+format(v,1)+'</span></div>').join('')+'</div>';
 }
 function monthly(a,field='km'){
  const out=new Map();
@@ -146,10 +146,10 @@ function monthly(a,field='km'){
 function timeline(a,field='km'){
  const daily=Boolean(state.drill);
  const items=daily?[...a.daily.values()].sort((x,y)=>x.date.localeCompare(y.date)).map(row=>({name:row.date,shifts:row.shifts,kmItems:row.kmItems,timeItems:row.timeItems})):monthly(a);
- if(!items.length)return '<div class="stats-empty">Žádné pracovní směny v období.</div>';
+ if(!items.length)return '<div class="empty empty--inline">Žádné pracovní směny v období.</div>';
  const all=new Map(items.map(x=>[x.name,x]));
  let start=interval().from.slice(0,daily?10:7),end=interval().to.slice(0,daily?10:7);
- if(start>end)return '<div class="stats-empty">Neplatný rozsah.</div>';
+ if(start>end)return '<div class="empty empty--inline">Neplatný rozsah.</div>';
  let months=[],d=new Date((daily?start:start+'-01')+'T12:00:00');
  while(isoDate(d).slice(0,daily?10:7)<=end&&months.length<240){
    const key=isoDate(d).slice(0,daily?10:7);months.push(all.get(key)||{name:key,shifts:0,kmItems:[],timeItems:[]});
@@ -160,10 +160,10 @@ function timeline(a,field='km'){
  return '<div class="stats-bars">'+selected.map(x=>{
    const label=daily?dateLabel(x.name):(x.name.slice(5)+'. '+x.name.slice(0,4));
    const value=x.metric.value;
-   return '<div class="stats-bar">'+(daily?((field==='shifts'?x.metric.value===0:x.metric.value==null)?'<span class="stats-bar-label">'+esc(label)+'</span>':'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>'):'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track"><div class="stats-bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
+   return '<div class="stats-bar">'+(daily?((field==='shifts'?x.metric.value===0:x.metric.value==null)?'<span class="stats-bar-label">'+esc(label)+'</span>':'<a class="stats-bar-label" href="'+shiftHref(x.name)+'">'+esc(label)+'</a>'):'<button class="stats-bar-label" data-month="'+esc(x.name)+'" title="Otevřít podrobnosti za '+esc(label)+'">'+esc(label)+'</button>')+'<div class="stats-bar-track bar-track"><div class="bar-fill" style="width:'+(value==null?0:Math.max(0,value/max*100))+'%"></div></div><span class="stats-bar-value">'+(field==='shifts'?format(value??0,0):field==='time'?shown(x.metric,'time'):shown(x.metric))+'</span></div>';
  }).join('')+'</div>';
 }
-function record(label,s,value,formatter){return '<div class="stats-record"><span>'+esc(label)+'</span><strong>'+formatter(value)+'</strong><a href="smena/'+s.date.replaceAll('-','')+'/">'+esc(dateLabel(s.date))+'</a></div>'}
+function record(label,s,value,formatter){return '<div class="stats-record data-card panel-padded"><span>'+esc(label)+'</span><strong>'+formatter(value)+'</strong><a href="smena/'+s.date.replaceAll('-','')+'/">'+esc(dateLabel(s.date))+'</a></div>'}
 function records(a){
  const fullKm=a.w.map(s=>({s,m:kmOf(s)})).filter(x=>x.m.complete&&x.m.value!=null);
  const fullTime=a.w.map(s=>({s,m:timeOf(s)})).filter(x=>x.m.complete&&x.m.value!=null);
@@ -171,11 +171,11 @@ function records(a){
  const list=[];
  if(fullKm.length){const hi=order(fullKm,-1)[0],lo=order(fullKm,1)[0];list.push(record('Nejvíce km za směnu',hi.s,hi.m.value,x=>format(x)+' km'),record('Nejméně km za směnu',lo.s,lo.m.value,x=>format(x)+' km'))}
  if(fullTime.length){const hi=order(fullTime,-1)[0],lo=order(fullTime,1)[0];list.push(record('Nejdelší směna',hi.s,hi.m.value,duration),record('Nejkratší směna',lo.s,lo.m.value,duration))}
- return list.length?'<div class="stats-records">'+list.join('')+'</div>':'<div class="stats-empty">Žádné úplné záznamy pro rekordy.</div>';
+ return list.length?'<div class="stats-records">'+list.join('')+'</div>':'<div class="empty empty--inline">Žádné úplné záznamy pro rekordy.</div>';
 }
 function breakdownTable(map,fields){
  const arr=[...map.values()].sort((a,b)=>((b.shifts instanceof Set?b.shifts.size:b.shifts||0)-(a.shifts instanceof Set?a.shifts.size:a.shifts||0)));
- if(!arr.length)return '<div class="stats-empty">V období nejsou evidované výkony.</div>';
+ if(!arr.length)return '<div class="empty empty--inline">V období nejsou evidované výkony.</div>';
  return '<div class="stats-table-wrap"><table class="stats-table"><thead><tr><th>Skupina</th><th>Směny</th><th>Km</th></tr></thead><tbody>'+
  arr.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+format(x.shifts instanceof Set?x.shifts.size:x.shifts||0,0)+'</td><td>'+shown(metric(x.kmItems))+'</td></tr>').join('')+'</tbody></table></div>';
 }
@@ -198,7 +198,7 @@ function shiftStats(a){
  for(const day of set){if(set.has(dayAdd(day,-1)))continue;let n=0,c=day;while(set.has(c)){n++;c=dayAdd(c,1)}best=Math.max(best,n)}
  return panel('Typy směn',breakdownTable(a.typeMap))+
  panel('Počet směn podle dnů v týdnu',bars(weekday,x=>x.count,x=>x.name,7))+
- panel('Délky a série','<div class="stats-records"><div class="stats-record"><span>Průměrná délka úplných směn</span><strong>'+duration(avg)+'</strong></div><div class="stats-record"><span>Nejdelší doložená série pracovních dnů</span><strong>'+best+' dnů</strong></div></div>','Série se počítají pouze z evidovaných pracovních dat; neúplná evidence nemusí dokládat nepřerušenou řadu.',true)+
+ panel('Délky a série','<div class="stats-records"><div class="stats-record data-card panel-padded"><span>Průměrná délka úplných směn</span><strong>'+duration(avg)+'</strong></div><div class="stats-record data-card panel-padded"><span>Nejdelší doložená série pracovních dnů</span><strong>'+best+' dnů</strong></div></div>','Série se počítají pouze z evidovaných pracovních dat; neúplná evidence nemusí dokládat nepřerušenou řadu.',true)+
  panel('Vývoj počtu směn',timeline(a,'shifts'),'Kliknutím na měsíc zobrazíš podrobnější období.',true);
 }
 function lineStats(a){
@@ -211,15 +211,15 @@ function lineStats(a){
    const m=metric(selection.kmItems);
    const days=[...selection.shifts].sort().reverse().slice(0,25);
    details=panel('Linka '+selection.name,
-    '<div class="stats-actions"><a class="stats-detail-link" href="'+statHref('lines',{line:selection.name})+'">Odkaz na detail</a><a class="stats-detail-link" href="smeny/">Všechny směny</a></div><div class="stats-records">'+
-    '<div class="stats-record"><span>Směny</span><strong>'+selection.shifts.size+'</strong></div>'+
-    '<div class="stats-record"><span>Části výkonu</span><strong>'+selection.parts.size+'</strong></div>'+
-    '<div class="stats-record"><span>Kilometry</span><strong>'+shown(m)+'</strong></div>'+
-    '<div class="stats-record"><span>Různé vozy</span><strong>'+selection.vehicles.size+'</strong></div>'+
-    '<div class="stats-record"><span>Vozovny</span><strong>'+esc([...selection.depots].sort().join(', ')||'—')+'</strong></div>'+
-    '<div class="stats-record"><span>První / poslední výskyt</span><strong>'+dateLabel(selection.first)+' / '+dateLabel(selection.last)+'</strong></div></div>',
+    '<div class="stats-actions"><a class="context-link" href="'+statHref('lines',{line:selection.name})+'">Odkaz na detail</a><a class="context-link" href="smeny/">Všechny směny</a></div><div class="stats-records">'+
+    '<div class="stats-record data-card panel-padded"><span>Směny</span><strong>'+selection.shifts.size+'</strong></div>'+
+    '<div class="stats-record data-card panel-padded"><span>Části výkonu</span><strong>'+selection.parts.size+'</strong></div>'+
+    '<div class="stats-record data-card panel-padded"><span>Kilometry</span><strong>'+shown(m)+'</strong></div>'+
+    '<div class="stats-record data-card panel-padded"><span>Různé vozy</span><strong>'+selection.vehicles.size+'</strong></div>'+
+    '<div class="stats-record data-card panel-padded"><span>Vozovny</span><strong>'+esc([...selection.depots].sort().join(', ')||'—')+'</strong></div>'+
+    '<div class="stats-record data-card panel-padded"><span>První / poslední výskyt</span><strong>'+dateLabel(selection.first)+' / '+dateLabel(selection.last)+'</strong></div></div>',
    'Kilometry jsou osobní, pouze podle doloženého rozdělení po linkách.',true)+panel('Poslední směny na lince '+selection.name,
-    '<div class="stats-history">'+days.map(d=>'<a href="'+shiftHref(d)+'">'+esc(dateLabel(d))+'</a>').join('')+'</div>',
+    '<div class="stats-history link-group">'+days.map(d=>'<a class="context-link" href="'+shiftHref(d)+'">'+esc(dateLabel(d))+'</a>').join('')+'</div>',
     'Maximálně 25 posledních doložených směn.',true);
  }
  return details+list;
@@ -239,7 +239,7 @@ function distanceStats(a){
  const months=monthly(a);
  const cumulative=months.map(x=>{const m=metric(x.kmItems);if(m.value!=null)running+=m.value;return {name:x.name,value:running,complete:m.complete}});
  return panel('Kilometry po měsících',timeline(a,'km'),'Přiblížení kliknutím na konkrétní měsíc.',true)+
- panel('Průměr a úplnost','<div class="stats-records"><div class="stats-record"><span>Průměr na úplnou směnu</span><strong>'+(avg==null?'—':format(avg)+' km')+'</strong></div><div class="stats-record"><span>Směny s úplnými km</span><strong>'+complete.length+' / '+a.shifts+'</strong></div></div>')+
+ panel('Průměr a úplnost','<div class="stats-records"><div class="stats-record data-card panel-padded"><span>Průměr na úplnou směnu</span><strong>'+(avg==null?'—':format(avg)+' km')+'</strong></div><div class="stats-record data-card panel-padded"><span>Směny s úplnými km</span><strong>'+complete.length+' / '+a.shifts+'</strong></div></div>')+
  panel('Doložená kumulativní kilometráž',bars(new Map(cumulative.map(x=>[x.name,x])),x=>x.value,x=>x.name,240),'Kumulativní součet zahrnuje jen známé hodnoty, proto může být pouze dolní hranicí.',true);
 }
 function timeStats(a){
@@ -268,7 +268,7 @@ function render(){
  const focusedId=root.contains(document.activeElement)?document.activeElement.id:'';
  let tablist=root.querySelector('.stats-tabs');
  if(!tablist){
-   root.innerHTML='<div class="stats-tabs" role="tablist" aria-label="Oblasti statistik">'+tabs.map(([id,label])=>'<button type="button" role="tab" id="stats-tab-'+id+'" aria-controls="stats-panel" data-tab="'+id+'">'+label+'</button>').join('')+'</div><div id="stats-content"></div>';
+   root.innerHTML='<div class="stats-tabs" role="tablist" aria-label="Oblasti statistik">'+tabs.map(([id,label])=>'<button class="ui-control" type="button" role="tab" id="stats-tab-'+id+'" aria-controls="stats-panel" data-tab="'+id+'">'+label+'</button>').join('')+'</div><div id="stats-content"></div>';
    tablist=root.querySelector('.stats-tabs');
  }
  for(const tab of tablist.children){
@@ -278,13 +278,13 @@ function render(){
  }
  const content=root.querySelector('#stats-content');
  content.innerHTML=
- '<div class="stats-toolbar"><label class="stats-field">Období<select id="stats-period"><option value="year">Rok</option><option value="month">Měsíc</option><option value="all">Celá historie</option><option value="custom">Vlastní období</option></select></label>'+
- ((state.period==='year'||state.period==='month')?'<label class="stats-field">Rok<select id="stats-year">'+years.map(y=>'<option value="'+y+'">'+y+'</option>').join('')+'</select></label>':'')+
- (state.period==='month'?'<label class="stats-field">Měsíc<select id="stats-month">'+Array.from({length:12},(_,i)=>{const n=String(i+1).padStart(2,'0');return '<option value="'+n+'">'+n+'</option>'}).join('')+'</select></label>':'')+
- (state.period==='custom'?'<label class="stats-field">Od<input type="date" id="stats-from" value="'+esc(state.from)+'"></label><label class="stats-field">Do<input type="date" id="stats-to" value="'+esc(state.to)+'"></label>':'')+
- '<div class="stats-actions"><button id="stats-compare" aria-pressed="'+state.compare+'">Srovnání '+(state.compare?'zapnuto':'vypnuto')+'</button>'+(state.compare?'<button id="stats-manual" aria-pressed="'+state.manual+'">Vlastní srovnání</button>':'')+'</div>'+
- (state.compare&&state.manual?'<label class="stats-field">Srovnat od<input type="date" id="stats-compare-from" value="'+esc(state.compareFrom)+'"></label><label class="stats-field">Srovnat do<input type="date" id="stats-compare-to" value="'+esc(state.compareTo)+'"></label>':'')+'</div>'+
- (state.drill?'<div class="stats-selected"><span>Detail: '+esc(dateLabel(state.drill.from))+' – '+esc(dateLabel(state.drill.to))+'</span><button id="stats-back">Zpět na období</button></div>':'')+
+ '<div class="stats-toolbar data-panel panel-padded"><label class="stats-field">Období<select class="ui-control" id="stats-period"><option value="year">Rok</option><option value="month">Měsíc</option><option value="all">Celá historie</option><option value="custom">Vlastní období</option></select></label>'+
+ ((state.period==='year'||state.period==='month')?'<label class="stats-field">Rok<select class="ui-control" id="stats-year">'+years.map(y=>'<option value="'+y+'">'+y+'</option>').join('')+'</select></label>':'')+
+ (state.period==='month'?'<label class="stats-field">Měsíc<select class="ui-control" id="stats-month">'+Array.from({length:12},(_,i)=>{const n=String(i+1).padStart(2,'0');return '<option value="'+n+'">'+n+'</option>'}).join('')+'</select></label>':'')+
+ (state.period==='custom'?'<label class="stats-field">Od<input class="ui-control" type="date" id="stats-from" value="'+esc(state.from)+'"></label><label class="stats-field">Do<input class="ui-control" type="date" id="stats-to" value="'+esc(state.to)+'"></label>':'')+
+ '<div class="stats-actions"><button class="ui-control" id="stats-compare" aria-pressed="'+state.compare+'">Srovnání '+(state.compare?'zapnuto':'vypnuto')+'</button>'+(state.compare?'<button class="ui-control" id="stats-manual" aria-pressed="'+state.manual+'">Vlastní srovnání</button>':'')+'</div>'+
+ (state.compare&&state.manual?'<label class="stats-field">Srovnat od<input class="ui-control" type="date" id="stats-compare-from" value="'+esc(state.compareFrom)+'"></label><label class="stats-field">Srovnat do<input class="ui-control" type="date" id="stats-compare-to" value="'+esc(state.compareTo)+'"></label>':'')+'</div>'+
+ (state.drill?'<div class="stats-selected"><span>Detail: '+esc(dateLabel(state.drill.from))+' – '+esc(dateLabel(state.drill.to))+'</span><button class="ui-control" id="stats-back">Zpět na období</button></div>':'')+
  '<p class="stats-caption">Období: '+esc(valid?dateLabel(from)+' – '+dateLabel(to):'Neplatný rozsah')+(state.compare?' · Srovnání: '+esc(dateLabel(prev.from)+' – '+dateLabel(prev.to)):'')+' · Dnešní neuzavřený den a budoucí směny nejsou započteny.</p>'+
  summary(a,b)+
  '<div class="stats-grid" role="tabpanel" tabindex="0" id="stats-panel" aria-labelledby="stats-tab-'+state.tab+'">'+(
@@ -297,7 +297,7 @@ function render(){
  :state.tab==='time'?timeStats(a)
  :state.tab==='depots'?depotStats(a)
  :recordStats(a)
- )+'</div><nav class="stats-crossnav" aria-label="Související přehledy"><a href="smeny/">Evidence směn</a><a href="vozy/">Katalog vozů</a><a href="'+statHref('lines')+'">Statistiky linek</a><a href="'+statHref('depots')+'">Statistiky vozoven</a></nav><p class="stats-note">Zdroj: živá databáze TramStats (Google Sheets). „≥“ znamená neúplný součet, „—“ chybějící údaj. Statistiky evidují osobní kilometry; při soupravách nedochází k jejich násobení počtem vozů. Zobrazené období vždy končí nejpozději včerejškem.</p>';
+ )+'</div><nav class="stats-crossnav link-group" aria-label="Související přehledy"><a class="context-link" href="smeny/">Evidence směn</a><a class="context-link" href="vozy/">Katalog vozů</a><a class="context-link" href="'+statHref('lines')+'">Statistiky linek</a><a class="context-link" href="'+statHref('depots')+'">Statistiky vozoven</a></nav><p class="stats-note">Zdroj: živá databáze TramStats (Google Sheets). „≥“ znamená neúplný součet, „—“ chybějící údaj. Statistiky evidují osobní kilometry; při soupravách nedochází k jejich násobení počtem vozů. Zobrazené období vždy končí nejpozději včerejškem.</p>';
  root.querySelector('#stats-period').value=state.period;
  if(root.querySelector('#stats-year'))root.querySelector('#stats-year').value=state.year;
  if(root.querySelector('#stats-month'))root.querySelector('#stats-month').value=state.month;
@@ -336,5 +336,5 @@ root.addEventListener('click',e=>{
  if(e.target.closest('#stats-compare')){state.compare=!state.compare;render();return}
  if(e.target.closest('#stats-manual')){state.manual=!state.manual;render()}
 });
-window.TramStatsData.load().then(db=>{state.db=db;status.textContent='';render()}).catch(err=>{status.textContent='Statistiky nelze načíst: '+String(err?.message||err);status.classList.add('status-error')});
+window.TramStatsData.load().then(db=>{state.db=db;status.textContent='';render()}).catch(error=>Shared.reportError(status,'Statistiky se nepodařilo načíst.',error));
 })();

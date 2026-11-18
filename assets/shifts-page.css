@@ -1,8 +1,5 @@
 /* Unified shifts page: one renderer, one layout source of truth. */
 
- .page-shifts .period {
-  display:none;
-}
 /* Page layout */
 
 .page-shifts #app {
@@ -34,7 +31,6 @@
   grid-area:list;
   min-width:0;
   max-width:100%;
-  overflow:hidden;
 }
 .shift-load-more {
   grid-area:more;
@@ -46,9 +42,6 @@
 }
 .shift-load-more button {
   min-width:260px;
-  border:1px solid #4a4e56;
-  background:var(--control-bg);
-  color:#f4f5f7;
   padding:13px 22px;
   font-size:var(--font-meta);
   font-weight:800;
@@ -82,7 +75,7 @@
 .shift-search input {
   width:100%;
   padding-left:31px;
-  font-size:var(--font-meta);
+  font-size:var(--font-control);
 }
 #mobile-filter-open {
   display:none;
@@ -132,18 +125,9 @@
 }
 .shift-page-size button {
   min-width:0;
-  border:var(--edge-control);
-  background:var(--control-bg);
-  color:#c8ccd2;
   padding:7px 2px;
   font-size:var(--font-meta);
   font-weight:700;
-}
-.shift-page-size button.active {
-  border-color:var(--red);
-  background:#353035;
-  color:#fff;
-  box-shadow:inset 0 -2px var(--red);
 }
 .shift-clear-filters {
   border:0;
@@ -175,14 +159,11 @@
   text-decoration:none;
   color:inherit;
   margin-bottom:7px;
-  border:var(--edge-card);
-  background:var(--card);
   transition:border-color .14s ease,background-color .14s ease;
   min-width:0;
   max-width:100%;
   position:relative;
 }
-.shift-list-work{cursor:pointer}
 .shift-list-card:hover {
   border-color:#555a63;
   background:#282a2f;
@@ -412,9 +393,6 @@
     grid-column:2;
     align-items:center;
     gap:5px;
-    border:var(--edge-control);
-    background:var(--control-bg);
-    color:var(--text-strong);
     padding:0 10px;
     font-size:var(--font-meta);
     font-weight:800;
@@ -680,7 +658,7 @@
     border:0;
     background:var(--red);
     color:var(--on-accent);
-    padding:12px;
+    padding:var(--space-3);
     font-size:var(--font-control);
     font-weight:800;
     min-height:44px;

@@ -18,7 +18,7 @@
   function markup(photos,{label='Fotografie',scope='photo'}={}){
     const items=normalize(photos);
     if(!items.length)return '';
-    return '<section class="ts-photos" aria-label="'+esc(label)+'">'+
+    return '<section class="ts-photos data-panel panel-padded" aria-label="'+esc(label)+'">'+
       '<header class="ts-photos-head"><strong>'+esc(label)+'</strong><span>'+items.length+' '+(items.length===1?'fotografie':'fotografií')+'</span></header>'+
       '<div class="ts-photos-grid">'+items.map((p,i)=>{
         const src=imageUrl(p),original=safeUrl(p.originalFile);

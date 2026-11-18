@@ -37,7 +37,13 @@ function footer(db){
   const source=db?'Živá data z TramStats – databáze':window.TramStatsData?.status.mode==='error'?'Databáze momentálně nedostupná':'Načítám evidenci…';
   node.innerHTML=`<div class="site-footer"><div class="footer-brand"><strong>TRAMSTATS</strong><span>Osobní evidence tramvajových směn, vozů a kilometrů.</span></div><div class="footer-meta"><span>ANLEX / TRAMVAJOVÁNÍ</span><span>${source}</span>${range?`<span>${esc(range)}</span>`:''}<a href="https://github.com/anlexcz/tramstats" target="_blank" rel="noopener">GitHub ↗</a></div><div class="footer-note">Zdroj pravdy: Google Sheets · web je pouze pro čtení · ≥ označuje neúplný součet · — neznámý údaj</div></div>`;
 }
-window.TramStatsShared={measure,metricText,metricHTML,mount,footer};
+function reportError(node,message,error){
+  console.error(message,error);
+  if(!node)return;
+  node.textContent=message;
+  node.classList.add('status-error');
+}
+window.TramStatsShared={reportError,measure,metricText,metricHTML,mount,footer};
 window.addEventListener('tramstats:data',event=>footer(event.detail));
 mount();
 })();

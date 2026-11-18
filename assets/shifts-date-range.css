@@ -16,16 +16,8 @@
   align-items:center;
   justify-content:space-between;
   gap:8px;
-  border:1px solid #42464e;
-  background:#24272c;
-  color:#e6e8eb;
-  padding:0 11px;
-  font:600 var(--font-body) var(--font-ui);
   text-align:left;
   cursor:pointer;
-}
-.range-field:hover {
-  border-color:#626873;
 }
 .range-field b {
   color:#9ba1aa;
@@ -37,8 +29,8 @@
   top:calc(100% + 7px);
   left:0;
   width:min(290px,calc(100vw - 32px));
-  border:1px solid #484c54;
-  background:#202328;
+  border:var(--edge);
+  background:var(--surface);
   box-shadow:0 14px 38px rgba(0,0,0,.38);
   padding:12px;
 }

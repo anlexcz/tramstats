@@ -28,7 +28,8 @@
   --card:#24262b;
   --badge-bg:#303238;
   --card-border:#34373d;
-  --control-border:#747e8b;
+  --control-border:#41454d;
+  --control-edge:#747e8b;
   --control-bg:#292c31;
   --label-muted:#8f959f;
   --text-strong:#f1f2f4;
@@ -67,6 +68,7 @@
   --edge:1px solid var(--line);
   --edge-card:1px solid var(--card-border);
   --edge-control:1px solid var(--control-border);
+  --edge-interactive:1px solid var(--control-edge);
   --surface-heading:#1d1f23;
   --surface-hover:#30333a;
   --ink:#f4f4f6;
@@ -189,16 +191,6 @@ h2{font-size:var(--font-section);line-height:var(--leading-heading);margin:0 0 v
   color:var(--muted);
   margin:20px 0 0;
 }
-.empty{
-  padding:30px;
-  border:var(--edge);
-  color:var(--muted);
-}
-.empty.error{
-  border-color:color-mix(in srgb,var(--semantic-error) 45%,var(--line));
-  box-shadow:inset 3px 0 var(--semantic-error);
-  color:#f0d7d7;
-}
 #footer{
   margin-top:var(--space-8);
   padding-top:var(--space-4);
@@ -207,9 +199,6 @@ h2{font-size:var(--font-section);line-height:var(--leading-heading);margin:0 0 v
   font-size:var(--font-caption);
   line-height:1.9;
 }
-#status:not(:empty){padding:12px 0;font-size:var(--font-meta);color:var(--muted)}
-#status.status-error{color:var(--semantic-error)}
-
 /* Semantic component tones. Layout stays neutral; tone is expressed only by
    a compact marker and dedicated state elements such as badges. */
 [data-tone]{--state-tone:var(--separator-emphasis)}

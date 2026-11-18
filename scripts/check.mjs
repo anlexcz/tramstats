@@ -84,10 +84,10 @@ assert.equal(api.worked({actualShift:'SD',parts:[{}]}),false);
 const runtimeFiles=[
   'assets/data.js','assets/shift-domain.js','assets/vehicle-domain.js','assets/app.js','assets/dashboard-v2.js',
   'assets/shared.js','assets/shifts-page.js','assets/shifts-date-range.js','assets/shift-detail.js',
-  'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js',
+  'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js','assets/photo-gallery.js','assets/statistics.js',
   'assets/app.css','assets/components.css','assets/dashboard-v2.css','assets/shifts-page.css','assets/shifts-date-range.css',
-  'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/vehicle-links.css',
-  'index.html','smeny/index.html','vozy/index.html','404.html'
+  'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/photo-gallery.css','assets/statistics.css',
+  'index.html','smeny/index.html','vozy/index.html','statistiky/index.html','smena/20261023/index.html','404.html'
 ];
 for(const file of runtimeFiles){
   assert.equal(exists(file),true,`Missing runtime file: ${file}`);

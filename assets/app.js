@@ -122,13 +122,7 @@ async function boot(){
     }
     render();
   }catch(error){
-    const message=String(error?.message||error);
-    const status=$('#status'),app=$('#app');
-    if(status){
-      status.textContent='Databáze TramStats není dostupná. '+message;
-      status.classList.add('status-error');
-    }
-    if(app)app.innerHTML='<div class="empty error">Data se nepodařilo načíst z read-only API.</div>';
+    window.TramStatsShared.reportError($('#status'),'Databáze TramStats není dostupná.',error);
   }
 }
 

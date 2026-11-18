@@ -14,7 +14,7 @@ function linkDashboardVehicles(){
       const a=document.createElement('a');
       a.href=`vuz/${encodeURIComponent(id)}/`;
       a.textContent=id;
-      a.className='dash-vehicle-link';
+      a.className='inline-link';
       item.append(a);
     });
   });

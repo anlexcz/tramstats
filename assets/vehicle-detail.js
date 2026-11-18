@@ -2,6 +2,7 @@
 'use strict';
 
 const Domain=window.TramStatsVehicleDomain;
+const Shared=window.TramStatsShared;
 const root=document.querySelector('#vehicle-detail');
 const status=document.querySelector('#status');
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -32,50 +33,50 @@ function galleryHTML(rows,photos){
 function summaryTable(rows){
   const total=Domain.summary(rows),years=Domain.yearly(rows);
   const metric=(record,type)=>window.TramStatsShared.metricHTML(type==='km'?record.kmMetric:record.durationMetric,type==='km'?'km':'time');
-  return `<section class="vehicle-summary" aria-label="Souhrn vozu">
+  return `<section class="vehicle-summary data-panel" aria-label="Souhrn vozu">
     <div class="vehicle-summary-head"><span>Rok</span><span title="Počet částí výkonu" aria-label="Počet částí výkonu">${icon('rides')}</span><span>${icon('km')}</span><span>${icon('time')}</span></div>
-    <div class="vehicle-summary-row total"><strong>Celkem</strong><b>${total.count}</b><b>${metric(total,'km')}</b><b>${metric(total,'time')}</b></div>
-    ${years.map(item=>`<div class="vehicle-summary-row"><strong>${esc(item.year)}</strong><span>${item.count}</span><span>${metric(item,'km')}</span><span>${metric(item,'time')}</span></div>`).join('')}
+    <div class="vehicle-summary-row data-row total"><strong>Celkem</strong><b>${total.count}</b><b>${metric(total,'km')}</b><b>${metric(total,'time')}</b></div>
+    ${years.map(item=>`<div class="vehicle-summary-row data-row"><strong>${esc(item.year)}</strong><span>${item.count}</span><span>${metric(item,'km')}</span><span>${metric(item,'time')}</span></div>`).join('')}
   </section>`;
 }
 function occurrenceMeta(rows){
   if(!rows.length)return'';
   const newest=rows[0],oldest=rows.at(-1);
   return `<section class="vehicle-occurrence-meta">
-    <p><span>První výskyt:</span> <a href="${shiftHref(oldest.date)}">${date(oldest.date)}</a> <small>· ${esc(dayText(Domain.daysAgo(oldest.date)))}</small></p>
-    <p><span>Poslední výskyt:</span> <a href="${shiftHref(newest.date)}">${date(newest.date)}</a> <small>· ${esc(dayText(Domain.daysAgo(newest.date)))}</small></p>
+    <p><span>První výskyt:</span> <a class="inline-link" href="${shiftHref(oldest.date)}">${date(oldest.date)}</a> <small>· ${esc(dayText(Domain.daysAgo(oldest.date)))}</small></p>
+    <p><span>Poslední výskyt:</span> <a class="inline-link" href="${shiftHref(newest.date)}">${date(newest.date)}</a> <small>· ${esc(dayText(Domain.daysAgo(newest.date)))}</small></p>
   </section>`;
 }
 function historyRow(row,{yearStart=false,year=null}={}){
   const hasPhoto=(row.photos||[]).length>0;
-  return `<article class="vehicle-history-row${yearStart?' vehicle-history-year-start':''}" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
+  return `<article class="vehicle-history-row data-row row-link${yearStart?' vehicle-history-year-start':''}" role="link" tabindex="0" data-href="${shiftHref(row.date)}" aria-label="Otevřít směnu ${date(row.date)}">
     ${yearStart?`<span class="vehicle-history-year-label">${esc(year)}</span>`:''}
     <strong class="vehicle-history-date">${date(row.date)}</strong>
     <strong class="vehicle-history-performance">${esc(row.performance)}</strong>
-    <span class="vehicle-history-metric">${icon('time')}<b>${row.duration!=null?hm(row.duration):'—'}</b></span>
-    <span class="vehicle-history-metric">${icon('km')}<b>${row.km!=null?`${fmt(row.km)} km`:'—'}</b></span>
+    <span class="vehicle-history-metric data-metric">${icon('time')}<b>${row.duration!=null?hm(row.duration):'—'}</b></span>
+    <span class="vehicle-history-metric data-metric">${icon('km')}<b>${row.km!=null?`${fmt(row.km)} km`:'—'}</b></span>
     ${hasPhoto?`<button class="vehicle-history-photo" type="button" data-photo-id="${esc(row.photos[0].id)}" aria-label="Zobrazit fotografii z ${date(row.date)}">${icon('camera')}</button>`:'<span class="vehicle-history-photo-space"></span>'}
   </article>`;
 }
 function history(rows){
   const years=Domain.yearly(rows);
-  return `<section class="vehicle-history" aria-label="Historie jízd">${years.map(group=>
+  return `<section class="vehicle-history data-panel" aria-label="Historie jízd">${years.map(group=>
     group.rows.map((row,index)=>historyRow(row,{yearStart:index===0,year:group.year})).join('')
   ).join('')}</section>`;
 }
 function render(vehicle,rows,photos){
   const photoErrors=window.TramStatsData?.status?.photoErrors||[];
   root.innerHTML=`
-    <div class="vehicle-detail-heading"><div class="vehicle-detail-title"><span>${esc(vehicle.family||vehicle.type||'Vůz')}</span><strong>${esc(vehicle.id)}</strong></div><a class="vehicle-detail-back" href="vozy/">← Zpět</a></div>
-    <nav class="detail-context-links" aria-label="Související statistiky">
-      <a href="statistiky/?tab=vehicles">Statistiky vozů</a>
-      <a href="statistiky/?tab=vehicles&period=all">Všechny roky</a>
-      <a href="statistiky/?tab=records">Rekordy</a>
+    <div class="detail-heading"><h1 class="detail-title"><span>${esc(vehicle.family||vehicle.type||'Vůz')}</span><strong>${esc(vehicle.id)}</strong></h1><a class="back-link" href="vozy/">← Zpět</a></div>
+    <nav class="detail-context-links link-group" aria-label="Související statistiky">
+      <a class="context-link" href="statistiky/?tab=vehicles">Statistiky vozů</a>
+      <a class="context-link" href="statistiky/?tab=vehicles&period=all">Všechny roky</a>
+      <a class="context-link" href="statistiky/?tab=records">Rekordy</a>
     </nav>
     ${summaryTable(rows)}
     ${occurrenceMeta(rows)}
     ${galleryHTML(rows,photos)}
-    ${photoErrors.length?'<p class="ts-photo-api-error">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
+    ${photoErrors.length?'<p class="status-message status-warning">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
     ${history(rows)}`;
 }
 function openRow(row){const href=row?.dataset?.href;if(href)location.href=href;}
@@ -110,7 +111,7 @@ async function boot(){
     status.textContent='';
     document.title=`${vehicle.family||vehicle.type||'Vůz'} ${vehicle.id} — TramStats`;
     render(vehicle,rows,db.photosForVehicle?.(id)||[]);
-  }catch(error){status.textContent='Data vozu se nepodařilo načíst. '+String(error?.message||error);}
+  }catch(error){Shared.reportError(status,'Data vozu se nepodařilo načíst.',error);}
 }
 boot();
 })();

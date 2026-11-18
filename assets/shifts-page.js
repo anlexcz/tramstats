@@ -53,10 +53,10 @@ function metaItem(icon,label,cls=''){return label?`<span class="shift-list-meta 
 function shiftCard(s){
   const absence=ABSENCES[s.actualShift];
   if(absence){
-    return `<div class="shift-list-card shift-list-absence" data-tone="${esc(absence.tone)}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></div>`;
+    return `<div class="shift-list-card shift-list-absence data-card" data-tone="${esc(absence.tone)}" data-shift-date="${esc(s.date)}"><span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span><span class="shift-list-absence-badge">${esc(absence.label)}</span></div>`;
   }
   const m=workMetrics(s),performance=performancesHTML(m.performances);
-  return `<div class="shift-list-card shift-list-work" data-shift-date="${esc(s.date)}">
+  return `<div class="shift-list-card shift-list-work data-card row-link" data-shift-date="${esc(s.date)}">
     <span class="shift-list-date"><small>${esc(fullDay(s.date))}</small><strong>${date(s.date)}</strong></span>
     <span class="shift-list-type">${esc(m.type)}</span>
     <span class="shift-list-mobile-head"><span class="shift-list-mobile-date"><strong>${date(s.date)}</strong><small>${esc(fullDay(s.date))}</small></span><span class="shift-list-mobile-type">${esc(m.type)}</span></span>
@@ -153,11 +153,11 @@ function controls(ss,prefix='',values=state){
   const typeNames=new Map(ss.map(s=>[s.actualShift,typeLabel(s)]));
   const depotNames=new Map(ss.map(s=>[s.depot,depotLabel(s)]));
   const dateField=window.TramStatsDateRange?.field(prefix,values)||'';
-  return `<label>TYP SMĚNY<select id="${id('shift-type-filter')}"><option value="">Všechny typy směn</option>${optionRows(types,values.type,x=>typeNames.get(x)||x)}</select></label>
-    <label>VOZOVNA<select id="${id('depot-filter')}"><option value="">Všechny vozovny</option>${optionRows(depots,values.depot,x=>depotNames.get(x)||x)}</select></label>
+  return `<label>TYP SMĚNY<select class="ui-control" id="${id('shift-type-filter')}"><option value="">Všechny typy směn</option>${optionRows(types,values.type,x=>typeNames.get(x)||x)}</select></label>
+    <label>VOZOVNA<select class="ui-control" id="${id('depot-filter')}"><option value="">Všechny vozovny</option>${optionRows(depots,values.depot,x=>depotNames.get(x)||x)}</select></label>
     ${dateField}
     <label class="shift-work-only"><input id="${id('work-only-filter')}" type="checkbox" ${values.workOnly?'checked':''}><span>Jen pracovní záznamy</span></label>
-    <div class="shift-page-size"><span>NAČÍST PO</span><div>${[25,50,100,200].map(n=>`<button type="button" data-page-size="${n}" class="${Number(values.pageSize)===n?'active':''}">${n}</button>`).join('')}</div></div>`;
+    <div class="shift-page-size"><span>NAČÍST PO</span><div>${[25,50,100,200].map(n=>`<button type="button" data-page-size="${n}" class="ui-control" aria-pressed="${Number(values.pageSize)===n}">${n}</button>`).join('')}</div></div>`;
 }
 function shiftPage(ss){
   const list=filterRows(ss);
@@ -165,13 +165,13 @@ function shiftPage(ss){
   const active=[state.type,state.depot,state.dateFrom||state.dateTo,state.workOnly].filter(Boolean).length;
   const filterBody=controls(ss),mobileBody=controls(ss,'mobile-',state);
   return `<div class="shift-filters">
-      <div class="shift-search"><span>⌕</span><input id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button type="button" id="mobile-filter-open" aria-expanded="false" aria-controls="mobile-filter-sheet">FILTRY${active?` <b>${active}</b>`:''}</button></div>
+      <div class="shift-search"><span>⌕</span><input class="ui-control" id="shift-search" type="search" placeholder="KO 15T, 17 9170, 95/64, 25.4.…" value="${esc(state.query)}" aria-label="Hledat ve směnách"><button class="ui-control" type="button" id="mobile-filter-open" aria-expanded="false" aria-controls="mobile-filter-sheet">FILTRY${active?` <b>${active}</b>`:''}</button></div>
       <div class="shift-desktop-controls">${filterBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button></div>
       <div class="shift-count">Zobrazeno ${shown} z ${list.length} evidovaných dnů</div>
       <div class="shift-mobile-sheet" id="mobile-filter-sheet" aria-hidden="true"><button class="shift-sheet-backdrop" type="button" aria-label="Zavřít filtry"></button><div class="shift-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title"><div class="shift-sheet-head"><strong id="mobile-filter-title">FILTRY</strong><button class="shift-sheet-close" type="button" aria-label="Zavřít filtry">×</button></div>${mobileBody}<button type="button" class="shift-clear-filters">ZRUŠIT FILTRY</button><button type="button" class="shift-sheet-done">ZOBRAZIT ${list.length} SMĚN</button></div></div>
     </div>
     <div id="shift-results">${list.slice(0,shown).map(shiftCard).join('')||'<div class="empty">Žádný odpovídající záznam.</div>'}</div>
-    ${shown<list.length?`<div class="shift-load-more"><button type="button" id="shift-load-more">NAČÍST DALŠÍCH ${Math.min(state.pageSize,list.length-shown)}</button><span>${shown} / ${list.length}</span></div>`:''}`;
+    ${shown<list.length?`<div class="shift-load-more"><button class="ui-control" type="button" id="shift-load-more">NAČÍST DALŠÍCH ${Math.min(state.pageSize,list.length-shown)}</button><span>${shown} / ${list.length}</span></div>`:''}`;
 }
 shiftList=shiftPage;
 
@@ -196,7 +196,7 @@ function refreshMobileDraftUI(){
   if(type)type.value=mobileDraft.type||'';
   if(depot)depot.value=mobileDraft.depot||'';
   if(work)work.checked=!!mobileDraft.workOnly;
-  document.querySelectorAll('.shift-sheet-panel [data-page-size]').forEach(b=>b.classList.toggle('active',Number(b.dataset.pageSize)===Number(mobileDraft.pageSize)));
+  document.querySelectorAll('.shift-sheet-panel [data-page-size]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.pageSize)===Number(mobileDraft.pageSize))));
   const range=document.querySelector('.shift-sheet-panel .range-field>span');
   if(range&&window.TramStatsDateRange?.label)range.textContent=window.TramStatsDateRange.label(mobileDraft);
   const done=document.querySelector('.shift-sheet-done');
