@@ -46,5 +46,20 @@
     const counter=section.querySelector('.ts-photos-counter');
     if(counter)counter.textContent=(next+1)+' / '+cards.length;
   });
-  window.TramStatsPhotos={markup,imageUrl};
+  function showPhoto(id){
+    const node=document.getElementById(id);
+    if(!node)return false;
+    const section=node.closest('.ts-photos');
+    const cards=[...(section?.querySelectorAll('.ts-photo-card')||[])];
+    const index=cards.indexOf(node);
+    if(index>=0){
+      section.dataset.galleryIndex=String(index);
+      const counter=section.querySelector('.ts-photos-counter');
+      if(counter)counter.textContent=(index+1)+' / '+cards.length;
+    }
+    node.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+    node.querySelector('a')?.focus({preventScroll:true});
+    return true;
+  }
+  window.TramStatsPhotos={markup,imageUrl,showPhoto};
 })();
