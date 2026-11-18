@@ -39,7 +39,7 @@ function periodChips(years){
 }
 function vehicleRow(record,metrics){
   const vehicle=record.vehicle;
-  return `<a class="vehicles-row" href="vozy/${encodeURIComponent(vehicle.id)}/">
+  return `<a class="vehicles-row" href="vuz/${encodeURIComponent(vehicle.id)}/">
     <span class="vehicles-id"><small>${esc(vehicle.family||vehicle.type||'Vůz')}</small><strong>${esc(vehicle.id)}</strong></span>
     <span class="vehicles-metric">${icon('rides')}<b>${metrics.count}</b></span>
     <span class="vehicles-metric">${icon('km')}<b>${window.TramStatsShared.metricHTML(metrics.kmMetric)}</b></span>

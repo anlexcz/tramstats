@@ -16,7 +16,7 @@ const detailIcon=kind=>({
 }[kind]||'');
 
 function routeDate(){
-  const match=location.pathname.match(/\/smeny\/(\d{8})(?:\/|$)/);
+  const match=location.pathname.match(/\/smena\/(\d{8})(?:\/|$)/);
   if(!match)return null;
   const raw=match[1];
   return `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
@@ -59,7 +59,7 @@ function vehicleText(part){
   const ids=[part.frontVehicle,part.rearVehicle].filter(Boolean);
   const family=part.frontVehicleMeta?.family||part.rearVehicleMeta?.family||part.vehicleType||'';
   if(!ids.length&&!family)return'';
-  const linked=ids.map(id=>`<a class="detail-future-link" href="vozy/${encodeURIComponent(id)}/">${esc(id)}</a>`).join(' + ');
+  const linked=ids.map(id=>`<a class="detail-future-link" href="vuz/${encodeURIComponent(id)}/">${esc(id)}</a>`).join(' + ');
   return `${family?`<span class="detail-vehicle-type">${esc(family)}</span>`:''}${ids.length?`<span class="detail-vehicle-ids">${linked}</span>`:''}`;
 }
 function galleryHTML(shift){
@@ -140,7 +140,7 @@ function renderShift(shift){
   root.innerHTML=`
     <div class="detail-heading">
       <div class="detail-heading-date"><span>${esc(parts.day)}</span><strong>${esc(parts.date)}</strong></div>
-      <a class="detail-back" href="shifts/">← Zpět</a>
+      <a class="detail-back" href="smeny/">← Zpět</a>
     </div>
     <nav class="detail-context-links" aria-label="Související statistiky">
       <a href="statistiky/?tab=shifts&year=${encodeURIComponent(shift.date.slice(0,4))}">Statistiky směn</a>

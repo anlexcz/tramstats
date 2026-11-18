@@ -87,7 +87,7 @@ const runtimeFiles=[
   'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js',
   'assets/app.css','assets/components.css','assets/dashboard-v2.css','assets/shifts-page.css','assets/shifts-date-range.css',
   'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/vehicle-links.css',
-  'index.html','shifts/index.html','vozy/index.html','404.html'
+  'index.html','smeny/index.html','vozy/index.html','404.html'
 ];
 for(const file of runtimeFiles){
   assert.equal(exists(file),true,`Missing runtime file: ${file}`);
@@ -95,7 +95,7 @@ for(const file of runtimeFiles){
 }
 
 const removedFiles=[
-  'stats/index.html','vehicles/index.html','shifts/detail/index.html','assets/vehicle-icons.js',
+  'stats/index.html','vehicles/index.html','shifts/detail/index.html','shifts/index.html','smeny/20261023/index.html','assets/vehicle-icons.js',
   'assets/live-source.js','assets/shifts-v2.js','assets/shifts-v2.css',
   'assets/shifts-v3-controls.js','assets/shifts-v3-controls.css',
   'assets/shifts-v4-list.js','assets/shifts-v4-list.css',
@@ -120,14 +120,14 @@ assert.match(shiftsCode,/TramStatsShiftDomain/);
 assert.doesNotMatch(shiftsCode,/shifts\/detail\/|RETURN_KEY|saveReturnState|tramstats-shifts-return-state|function shiftBlocks\(/);
 const vehiclePageCode=read('assets/vehicles-page.js');
 assert.match(vehiclePageCode,/TramStatsVehicleDomain/);
-assert.match(vehiclePageCode,/vozy\/\$\{encodeURIComponent\(vehicle\.id\)\}/);
+assert.match(vehiclePageCode,/vuz\/\$\{encodeURIComponent\(vehicle\.id\)\}/);
 const vehicleDetailCode=read('assets/vehicle-detail.js');
 assert.match(vehicleDetailCode,/TramStatsVehicleDomain/);
 assert.match(vehicleDetailCode,/vehicle-history-year-start/);
 assert.match(vehicleDetailCode,/První výskyt/);
 assert.match(vehicleDetailCode,/Poslední výskyt/);
 const shiftDetailCode=read('assets/shift-detail.js');
-assert.match(shiftDetailCode,/vozy\/\$\{encodeURIComponent\(id\)\}/);
+assert.match(shiftDetailCode,/vuz\/\$\{encodeURIComponent\(id\)\}/);
 const dynamicRouter=read('404.html');
 assert.ok(dynamicRouter.includes('smeny'));
 assert.ok(dynamicRouter.includes('vozy'));
@@ -136,8 +136,8 @@ assert.ok(dynamicRouter.includes('vozy'));
 
 
 // The dedicated static detail must use the same shell/router as dynamic dates.
-assert.equal(read('smeny/20261023/index.html'),read('404.html'));
-for(const file of ['index.html','shifts/index.html','vozy/index.html','404.html']){
+assert.equal(read('smena/20261023/index.html'),read('404.html'));
+for(const file of ['index.html','smeny/index.html','vozy/index.html','404.html']){
   assert.match(read(file),/assets\/shared.js/);
   assert.doesNotMatch(read(file),/footer-v2.js/);
 }
@@ -190,11 +190,11 @@ async function detailHTML(file,path,fixture){
   return root.innerHTML;
 }
 const splitDB={...db,shifts:[{...split,date:'2026-01-01'}]};
-const splitHTML=await detailHTML('assets/shift-detail.js','/tramstats/smeny/20260101/',splitDB);
+const splitHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',splitDB);
 assert.ok(splitHTML.includes('8:00'));
 assert.ok(splitHTML.includes('Šejdrpauza'));
 assert.ok(splitHTML.includes('Údaj není známý'));
-const vehicleHTML=await detailHTML('assets/vehicle-detail.js','/tramstats/vozy/8151/',db);
+const vehicleHTML=await detailHTML('assets/vehicle-detail.js','/tramstats/vuz/8151/',db);
 assert.ok(vehicleHTML.includes('30 km'));
 assert.ok(vehicleHTML.includes('6+34/7'));
 console.log('PASS: shift and vehicle detail rendering');
@@ -215,6 +215,10 @@ assert.match(read('assets/dashboard-v2.js'), /tab=depots/);
 assert.match(read('assets/statistics.js'), /data-month/);
 assert.match(read('assets/statistics.js'), /stats-history/);
 assert.match(read('assets/statistics.js'), /s\.date<today/);
-assert.match(read('shifts/index.html'), /Statistiky směn/);
+assert.match(read('smeny/index.html'), /Statistiky směn/);
+assert.equal(exists('shifts/index.html'),false);
+assert.match(read('assets/shared.js'), /'shifts','Směny','smeny\//);
+assert.match(read('assets/app.js'), /path==='smeny'/);
+for(const path of ['assets/dashboard-v2.js','assets/statistics.js','assets/shift-detail.js'])assert.doesNotMatch(read(path), /href="shifts\//);
 assert.match(read('vozy/index.html'), /Statistiky vozů/);
 console.log('PASS: statistics navigation and cross-link integrity');

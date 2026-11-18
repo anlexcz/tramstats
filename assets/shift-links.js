@@ -3,7 +3,7 @@
 
 function detailHref(card){
   const iso=card.dataset.shiftDate;
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso||'')?`smeny/${iso.replaceAll('-','')}/`:null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso||'')?`smena/${iso.replaceAll('-','')}/`:null;
 }
 function markCards(){
   document.querySelectorAll('.shift-list-work[data-shift-date], .dash-shift').forEach(card=>{

@@ -16,7 +16,7 @@ const icon=kind=>({
 }[kind]||'');
 
 function routeVehicle(){
-  const match=location.pathname.match(/\/vozy\/([^/]+)(?:\/|$)/);
+  const match=location.pathname.match(/\/vuz\/([^/]+)(?:\/|$)/);
   return match?decodeURIComponent(match[1]):null;
 }
 function dayText(days){
@@ -25,7 +25,7 @@ function dayText(days){
   if(days===1)return'před 1 dnem';
   return `před ${days} dny`;
 }
-function shiftHref(iso){return `smeny/${String(iso).replaceAll('-','')}/`;}
+function shiftHref(iso){return `smena/${String(iso).replaceAll('-','')}/`;}
 function galleryHTML(rows,photos){
   return window.TramStatsPhotos?.markup(photos,{label:'Fotografie vozu',scope:'vehicle-photo'})||'';
 }

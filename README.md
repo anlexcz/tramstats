@@ -8,9 +8,9 @@ Read-only frontend osobní tramvajové evidence. Živý web: https://anlexcz.git
 
 - **Přehled / Dashboard**
 - **Směny**
-- **Detail směny** (`/smeny/{yyyymmdd}/`)
+- **Seznam směn** (`/smeny/`) a **detail směny** (`/smena/{yyyymmdd}/`)
 - **Vozy** (`/vozy/`)
-- **Detail vozu** (`/vozy/{evc}/`)
+- **Detail vozu** (`/vuz/{evc}/`)
 - **Statistiky** (`/statistiky/`) – sedm tematických sekcí a úvodní přehled; období rok, měsíc, celá historie a vlastní rozsah; srovnávání období, měsíční přiblížení, přehledy linek a vozů
 
 Další entity a detailnější analytika se budou rozšiřovat nad současnou datovou a doménovou vrstvou. Statistiky vycházejí ze stejných read-only dat jako ostatní stránky; chybějící rozpad kilometrů po linkách se neodhaduje.
@@ -72,7 +72,7 @@ Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`sh
 ## Struktura UI
 
 - `index.html` + `assets/dashboard-v2.js/.css` — Dashboard
-- `shifts/index.html` + `assets/shifts-page.js/.css` — Směny
+- `smeny/index.html` + `assets/shifts-page.js/.css` — Směny
 - `assets/shift-detail.js/.css` — dynamický detail směny
 - `vozy/index.html` + `assets/vehicles-page.js/.css` — seznam vozů
 - `assets/vehicle-detail.js/.css` — dynamický detail vozu
@@ -106,8 +106,8 @@ Neznámé km a časy se zobrazují jako `—`; částečně známé součty jako
 Hlavní menu (desktop i mobil):
 
 1. **Přehled** – posledních 30 uzavřených dnů, agregace a poslední směny.
-2. **Směny** – filtry, seznam a detail jednotlivé směny (`/smeny/YYYYMMDD/`).
-3. **Vozy** – katalog evidovaných tramvají a detail každého vozu (`/vozy/EVČ/`).
+2. **Směny** – filtry, seznam a detail jednotlivé směny (`/smena/YYYYMMDD/`).
+3. **Vozy** – katalog evidovaných tramvají a detail každého vozu (`/vuz/EVČ/`).
 4. **Statistiky** – výchozí aktuální rok, souhrn a tematické podsekce.
 
 Statistiky (`/statistiky/`) mají přehled, směny, linky, vozy, kilometry, čas, vozovny a rekordy. Časové filtry: rok, měsíc, celá historie nebo vlastní interval. Detail linky je zatím součástí statistik, například `/statistiky/?tab=lines&period=all&line=3`; nejde o oddělenou entitní stránku. Samostatné stránky pro katalog linek a katalog vozoven zatím neexistují. Statistiky nepředpokládají chybějící km, nesčítají soupravy dvakrát do osobních kilometrů a nezahrnují aktuální neuzavřený den ani budoucí směny.
