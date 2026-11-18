@@ -129,11 +129,14 @@ assert.match(vehicleDetailCode,/Poslední výskyt/);
 const shiftDetailCode=read('assets/shift-detail.js');
 assert.match(shiftDetailCode,/vuz\/\$\{encodeURIComponent\(id\)\}/);
 const dynamicRouter=read('404.html');
-assert.ok(dynamicRouter.includes('smeny'));
-assert.ok(dynamicRouter.includes('vozy'));
-
-
-
+for(const [route,domain,renderer] of [
+  ['smena','shift-domain','shift-detail'],
+  ['vuz','vehicle-domain','vehicle-detail']
+]){
+  assert.ok(dynamicRouter.includes('\\/'+route+'\\/'));
+  const dependency=dynamicRouter.indexOf('<script src="assets/'+domain+'.js');
+  assert.ok(dependency>=0&&dependency<dynamicRouter.indexOf("s.src='assets/"+renderer+".js"));
+}
 
 // The dedicated static detail must use the same shell/router as dynamic dates.
 assert.equal(read('smena/20261023/index.html'),read('404.html'));
@@ -162,7 +165,7 @@ function listContext(path,saved=null){
   const ctx=vm.createContext({Intl,Date,Set,Map,Number,String,Object,Math,JSON,console,
     sessionStorage:{getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value)},
     window:{TramStatsShared:shared,scrollY:640,addEventListener:(name,fn)=>handlers[name]=fn},
-    document:{querySelector(){return null},addEventListener(){}},location:{pathname:`/tramstats/${path==='shifts'?'shifts':'vozy'}/`}});
+    document:{querySelector(){return null},addEventListener(){}},location:{pathname:`/tramstats/${path==='shifts'?'smeny':'vozy'}/`}});
   vm.runInContext(appCode,ctx);
   return {ctx,memory,handlers};
 }
