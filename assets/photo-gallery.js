@@ -20,7 +20,7 @@
     if(!items.length)return '';
     return '<section class="ts-photos data-panel panel-padded" aria-label="'+esc(label)+'">'+
       '<header class="ts-photos-head"><strong>'+esc(label)+'</strong><span>'+items.length+' '+(items.length===1?'fotografie':'fotografií')+'</span></header>'+
-      '<div class="ts-photos-grid">'+items.map((p,i)=>{
+      '<div class="ts-photos-grid" tabindex="0" aria-label="Procházení fotografií">'+items.map((p,i)=>{
         const src=imageUrl(p),original=safeUrl(p.originalFile);
         const caption=p.takenAt?esc(p.takenAt.replace('T',' ')):'Čas neuveden';
         const title=esc(p.description||'Fotografie '+(i+1));
@@ -30,7 +30,21 @@
             '<span class="ts-photo-unavailable" hidden>Náhled není dostupný<br>Otevřít na Disku</span></a>':
             '<a href="'+esc(original||'#')+'" target="_blank" rel="noopener noreferrer" class="ts-photo-frame ts-photo-unavailable">Otevřít na Disku</a>')+
           '<figcaption><span>'+caption+'</span>'+(p.description?'<small>'+title+'</small>':'')+'</figcaption></figure>';
-      }).join('')+'</div></section>';
+      }).join('')+'</div>'+(items.length>1?'<div class="ts-photos-controls"><button type="button" class="ui-control" data-gallery-step="-1" aria-label="Předchozí fotografie">←</button><span class="ts-photos-counter" aria-live="polite">1 / '+items.length+'</span><button type="button" class="ui-control" data-gallery-step="1" aria-label="Další fotografie">→</button></div>':'')+'</section>';
   }
+  document.addEventListener('click',event=>{
+    const button=event.target.closest('[data-gallery-step]');
+    if(!button)return;
+    const section=button.closest('.ts-photos');
+    const track=section?.querySelector('.ts-photos-grid');
+    const cards=[...(track?.querySelectorAll('.ts-photo-card')||[])];
+    if(!cards.length)return;
+    const current=Number(section.dataset.galleryIndex||0);
+    const next=Math.min(cards.length-1,Math.max(0,current+Number(button.dataset.galleryStep)));
+    section.dataset.galleryIndex=String(next);
+    cards[next].scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+    const counter=section.querySelector('.ts-photos-counter');
+    if(counter)counter.textContent=(next+1)+' / '+cards.length;
+  });
   window.TramStatsPhotos={markup,imageUrl};
 })();
