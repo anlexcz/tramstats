@@ -16,7 +16,7 @@ const detailIcon=kind=>({
 }[kind]||'');
 
 function routeDate(){
-  const match=location.pathname.match(/\/smeny\/(\d{8})(?:\/|$)/);
+  const match=location.pathname.match(/\/smena\/(\d{8})(?:\/|$)/);
   if(!match)return null;
   const raw=match[1];
   return `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
