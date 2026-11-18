@@ -8,7 +8,7 @@ Read-only frontend osobní tramvajové evidence. Živý web: https://anlexcz.git
 
 - **Přehled / Dashboard**
 - **Směny**
-- **Detail směny** (`/smeny/{yyyymmdd}/`)
+- **Seznam směn** (`/smeny/`) a **detail směny** (`/smeny/{yyyymmdd}/`)
 - **Vozy** (`/vozy/`)
 - **Detail vozu** (`/vozy/{evc}/`)
 - **Statistiky** (`/statistiky/`) – sedm tematických sekcí a úvodní přehled; období rok, měsíc, celá historie a vlastní rozsah; srovnávání období, měsíční přiblížení, přehledy linek a vozů
@@ -72,7 +72,7 @@ Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`sh
 ## Struktura UI
 
 - `index.html` + `assets/dashboard-v2.js/.css` — Dashboard
-- `shifts/index.html` + `assets/shifts-page.js/.css` — Směny
+- `smeny/index.html` + `assets/shifts-page.js/.css` — Směny
 - `assets/shift-detail.js/.css` — dynamický detail směny
 - `vozy/index.html` + `assets/vehicles-page.js/.css` — seznam vozů
 - `assets/vehicle-detail.js/.css` — dynamický detail vozu
@@ -84,7 +84,7 @@ Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`sh
 - `assets/shared.js` — společná navigace, patička a značení neúplných souhrnů
 - `statistiky/index.html` + `assets/statistics.js/.css` — statistický dashboard a sedm tematických pohledů
 
-Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
+Původní `/shifts/` přesměrovává na `/smeny/` a zachovává parametry URL. Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
 
 ## Kontrola
 
