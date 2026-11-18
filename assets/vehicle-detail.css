@@ -47,6 +47,11 @@
   .vehicle-history-year-label{font-size:var(--font-caption)}
 }
 @media(max-width:390px){
+  .vehicle-summary-head,.vehicle-summary-row{
+    grid-template-columns:minmax(0,.8fr) minmax(0,.4fr) minmax(0,1fr) minmax(0,.9fr);
+  }
+  .vehicle-summary-head>span,.vehicle-summary-row>*{padding-inline:var(--space-1)}
+  .vehicle-summary-row> :last-child{white-space:nowrap}
   .vehicle-history-row{
     grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) 32px;
     padding:4px 8px;
