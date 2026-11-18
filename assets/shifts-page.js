@@ -216,7 +216,7 @@ function openMobileFilters(){
   requestAnimationFrame(()=>document.querySelector('#mobile-shift-type-filter')?.focus());
 }
 function closeMobileFilters({restoreFocus=true}={}){
-  document.querySelector('.range-popover')?.remove();
+  window.TramStatsDateRange?.close({restoreFocus:false});
   document.body.classList.remove('shift-filters-open');
   document.querySelector('.shift-mobile-sheet')?.setAttribute('aria-hidden','true');
   document.querySelector('#mobile-filter-open')?.setAttribute('aria-expanded','false');
@@ -264,7 +264,6 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
   if(!document.body.classList.contains('shift-filters-open'))return;
-  if(document.querySelector('.range-popover'))return;
   if(e.key==='Escape'){e.preventDefault();closeMobileFilters();return;}
   if(e.key!=='Tab')return;
   const panel=document.querySelector('.shift-sheet-panel');
@@ -274,6 +273,13 @@ document.addEventListener('keydown',e=>{
   const first=focusables[0],last=focusables.at(-1);
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+});
+
+window.matchMedia('(max-width:650px)').addEventListener('change',event=>{
+  if(!event.matches&&document.body.classList.contains('shift-filters-open')){
+    closeMobileFilters({restoreFocus:false});
+    document.querySelector('#shift-search')?.focus();
+  }
 });
 
 if(state.shifts?.length)render();

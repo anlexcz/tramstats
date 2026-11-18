@@ -265,7 +265,19 @@ function render(){
  const prev=previousInterval(from,to),b=aggregate(state.compare&&valid&&prev.from<=prev.to?range(prev.from,prev.to):[]);
  const years=[...new Set(state.db.shifts.map(s=>s.date.slice(0,4)))].sort().reverse();
  if(!years.includes(state.year))years.unshift(state.year);
- root.innerHTML='<div class="stats-tabs" role="tablist" aria-label="Oblasti statistik">'+tabs.map(([id,label])=>'<button type="button" role="tab" aria-selected="'+(state.tab===id)+'" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+
+ const focusedId=root.contains(document.activeElement)?document.activeElement.id:'';
+ let tablist=root.querySelector('.stats-tabs');
+ if(!tablist){
+   root.innerHTML='<div class="stats-tabs" role="tablist" aria-label="Oblasti statistik">'+tabs.map(([id,label])=>'<button type="button" role="tab" id="stats-tab-'+id+'" aria-controls="stats-panel" data-tab="'+id+'">'+label+'</button>').join('')+'</div><div id="stats-content"></div>';
+   tablist=root.querySelector('.stats-tabs');
+ }
+ for(const tab of tablist.children){
+   const active=tab.dataset.tab===state.tab;
+   tab.setAttribute('aria-selected',String(active));
+   tab.tabIndex=active?0:-1;
+ }
+ const content=root.querySelector('#stats-content');
+ content.innerHTML=
  '<div class="stats-toolbar"><label class="stats-field">Období<select id="stats-period"><option value="year">Rok</option><option value="month">Měsíc</option><option value="all">Celá historie</option><option value="custom">Vlastní období</option></select></label>'+
  ((state.period==='year'||state.period==='month')?'<label class="stats-field">Rok<select id="stats-year">'+years.map(y=>'<option value="'+y+'">'+y+'</option>').join('')+'</select></label>':'')+
  (state.period==='month'?'<label class="stats-field">Měsíc<select id="stats-month">'+Array.from({length:12},(_,i)=>{const n=String(i+1).padStart(2,'0');return '<option value="'+n+'">'+n+'</option>'}).join('')+'</select></label>':'')+
@@ -275,7 +287,7 @@ function render(){
  (state.drill?'<div class="stats-selected"><span>Detail: '+esc(dateLabel(state.drill.from))+' – '+esc(dateLabel(state.drill.to))+'</span><button id="stats-back">Zpět na období</button></div>':'')+
  '<p class="stats-caption">Období: '+esc(valid?dateLabel(from)+' – '+dateLabel(to):'Neplatný rozsah')+(state.compare?' · Srovnání: '+esc(dateLabel(prev.from)+' – '+dateLabel(prev.to)):'')+' · Dnešní neuzavřený den a budoucí směny nejsou započteny.</p>'+
  summary(a,b)+
- '<div class="stats-grid">'+(
+ '<div class="stats-grid" role="tabpanel" tabindex="0" id="stats-panel" aria-labelledby="stats-tab-'+state.tab+'">'+(
  state.tab==='overview'
  ? panel('Vývoj kilometrů',timeline(a,'km'),'Osobní kilometry za jednotlivé měsíce.',true)+panel('Nejčastější linky',bars(a.lineMap,x=>x.shifts.size,x=>x.name,8,true))+panel('Typy tramvají',bars(a.familyMap,x=>x.shifts.size,x=>x.name,8))+panel('Rekordy',records(a),'Pouze úplné záznamy.',true)
  :state.tab==='shifts'?shiftStats(a)
@@ -289,7 +301,27 @@ function render(){
  root.querySelector('#stats-period').value=state.period;
  if(root.querySelector('#stats-year'))root.querySelector('#stats-year').value=state.year;
  if(root.querySelector('#stats-month'))root.querySelector('#stats-month').value=state.month;
+ if(focusedId)document.getElementById(focusedId)?.focus({preventScroll:true});
 }
+function selectTab(tab){
+ if(state.tab!==tab.dataset.tab){
+   state.tab=tab.dataset.tab;
+   state.selectedLine=null;
+   render();
+ }
+ tab.focus({preventScroll:true});
+ tab.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+root.addEventListener('keydown',e=>{
+ const tab=e.target.closest('[role=tab]');
+ if(!tab)return;
+ const buttons=[...tab.parentElement.children];
+ const index=buttons.indexOf(tab);
+ const next={ArrowLeft:(index+buttons.length-1)%buttons.length,ArrowRight:(index+1)%buttons.length,Home:0,End:buttons.length-1}[e.key];
+ if(next===undefined)return;
+ e.preventDefault();
+ selectTab(buttons[next]);
+});
 root.addEventListener('change',e=>{
  const id=e.target.id,value=e.target.value;
  const changes={'stats-period':'period','stats-year':'year','stats-month':'month','stats-from':'from','stats-to':'to','stats-compare-from':'compareFrom','stats-compare-to':'compareTo'};
@@ -297,10 +329,10 @@ root.addEventListener('change',e=>{
 });
 root.addEventListener('click',e=>{
  const tab=e.target.closest('[data-tab]'),month=e.target.closest('[data-month]'),line=e.target.closest('[data-line]');
- if(tab){state.tab=tab.dataset.tab;state.selectedLine=null;render();return}
- if(month){const m=month.dataset.month;state.drill={from:m+'-01',to:monthEnd(m)};render();return}
- if(line){state.tab='lines';state.selectedLine=line.dataset.line;render();return}
- if(e.target.closest('#stats-back')){state.drill=null;render();return}
+ if(tab){selectTab(tab);return}
+ if(month){const m=month.dataset.month;state.drill={from:m+'-01',to:monthEnd(m)};render();root.querySelector('#stats-back')?.focus();return}
+ if(line){state.tab='lines';state.selectedLine=line.dataset.line;render();root.querySelector('#stats-panel')?.focus();return}
+ if(e.target.closest('#stats-back')){const month=state.drill?.from.slice(0,7);state.drill=null;render();const dateButton=[...root.querySelectorAll('[data-month]')].find(button=>button.dataset.month===month);if(dateButton)dateButton.focus();else root.querySelector('#stats-panel')?.focus();return}
  if(e.target.closest('#stats-compare')){state.compare=!state.compare;render();return}
  if(e.target.closest('#stats-manual')){state.manual=!state.manual;render()}
 });
