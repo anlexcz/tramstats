@@ -138,6 +138,17 @@ for(const [route,domain,renderer] of [
   assert.ok(dependency>=0&&dependency<dynamicRouter.indexOf("s.src='assets/"+renderer+".js"));
 }
 
+// Shared references must use one cache key across entry points.
+const assetVersions=new Map();
+for(const page of ['index.html','smeny/index.html','vozy/index.html','statistiky/index.html','404.html','smena/20261023/index.html','photo-review/index.html']){
+  for(const [,path,version] of read(page).matchAll(/(assets\/[\w.-]+\.(?:css|js))(?:\?v=([\w.-]+))?/g)){
+    assert.ok(version,page+' odkazuje bez verze na '+path);
+    assert.ok(exists(path),page+' odkazuje na neexistující '+path);
+    if(assetVersions.has(path))assert.equal(version,assetVersions.get(path),page+' používá jinou verzi '+path);
+    assetVersions.set(path,version);
+  }
+}
+
 // The dedicated static detail must use the same shell/router as dynamic dates.
 assert.equal(read('smena/20261023/index.html'),read('404.html'));
 for(const file of ['index.html','smeny/index.html','vozy/index.html','404.html']){

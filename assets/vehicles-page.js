@@ -71,9 +71,16 @@ document.addEventListener('input',event=>{
 });
 document.addEventListener('click',event=>{
   const family=event.target.closest('[data-family]');
-  if(family){state.vehicleFamily=family.dataset.family||'';render();return;}
+  if(family){state.vehicleFamily=family.dataset.family||'';
+    render();
+    document.querySelector('[data-family][aria-pressed="true"]')?.focus({preventScroll:true});
+    return;}
   const period=event.target.closest('[data-period]');
-  if(period){state.vehiclePeriod=period.dataset.period||'all';render();}
+  if(period){
+    state.vehiclePeriod=period.dataset.period||'all';
+    render();
+    document.querySelector('[data-period][aria-pressed="true"]')?.focus({preventScroll:true});
+  }
 });
 
 if(state.db&&state.view==='vehicles')render();

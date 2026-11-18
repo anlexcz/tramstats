@@ -79,12 +79,17 @@ Fotografie lze navázat nezávisle na směnu (`shift_photos`), její část (`sh
 - `assets/shift-domain.js` — společná logika směn
 - `assets/vehicle-domain.js` — společná agregace vozů
 - `assets/shifts-date-range.js/.css` — datumový filtr Směn
-- `assets/app.js/.css` — společný shell a runtime
-- `assets/components.css` — sdílené komponenty, aktuálně hlavně footer
+- `assets/app.js` — společný runtime přehledu a seznamů
+- `assets/app.css` — tokeny, základní styly, obálka stránky a navigace
+- `assets/components.css` — panely, karty, ovládací prvky, metriky, grafové stopy, odkazy, stavové hlášky a patička
 - `assets/shared.js` — společná navigace, patička a značení neúplných souhrnů
 - `statistiky/index.html` + `assets/statistics.js/.css` — statistický dashboard a sedm tematických pohledů
 
-Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty.
+CSS stránek určuje jejich vlastní mřížky a rozložení. Sdílenou komponentu zapoj třídou v šabloně nebo rendereru a případnou odchylku vyjádři parametrem, například `--panel-padding`. Odsazení, typografie a barvy mají společné hodnoty v `app.css`. Navigace přepíná při 650 CSS px, hranice jednotlivých mřížek vycházejí z jejich obsahu.
+
+Dynamické detailové URL na GitHub Pages obsluhuje `404.html` podle typu cesty. Serverová odpověď pro tyto URL má stav HTTP 404, detail vykreslí JavaScript. Výjimkou je statický vstup `smena/20261023/index.html` s HTTP 200. Obě šablony musejí být stejné.
+
+Při změně JS nebo CSS aktualizuj `?v=` pro daný soubor ve všech HTML šablonách. Příkaz `node scripts/check.mjs` kontroluje shodu verzí a existenci odkazovaných souborů.
 
 ## Kontrola
 

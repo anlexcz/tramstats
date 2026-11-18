@@ -217,11 +217,11 @@ function openMobileFilters(){
 }
 function closeMobileFilters({restoreFocus=true}={}){
   window.TramStatsDateRange?.close({restoreFocus:false});
+  if(restoreFocus)document.querySelector('#mobile-filter-open')?.focus({preventScroll:true});
   document.body.classList.remove('shift-filters-open');
   document.querySelector('.shift-mobile-sheet')?.setAttribute('aria-hidden','true');
   document.querySelector('#mobile-filter-open')?.setAttribute('aria-expanded','false');
   mobileDraft=null;
-  if(restoreFocus)requestAnimationFrame(()=>document.querySelector('#mobile-filter-open')?.focus());
 }
 function applyMobileFilters(){
   if(!mobileDraft){closeMobileFilters();return;}
@@ -276,7 +276,12 @@ document.addEventListener('keydown',e=>{
 });
 
 window.matchMedia('(max-width:650px)').addEventListener('change',event=>{
-  if(!event.matches&&document.body.classList.contains('shift-filters-open')){
+  if(event.matches){
+    if(document.querySelector('.shift-desktop-controls .range-popover')){
+      window.TramStatsDateRange.close({restoreFocus:false});
+      document.querySelector('#mobile-filter-open')?.focus();
+    }
+  }else if(document.body.classList.contains('shift-filters-open')){
     closeMobileFilters({restoreFocus:false});
     document.querySelector('#shift-search')?.focus();
   }

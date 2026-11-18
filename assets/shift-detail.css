@@ -1,16 +1,8 @@
-
-
-
-
-
-
-
 .detail-summary-card{margin-bottom:var(--space-4)}
 .detail-summary-row{display:grid;grid-template-columns:112px minmax(0,1fr);min-height:40px}
 .detail-summary-row>*{min-width:0;align-content:center;padding:var(--space-1) var(--space-3);overflow-wrap:anywhere}
 .detail-summary-label{color:#c0c5cc;font-size:var(--font-meta);font-weight:700;background:var(--surface-heading)}
 .detail-summary-row>span{font-size:var(--font-body);color:var(--text-strong);font-weight:500}
-
 
 .detail-summary-split .detail-summary-row:not(.detail-summary-wide){grid-template-columns:112px repeat(3,minmax(0,1fr));border-bottom:0}
 .detail-summary-split .detail-summary-row:not(.detail-summary-wide)>span{border-left:var(--edge)}
@@ -19,15 +11,6 @@
 .detail-summary-wide>span{grid-column:2}
 .detail-summary-split .detail-summary-wide:first-child{border-bottom:0}
 .detail-summary-split .detail-summary-wide:nth-child(2){border-bottom:var(--edge)}
-
-
-
-
-
-
-
-
-
 
 .detail-parts-card{margin-bottom:var(--space-4)}
 .detail-part{position:relative;padding:10px 12px}
@@ -54,17 +37,12 @@
 .detail-note-card strong{display:block;margin-bottom:5px;font-size:var(--font-control)}.detail-note-card p{margin:0;font-size:var(--font-meta);line-height:1.5}
 @media(max-width:650px){
 
-
-
-
-
   .detail-summary-row{grid-template-columns:88px minmax(0,1fr);min-height:38px}
   .detail-summary-row>*{padding-inline:var(--space-2)}
   .detail-summary-label{font-size:var(--font-caption)}
   .detail-summary-row>span{font-size:var(--font-control)}
   .detail-summary-split .detail-summary-row:not(.detail-summary-wide){grid-template-columns:88px repeat(3,minmax(0,1fr))}
   .detail-summary-wide{grid-template-columns:88px minmax(0,1fr)}
-
 
   .detail-part{padding:9px 10px}
   .detail-part-performance{font-size:var(--font-control)}
@@ -74,7 +52,6 @@
   .detail-part-vehicle,.detail-part-duration{font-size:var(--font-meta)}
 }
 @media(max-width:390px){
-
 
   .detail-summary-split .detail-summary-row:not(.detail-summary-wide){grid-template-columns:80px repeat(3,minmax(0,1fr))}
   .detail-summary-wide{grid-template-columns:80px minmax(0,1fr)}
