@@ -88,7 +88,7 @@ function partRow(part){
   </li>`;
 }
 function partsCard(blocks,parts){
-  if(parts.length<2)return '';
+  if(!parts.length)return '';
   return `<section class="shift-detail-section">
     <h2>Průběh směny</h2>
     ${blocks.map((block,index)=>`
@@ -111,29 +111,45 @@ function renderShift(shift){
   const blocks=Domain.blocks(shift);
   const date=dateParts(shift.date);
   const range=single||blockRange({parts});
+  const isSplit=shift.actualShift==='Š'&&blocks.length>1;
   const type=shift.shiftType?.name||shift.actualShift;
   const depot=shift.depotMeta?.name||shift.depot;
   const meta=[type,depot].filter(Boolean).map(esc).join(' · ');
   const year=encodeURIComponent(shift.date.slice(0,4));
   const gallery=galleryHTML(shift);
   const incompletePhotos=window.TramStatsData?.status?.photoErrors?.length;
+  const metricOf=block=>Shared.metricHTML(Shared.measure(block.parts.map(part=>part.km)));
+  const durationOf=block=>Shared.metricHTML(Domain.durationMetric({...shift,actualShift:'R',parts:block.parts}),'time');
+  const performanceOf=block=>Domain.performanceRows({...shift,actualShift:'R',parts:block.parts}).flatMap(row=>row.badges.map(b=>b.label)).join(', ')||'—';
+  const summaryRows=isSplit?[
+    ['Výkon','—',esc(performanceOf(blocks[0])),esc(performanceOf(blocks[1]))],
+    ['Čas', '—',intervalHTML(blockRange({parts:blocks[0].parts}).start,blockRange({parts:blocks[0].parts}).end),intervalHTML(blockRange({parts:blocks[1].parts}).start,blockRange({parts:blocks[1].parts}).end)],
+    ['Délka',Shared.metricHTML(Domain.durationMetric(shift),'time'),durationOf(blocks[0]),durationOf(blocks[1])],
+    ['Kilometry',kmHTML(parts),metricOf(blocks[0]),metricOf(blocks[1])]
+  ]:[
+    ['Typ směny',esc(type||'—')],
+    ['Vozovna',esc(depot||'—')],
+    ['Výkon',esc(performanceOf({parts}))],
+    ['Čas',intervalHTML(range.start,range.end)],
+    ['Délka',Shared.metricHTML(Domain.durationMetric(shift),'time')],
+    ['Kilometry',kmHTML(parts)]
+  ];
+  const summary='<section class="entity-summary data-panel" aria-label="Souhrn směny">'+
+    (isSplit?'<div class="entity-summary-row entity-summary-labels"><span>Veličina</span><span>Celkem</span><span>Ranní</span><span>Odpolední</span></div>':'')+
+    summaryRows.map(row=>'<div class="entity-summary-row'+(isSplit?' is-split':'')+'">'+row.map((value,index)=>'<span'+(index===0?' class="entity-summary-name"':'')+'>'+value+'</span>').join('')+'</div>').join('')+
+    '</section>';
   root.innerHTML=`
-    <div class="shift-title-group">
-      <a class="shift-detail-back" href="smeny/">← Všechny směny</a>
-      <h1><time datetime="${esc(shift.date)}">${esc(date.date)}</time></h1>
-      <p>${esc(date.day)}${meta?` <span aria-hidden="true">·</span> ${meta}`:''}</p>
+    <div class="detail-heading shift-title-group">
+      <div><a class="shift-detail-back" href="smeny/">← Všechny směny</a>
+      <h1 class="detail-title"><time datetime="${esc(shift.date)}">${esc(date.date)}</time></h1>
+      <p>${esc(date.day)}${meta?` <span aria-hidden="true">·</span> ${meta}`:''}</p></div>
     </div>
-    <section class="shift-overview data-panel" aria-label="Souhrn směny">
-      <dl class="shift-stat-grid">
-        <div class="shift-stat-interval"><dt>Čas směny</dt><dd>${intervalHTML(range.start,range.end)}</dd></div>
-        <div><dt>Délka</dt><dd>${Shared.metricHTML(Domain.durationMetric(shift),'time')}</dd></div>
-        <div><dt>Kilometry</dt><dd>${kmHTML(parts)}</dd></div>
-      </dl>
-      ${single?assignment(single):''}
-    </section>
+    <div class="entity-detail-top${gallery?' has-gallery':''}">
+      ${summary}
+      ${gallery?`<div class="entity-detail-gallery">${gallery}${incompletePhotos?'<p class="shift-photo-note">Některé fotografie mohou chybět.</p>':''}</div>`:''}
+    </div>
     ${partsCard(blocks,parts)}
     ${notes(shift,single)}
-    ${gallery?`<div class="shift-detail-section">${gallery}${incompletePhotos?'<p class="shift-photo-note">Některé fotografie mohou chybět.</p>':''}</div>`:''}
     <nav class="shift-reference-links" aria-label="Související statistiky">
       <a href="statistiky/?tab=shifts&year=${year}">Statistiky směn</a>
       <a href="statistiky/?tab=depots&year=${year}">Vozovny</a>
