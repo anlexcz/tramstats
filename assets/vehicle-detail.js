@@ -73,9 +73,10 @@ function render(vehicle,rows,photos){
       <a class="context-link" href="statistiky/?tab=vehicles&period=all">Všechny roky</a>
       <a class="context-link" href="statistiky/?tab=records">Rekordy</a>
     </nav>
-    ${summaryTable(rows)}
-    ${occurrenceMeta(rows)}
-    ${galleryHTML(rows,photos)}
+    <div class="entity-detail-top${photos.length?' has-gallery':''}">
+      <div class="entity-detail-summary">${summaryTable(rows)}${occurrenceMeta(rows)}</div>
+      ${photos.length?`<div class="entity-detail-gallery">${galleryHTML(rows,photos)}</div>`:''}
+    </div>
     ${photoErrors.length?'<p class="status-message status-warning">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
     ${history(rows)}`;
 }
