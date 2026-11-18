@@ -9,8 +9,6 @@ const fmt=(value,digits=1)=>new Intl.NumberFormat('cs-CZ',{maximumFractionDigits
 const hm=minutes=>`${Math.floor(minutes/60)}:${String(Math.round(minutes%60)).padStart(2,'0')}`;
 const dayNames=['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
 const detailIcon=kind=>({
-  km:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c4-8 8-8 16-10M16 5l4 2-2 4"/></svg>',
-  time:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
   vehicle:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="16" rx="2"/><path d="M6 11h12M9 19l-2 3M15 19l2 3M9 15h.01M15 15h.01"/></svg>',
   camera:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'
 }[kind]||'');
@@ -29,12 +27,10 @@ function dateLong(iso){const parts=dateParts(iso);return `${parts.day} ${parts.d
 const Shared=window.TramStatsShared;
 const partDuration=part=>Domain.blockRange([part])?.duration??null;
 const kmHTML=parts=>Shared.metricHTML(Shared.measure((parts||[]).map(part=>part.km)));
-const timeHTML=parts=>Shared.metricHTML(Domain.durationMetric({parts}),'time');
 function blockRange(block){
   const complete=(block?.parts||[]).filter(part=>part.start&&part.end);
-  if(!complete.length)return {start:'—',end:'—',duration:null};
-  const range=Domain.blockRange(block.parts);
-  return {start:complete[0].start,end:complete.at(-1).end,duration:range?.duration??null};
+  if(!complete.length)return {start:'—',end:'—'};
+  return {start:complete[0].start,end:complete.at(-1).end};
 }
 function performanceLabel(part){
   const line=part.line||'';
@@ -48,12 +44,7 @@ function performanceLabel(part){
 function courseLabel(part){return part.course?`K ${part.course}`:'';}
 function lineLinks(part){
   const codes=[...new Set((part.lineParts||[]).map(x=>x.line).filter(Boolean).concat(String(part.line||'').split('+')).filter(x=>x&&!['Z','MJ','JP','73'].includes(x)))];
-  return codes.map(code=>'<a class="context-link" href="statistiky/?tab=lines&period=all&line='+encodeURIComponent(code)+'">Linka '+esc(code)+'</a>').join('');
-}
-function blockPerformance(block){
-  const fakeShift={actualShift:'',splitSeq:null,parts:block?.parts||[]};
-  const badges=Domain.performanceRows(fakeShift).flatMap(row=>row.badges||[]);
-  return badges.map(badge=>badge.label).filter(Boolean).join(' · ')||'—';
+  return codes.map(code=>'<a class="inline-link" href="statistiky/?tab=lines&period=all&line='+encodeURIComponent(code)+'">Linka '+esc(code)+'</a>').join('');
 }
 function vehicleText(part){
   const ids=[part.frontVehicle,part.rearVehicle].filter(Boolean);
@@ -66,93 +57,88 @@ function galleryHTML(shift){
   const photos=[...(shift.photos||[]),...(shift.parts||[]).flatMap(p=>p.photos||[])];
   return window.TramStatsPhotos?.markup(photos,{label:'Fotografie směny',scope:'shift-photo'})||'';
 }
-function partRow(part,{splitStart=false}={}){
+function assignment(part){
+  const course=courseLabel(part);
+  const vehicle=vehicleText(part);
+  const lines=lineLinks(part);
+  return `<div class="shift-assignment">
+    <div class="shift-assignment-main">
+      <strong class="shift-performance">${esc(performanceLabel(part))}</strong>
+      ${course?`<small>${esc(course)}</small>`:''}
+    </div>
+    ${vehicle?`<div class="shift-assignment-vehicle">${detailIcon('vehicle')}${vehicle}</div>`:''}
+    ${lines?`<div class="shift-line-links">${lines}</div>`:''}
+    ${part.photos?.length?`<button class="detail-photo-mark ui-control" type="button" data-part-photo="${esc(part.partNo)}" aria-label="Fotografie části ${esc(part.partNo)}">${detailIcon('camera')}</button>`:''}
+  </div>`;
+}
+function intervalHTML(start,end){
+  if((!start&&!end)||(start==='—'&&end==='—'))return '—';
+  return `${esc(start||'—')}–${esc(end||'—')}`;
+}
+function partRow(part){
   const duration=partDuration(part);
-  const hasPhoto=Array.isArray(part.photos)&&part.photos.length>0;
-  return `<article class="detail-part data-row${splitStart?' detail-part-split-start':''}">
-    ${splitStart?'<span class="detail-split-label">Šejdrpauza</span>':''}
-    <div class="detail-part-top">
-      <span><strong class="detail-part-performance">${esc(performanceLabel(part))}</strong>${courseLabel(part)?` <small class="detail-muted">${esc(courseLabel(part))}</small>`:''}</span>
-      <span class="detail-part-right">
-        <strong class="detail-part-time">${detailIcon('time')}${esc(part.start||'—')}–${esc(part.end||'—')}</strong>
-        <strong class="detail-part-km">${detailIcon('km')}${part.km!=null?`${fmt(part.km)} km`:'—'}</strong>
-      </span>
+  return `<li class="shift-part">
+    ${assignment(part)}
+    <div class="shift-part-metrics">
+      <span>${intervalHTML(part.start,part.end)}</span>
+      <span>${kmHTML([part])}</span>
+      ${duration!=null?`<span aria-label="Délka ${hm(duration)}">${hm(duration)}</span>`:''}
     </div>
-    <div class="detail-part-bottom">
-      <div class="detail-part-vehicle">${detailIcon('vehicle')}${vehicleText(part)||'<span class="detail-muted">—</span>'}</div>
-      <div class="detail-part-bottom-right">
-        ${duration!=null?`<span class="detail-part-duration">${detailIcon('time')}${hm(duration)}</span>`:''}
-        ${hasPhoto?`<button class="detail-photo-mark" type="button" data-part-photo="${esc(part.partNo)}" aria-label="Fotografie části ${esc(part.partNo)}">${detailIcon('camera')}</button>`:''}
-      </div>
-    </div>
-    ${lineLinks(part)?`<div class="detail-related-links link-group">${lineLinks(part)}</div>`:''}
-    ${part.note?`<div class="detail-part-note">${esc(part.note)}</div>`:''}
-  </article>`;
+    ${part.note?`<p class="shift-note">${esc(part.note)}</p>`:''}
+  </li>`;
 }
-function summaryRow(label,values){
-  return `<div class="detail-summary-row data-row"><strong class="detail-summary-label">${label}</strong>${values.map(value=>`<span>${value}</span>`).join('')}</div>`;
-}
-function summaryWideRow(label,value){
-  return `<div class="detail-summary-row data-row detail-summary-wide"><strong class="detail-summary-label">${label}</strong><span>${value}</span></div>`;
-}
-function summaryTable(shift,blocks){
-  const split=blocks.length>1;
-  const all={parts:shift.parts};
-  const allRange=blockRange(all);
-  const typeName=shift.shiftType?.name||shift.actualShift||'Směna';
-  const depotName=shift.depotMeta?.name||shift.depot||'—';
-  if(!split){
-    const block=blocks[0]||{parts:shift.parts};
-    const r=blockRange(block);
-    return `<section class="detail-summary-card data-panel detail-summary-normal">
-      ${summaryRow('Vozovna',[esc(depotName)])}
-      ${summaryRow('Typ',[esc(typeName)])}
-      ${summaryRow('Výkon',[esc(blockPerformance(block))])}
-      ${summaryRow('Začátek',[esc(r.start)])}
-      ${summaryRow('Konec',[esc(r.end)])}
-      ${summaryRow('Délka',[timeHTML(block.parts)])}
-      ${summaryRow('Kilometry',[kmHTML(block.parts)])}
-    </section>`;
-  }
-  const morning=blocks[0],afternoon=blocks[1];
-  const mr=blockRange(morning),ar=blockRange(afternoon);
-  return `<section class="detail-summary-card data-panel detail-summary-split">
-    ${summaryWideRow('Vozovna',esc(depotName))}
-    ${summaryWideRow('Typ',esc(typeName))}
-    ${summaryRow('Výkon',['',esc(blockPerformance(morning)),esc(blockPerformance(afternoon))])}
-    ${summaryRow('Začátek',[esc(allRange.start),esc(mr.start),esc(ar.start)])}
-    ${summaryRow('Konec',[esc(allRange.end),esc(mr.end),esc(ar.end)])}
-    ${summaryRow('Délka',[Shared.metricHTML(Domain.durationMetric(shift),'time'),timeHTML(morning.parts),timeHTML(afternoon.parts)])}
-    ${summaryRow('Kilometry',[kmHTML(shift.parts),kmHTML(morning.parts),kmHTML(afternoon.parts)])}
+function partsCard(blocks,parts){
+  if(parts.length<2)return '';
+  return `<section class="shift-detail-section">
+    <h2>Průběh směny</h2>
+    ${blocks.map((block,index)=>`
+      ${index===1?'<p class="shift-block-divider">Šejdrpauza</p>':''}
+      <ol class="shift-part-list data-panel">${block.parts.map(partRow).join('')}</ol>
+    `).join('')}
   </section>`;
 }
-function partsCard(shift,blocks){
-  const split=blocks.length>1;
-  if(!split)return `<section class="detail-parts-card data-panel">${(blocks[0]?.parts||shift.parts).map(part=>partRow(part)).join('')}</section>`;
-  return `<section class="detail-parts-card data-panel detail-parts-split">
-    ${blocks[0].parts.map(part=>partRow(part)).join('')}
-    ${blocks[1].parts.map((part,index)=>partRow(part,{splitStart:index===0})).join('')}
+function notes(shift,single){
+  const entries=[...new Set([shift.note,single?.note].filter(Boolean))];
+  if(!entries.length)return '';
+  return `<section class="shift-detail-section shift-notes">
+    <h2>Poznámky</h2>
+    ${entries.map(note=>`<p class="shift-note">${esc(note)}</p>`).join('')}
   </section>`;
 }
 function renderShift(shift){
-  const photoErrors=window.TramStatsData?.status?.photoErrors||[];
-  const blocks=Domain.blocks(shift),parts=dateParts(shift.date);
+  const parts=shift.parts||[];
+  const single=parts.length===1?parts[0]:null;
+  const blocks=Domain.blocks(shift);
+  const date=dateParts(shift.date);
+  const range=single||blockRange({parts});
+  const type=shift.shiftType?.name||shift.actualShift;
+  const depot=shift.depotMeta?.name||shift.depot;
+  const meta=[type,depot].filter(Boolean).map(esc).join(' · ');
+  const year=encodeURIComponent(shift.date.slice(0,4));
+  const gallery=galleryHTML(shift);
+  const incompletePhotos=window.TramStatsData?.status?.photoErrors?.length;
   root.innerHTML=`
-    <div class="detail-heading">
-      <h1 class="detail-title"><span>${esc(parts.day)}</span><strong>${esc(parts.date)}</strong></h1>
-      <a class="back-link" href="smeny/">← Zpět</a>
+    <div class="shift-title-group">
+      <a class="shift-detail-back" href="smeny/">← Všechny směny</a>
+      <h1><time datetime="${esc(shift.date)}">${esc(date.date)}</time></h1>
+      <p>${esc(date.day)}${meta?` <span aria-hidden="true">·</span> ${meta}`:''}</p>
     </div>
-    <nav class="detail-context-links link-group" aria-label="Související statistiky">
-      <a class="context-link" href="statistiky/?tab=shifts&year=${encodeURIComponent(shift.date.slice(0,4))}">Statistiky směn</a>
-      <a class="context-link" href="statistiky/?tab=depots&year=${encodeURIComponent(shift.date.slice(0,4))}">Vozovny</a>
-      <a class="context-link" href="statistiky/?tab=distance&year=${encodeURIComponent(shift.date.slice(0,4))}">Kilometry</a>
-    </nav>
-    ${summaryTable(shift,blocks)}
-    ${galleryHTML(shift)}
-    ${photoErrors.length?'<p class="status-message status-warning">Fotografická evidence není z API dostupná ('+esc(photoErrors.join(', '))+'). Galerie může být neúplná.</p>':''}
-    ${partsCard(shift,blocks)}
-    ${shift.note?`<section class="detail-note-card data-panel panel-padded"><strong>Poznámka</strong><p>${esc(shift.note)}</p></section>`:''}
-`;
+    <section class="shift-overview data-panel" aria-label="Souhrn směny">
+      <dl class="shift-stat-grid">
+        <div class="shift-stat-interval"><dt>Čas směny</dt><dd>${intervalHTML(range.start,range.end)}</dd></div>
+        <div><dt>Délka</dt><dd>${Shared.metricHTML(Domain.durationMetric(shift),'time')}</dd></div>
+        <div><dt>Kilometry</dt><dd>${kmHTML(parts)}</dd></div>
+      </dl>
+      ${single?assignment(single):''}
+    </section>
+    ${partsCard(blocks,parts)}
+    ${notes(shift,single)}
+    ${gallery?`<div class="shift-detail-section">${gallery}${incompletePhotos?'<p class="shift-photo-note">Některé fotografie mohou chybět.</p>':''}</div>`:''}
+    <nav class="shift-reference-links" aria-label="Související statistiky">
+      <a href="statistiky/?tab=shifts&year=${year}">Statistiky směn</a>
+      <a href="statistiky/?tab=depots&year=${year}">Vozovny</a>
+      <a href="statistiky/?tab=distance&year=${year}">Kilometry</a>
+    </nav>`;
 }
 document.addEventListener('click',event=>{
   const btn=event.target.closest('[data-part-photo]');

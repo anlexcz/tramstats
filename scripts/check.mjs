@@ -203,6 +203,13 @@ async function detailHTML(file,path,fixture){
   assert.equal(status.textContent,'');
   return root.innerHTML;
 }
+const singleHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',db);
+assert.equal([...singleHTML.matchAll(/30 km/g)].length,1);
+assert.match(singleHTML,/23:00–01:00/);
+assert.match(singleHTML,/6\+34\/7/);
+assert.match(singleHTML,/href="vuz\/8151\/"/);
+assert.match(singleHTML,/>Test</);
+assert.doesNotMatch(singleHTML,/Průběh směny/);
 const splitDB={...db,shifts:[{...split,date:'2026-01-01'}]};
 const splitHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',splitDB);
 assert.ok(splitHTML.includes('8:00'));
