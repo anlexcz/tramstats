@@ -20,3 +20,7 @@
 .ts-photos-controls{display:flex;justify-content:center;align-items:center;gap:var(--space-3);margin-top:var(--space-2)}
 .ts-photos-controls .ui-control{min-width:var(--touch-height);padding:var(--space-2)}
 .ts-photos-counter{color:var(--muted);font-size:var(--font-meta)}
+
+.entity-detail-gallery .ts-photo-card{min-width:0}
+.entity-detail-gallery .ts-photo-frame{aspect-ratio:4/3}
+@media(prefers-reduced-motion:reduce){.entity-detail-gallery .ts-photos-grid{scroll-behavior:auto}}
