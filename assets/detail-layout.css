@@ -1,0 +1,19 @@
+/* Shared structure for shift and vehicle detail pages. Values inherit global tokens. */
+.entity-detail-top{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-4);align-items:start}
+.entity-detail-top.has-gallery{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.entity-detail-summary,.entity-detail-gallery{min-width:0}
+.entity-detail-top .ts-photos{margin:0}
+.entity-summary{min-width:0;overflow-x:auto}
+.entity-summary-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,1.25fr);align-items:center;min-height:var(--touch-height);border-bottom:var(--edge)}
+.entity-summary-row:last-child{border-bottom:0}
+.entity-summary-row>span{padding:var(--space-2) var(--space-3);min-width:0;overflow-wrap:anywhere}
+.entity-summary-row>span:not(:first-child){font-weight:600;color:var(--text-strong)}
+.entity-summary-name{color:var(--muted);font-weight:500}
+.entity-summary-row.is-split{grid-template-columns:minmax(88px,1.05fr) minmax(72px,.85fr) minmax(84px,1fr) minmax(84px,1fr)}
+.entity-summary-labels{background:var(--surface-heading);font-size:var(--font-caption);font-weight:700;color:var(--muted)}
+.entity-summary-row.is-split>span:not(:first-child){font-size:var(--font-meta)}
+@media(max-width:760px){
+  .entity-detail-top.has-gallery{grid-template-columns:minmax(0,1fr)}
+  .entity-summary-row.is-split{grid-template-columns:minmax(76px,1fr) minmax(65px,.8fr) minmax(78px,1fr) minmax(78px,1fr)}
+  .entity-summary-row>span{padding:var(--space-2)}
+}
