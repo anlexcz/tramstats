@@ -86,7 +86,7 @@ const runtimeFiles=[
   'assets/shared.js','assets/shifts-page.js','assets/shifts-date-range.js','assets/shift-detail.js',
   'assets/vehicles-page.js','assets/vehicle-detail.js','assets/vehicle-links.js','assets/photo-gallery.js','assets/statistics.js',
   'assets/app.css','assets/components.css','assets/dashboard-v2.css','assets/shifts-page.css','assets/shifts-date-range.css',
-  'assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/photo-gallery.css','assets/statistics.css',
+  'assets/detail-layout.css','assets/shift-detail.css','assets/vehicles-page.css','assets/vehicle-detail.css','assets/photo-gallery.css','assets/statistics.css',
   'index.html','smeny/index.html','vozy/index.html','statistiky/index.html','smena/20261023/index.html','404.html'
 ];
 for(const file of runtimeFiles){
@@ -204,12 +204,12 @@ async function detailHTML(file,path,fixture){
   return root.innerHTML;
 }
 const singleHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',db);
-assert.equal([...singleHTML.matchAll(/30 km/g)].length,1);
+assert.equal([...singleHTML.matchAll(/30 km/g)].length,2);
 assert.match(singleHTML,/23:00–01:00/);
 assert.match(singleHTML,/6\+34\/7/);
 assert.match(singleHTML,/href="vuz\/8151\/"/);
 assert.match(singleHTML,/>Test</);
-assert.doesNotMatch(singleHTML,/Průběh směny/);
+assert.match(singleHTML,/Průběh směny/);
 const splitDB={...db,shifts:[{...split,date:'2026-01-01'}]};
 const splitHTML=await detailHTML('assets/shift-detail.js','/tramstats/smena/20260101/',splitDB);
 assert.ok(splitHTML.includes('8:00'));
